@@ -59,17 +59,17 @@ function AdminAdmins() {
     try {
       const { data: profile, error: pErr } = await supabase
         .from("users_profile")
-        .select("id,email,nome")
+        .select("auth_user_id,email,nome")
         .ilike("email", target)
         .maybeSingle();
       if (pErr) throw pErr;
-      if (!profile) {
+      if (!profile?.auth_user_id) {
         toast.error("Usuário não encontrado. Ele precisa se cadastrar primeiro.");
         return;
       }
       const { error } = await supabase
         .from("user_roles")
-        .insert({ user_id: profile.id, role: "admin" });
+        .insert({ user_id: profile.auth_user_id, role: "admin" });
       if (error && !`${error.message}`.includes("duplicate")) throw error;
       toast.success(`${profile.nome ?? profile.email} promovido a admin`);
       setEmail("");

@@ -11,7 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as CadastroRouteImport } from './routes/cadastro'
+import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppIndexRouteImport } from './routes/app/index'
+import { Route as AppRenovacaoRouteImport } from './routes/app/renovacao'
+import { Route as AppRedeRouteImport } from './routes/app/rede'
+import { Route as AppExtratoRouteImport } from './routes/app/extrato'
+import { Route as AppCampanhasRouteImport } from './routes/app/campanhas'
 import { Route as ApiConfigRouteImport } from './routes/api/config'
 
 const LoginRoute = LoginRouteImport.update({
@@ -24,10 +30,40 @@ const CadastroRoute = CadastroRouteImport.update({
   path: '/cadastro',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRenovacaoRoute = AppRenovacaoRouteImport.update({
+  id: '/renovacao',
+  path: '/renovacao',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRedeRoute = AppRedeRouteImport.update({
+  id: '/rede',
+  path: '/rede',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppExtratoRoute = AppExtratoRouteImport.update({
+  id: '/extrato',
+  path: '/extrato',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCampanhasRoute = AppCampanhasRouteImport.update({
+  id: '/campanhas',
+  path: '/campanhas',
+  getParentRoute: () => AppRoute,
 } as any)
 const ApiConfigRoute = ApiConfigRouteImport.update({
   id: '/api/config',
@@ -37,33 +73,81 @@ const ApiConfigRoute = ApiConfigRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
   '/api/config': typeof ApiConfigRoute
+  '/app/campanhas': typeof AppCampanhasRoute
+  '/app/extrato': typeof AppExtratoRoute
+  '/app/rede': typeof AppRedeRoute
+  '/app/renovacao': typeof AppRenovacaoRoute
+  '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
   '/api/config': typeof ApiConfigRoute
+  '/app/campanhas': typeof AppCampanhasRoute
+  '/app/extrato': typeof AppExtratoRoute
+  '/app/rede': typeof AppRedeRoute
+  '/app/renovacao': typeof AppRenovacaoRoute
+  '/app': typeof AppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
   '/api/config': typeof ApiConfigRoute
+  '/app/campanhas': typeof AppCampanhasRoute
+  '/app/extrato': typeof AppExtratoRoute
+  '/app/rede': typeof AppRedeRoute
+  '/app/renovacao': typeof AppRenovacaoRoute
+  '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/cadastro' | '/login' | '/api/config'
+  fullPaths:
+    | '/'
+    | '/app'
+    | '/cadastro'
+    | '/login'
+    | '/api/config'
+    | '/app/campanhas'
+    | '/app/extrato'
+    | '/app/rede'
+    | '/app/renovacao'
+    | '/app/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/cadastro' | '/login' | '/api/config'
-  id: '__root__' | '/' | '/cadastro' | '/login' | '/api/config'
+  to:
+    | '/'
+    | '/cadastro'
+    | '/login'
+    | '/api/config'
+    | '/app/campanhas'
+    | '/app/extrato'
+    | '/app/rede'
+    | '/app/renovacao'
+    | '/app'
+  id:
+    | '__root__'
+    | '/'
+    | '/app'
+    | '/cadastro'
+    | '/login'
+    | '/api/config'
+    | '/app/campanhas'
+    | '/app/extrato'
+    | '/app/rede'
+    | '/app/renovacao'
+    | '/app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
   CadastroRoute: typeof CadastroRoute
   LoginRoute: typeof LoginRoute
   ApiConfigRoute: typeof ApiConfigRoute
@@ -85,12 +169,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CadastroRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/app/': {
+      id: '/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/renovacao': {
+      id: '/app/renovacao'
+      path: '/renovacao'
+      fullPath: '/app/renovacao'
+      preLoaderRoute: typeof AppRenovacaoRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/rede': {
+      id: '/app/rede'
+      path: '/rede'
+      fullPath: '/app/rede'
+      preLoaderRoute: typeof AppRedeRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/extrato': {
+      id: '/app/extrato'
+      path: '/extrato'
+      fullPath: '/app/extrato'
+      preLoaderRoute: typeof AppExtratoRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/campanhas': {
+      id: '/app/campanhas'
+      path: '/campanhas'
+      fullPath: '/app/campanhas'
+      preLoaderRoute: typeof AppCampanhasRouteImport
+      parentRoute: typeof AppRoute
     }
     '/api/config': {
       id: '/api/config'
@@ -102,8 +228,27 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AppRouteChildren {
+  AppCampanhasRoute: typeof AppCampanhasRoute
+  AppExtratoRoute: typeof AppExtratoRoute
+  AppRedeRoute: typeof AppRedeRoute
+  AppRenovacaoRoute: typeof AppRenovacaoRoute
+  AppIndexRoute: typeof AppIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppCampanhasRoute: AppCampanhasRoute,
+  AppExtratoRoute: AppExtratoRoute,
+  AppRedeRoute: AppRedeRoute,
+  AppRenovacaoRoute: AppRenovacaoRoute,
+  AppIndexRoute: AppIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
   CadastroRoute: CadastroRoute,
   LoginRoute: LoginRoute,
   ApiConfigRoute: ApiConfigRoute,
@@ -111,3 +256,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

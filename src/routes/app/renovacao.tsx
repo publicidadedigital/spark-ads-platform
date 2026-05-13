@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_app/renovacao")({ component: RenovacaoPage });
+export const Route = createFileRoute("/app/renovacao")({ component: RenovacaoPage });
 
 function RenovacaoPage() {
   const { supabase, user } = useAuth();

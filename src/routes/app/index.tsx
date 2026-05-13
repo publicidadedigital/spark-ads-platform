@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Wallet, TrendingUp, Share2, Users, AlertTriangle } from "lucide-react";
 
-export const Route = createFileRoute("/_app/")({ component: Dashboard });
+export const Route = createFileRoute("/app/")({ component: Dashboard });
 
 type Stats = {
   saldo: number;

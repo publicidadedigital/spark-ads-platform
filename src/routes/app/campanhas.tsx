@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Copy, ExternalLink, Upload } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_app/campanhas")({ component: CampanhasPage });
+export const Route = createFileRoute("/app/campanhas")({ component: CampanhasPage });
 
 function CampanhasPage() {
   const { supabase, user } = useAuth();

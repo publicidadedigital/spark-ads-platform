@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Copy } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_app/rede")({ component: RedePage });
+export const Route = createFileRoute("/app/rede")({ component: RedePage });
 
 function RedePage() {
   const { supabase, user } = useAuth();

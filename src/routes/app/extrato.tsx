@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/supabase/auth";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-export const Route = createFileRoute("/_app/extrato")({ component: ExtratoPage });
+export const Route = createFileRoute("/app/extrato")({ component: ExtratoPage });
 
 function ExtratoPage() {
   const { supabase, user } = useAuth();

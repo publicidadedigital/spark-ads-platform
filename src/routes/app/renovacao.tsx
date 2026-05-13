@@ -1,15 +1,15 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/supabase/auth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/renovacao")({ component: RenovacaoPage });
 
 function RenovacaoPage() {
   const { supabase, user } = useAuth();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
   const [cycle, setCycle] = useState<any>(null);
   const [packages, setPackages] = useState<any[]>([]);
@@ -30,18 +30,8 @@ function RenovacaoPage() {
     })();
   }, [supabase, user]);
 
-  async function escolher(pkg: any) {
-    if (!supabase || !profile) return;
-    // Em produção, deve passar por gateway de pagamento e webhook ativar o ciclo.
-    // Aqui registramos a intenção para o admin liberar.
-    const { error } = await supabase.from("user_cycles").insert({
-      user_id: profile.id,
-      package_id: pkg.id,
-      valor_pacote: pkg.valor,
-      status: "aguardando_renovacao",
-    });
-    if (error) return toast.error(error.message);
-    toast.success("Pedido registrado. Aguarde aprovação do admin.");
+  function escolher(pkg: any) {
+    navigate({ to: "/app/checkout/$packageId", params: { packageId: pkg.id } });
   }
 
   if (loading) return <p className="text-muted-foreground">Carregando...</p>;

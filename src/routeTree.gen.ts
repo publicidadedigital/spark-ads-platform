@@ -31,6 +31,7 @@ import { Route as AdminProvasRouteImport } from './routes/admin/provas'
 import { Route as AdminPacotesRouteImport } from './routes/admin/pacotes'
 import { Route as AdminCampanhasRouteImport } from './routes/admin/campanhas'
 import { Route as AdminAdminsRouteImport } from './routes/admin/admins'
+import { Route as AppCheckoutPackageIdRouteImport } from './routes/app/checkout.$packageId'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -142,6 +143,11 @@ const AdminAdminsRoute = AdminAdminsRouteImport.update({
   path: '/admins',
   getParentRoute: () => AdminRoute,
 } as any)
+const AppCheckoutPackageIdRoute = AppCheckoutPackageIdRouteImport.update({
+  id: '/checkout/$packageId',
+  path: '/checkout/$packageId',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -166,6 +172,7 @@ export interface FileRoutesByFullPath {
   '/legal/termos': typeof LegalTermosRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
+  '/app/checkout/$packageId': typeof AppCheckoutPackageIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -188,6 +195,7 @@ export interface FileRoutesByTo {
   '/legal/termos': typeof LegalTermosRoute
   '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
+  '/app/checkout/$packageId': typeof AppCheckoutPackageIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -213,6 +221,7 @@ export interface FileRoutesById {
   '/legal/termos': typeof LegalTermosRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
+  '/app/checkout/$packageId': typeof AppCheckoutPackageIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -239,6 +248,7 @@ export interface FileRouteTypes {
     | '/legal/termos'
     | '/admin/'
     | '/app/'
+    | '/app/checkout/$packageId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -261,6 +271,7 @@ export interface FileRouteTypes {
     | '/legal/termos'
     | '/admin'
     | '/app'
+    | '/app/checkout/$packageId'
   id:
     | '__root__'
     | '/'
@@ -285,6 +296,7 @@ export interface FileRouteTypes {
     | '/legal/termos'
     | '/admin/'
     | '/app/'
+    | '/app/checkout/$packageId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -453,6 +465,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAdminsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/app/checkout/$packageId': {
+      id: '/app/checkout/$packageId'
+      path: '/checkout/$packageId'
+      fullPath: '/app/checkout/$packageId'
+      preLoaderRoute: typeof AppCheckoutPackageIdRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -480,6 +499,7 @@ interface AppRouteChildren {
   AppRedeRoute: typeof AppRedeRoute
   AppRenovacaoRoute: typeof AppRenovacaoRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppCheckoutPackageIdRoute: typeof AppCheckoutPackageIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -488,6 +508,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppRedeRoute: AppRedeRoute,
   AppRenovacaoRoute: AppRenovacaoRoute,
   AppIndexRoute: AppIndexRoute,
+  AppCheckoutPackageIdRoute: AppCheckoutPackageIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

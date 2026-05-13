@@ -19,6 +19,8 @@ export type CheckoutInput = {
   method: PaymentMethod;
   userId: string;
   userEmail: string;
+  /** id do user_cycles criado no servidor — enviado ao gateway como metadata */
+  cycleId: string;
 };
 
 export type CheckoutResult = {

@@ -8,6 +8,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { CreditCard, QrCode, Receipt, ShieldCheck, Loader2 } from "lucide-react";
 import { createCheckout, PAYMENT_METHODS, type PaymentMethod } from "@/lib/payments/provider";
+import { createCheckoutOrder } from "@/lib/payments/checkout.functions";
+import { useServerFn } from "@tanstack/react-start";
 
 export const Route = createFileRoute("/app/checkout/$packageId")({ component: CheckoutPage });
 

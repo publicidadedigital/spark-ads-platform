@@ -9,38 +9,319 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as LegalRouteImport } from './routes/legal'
+import { Route as CadastroRouteImport } from './routes/cadastro'
+import { Route as AppRouteImport } from './routes/app'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppIndexRouteImport } from './routes/app/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as LegalTermosRouteImport } from './routes/legal/termos'
+import { Route as LegalRenovacaoRouteImport } from './routes/legal/renovacao'
+import { Route as LegalPrivacidadeRouteImport } from './routes/legal/privacidade'
+import { Route as LegalBonificacaoRouteImport } from './routes/legal/bonificacao'
+import { Route as LegalAntifraudeRouteImport } from './routes/legal/antifraude'
+import { Route as AppRenovacaoRouteImport } from './routes/app/renovacao'
+import { Route as AppRedeRouteImport } from './routes/app/rede'
+import { Route as AppExtratoRouteImport } from './routes/app/extrato'
+import { Route as AppCampanhasRouteImport } from './routes/app/campanhas'
+import { Route as ApiConfigRouteImport } from './routes/api/config'
+import { Route as AdminProvasRouteImport } from './routes/admin/provas'
+import { Route as AdminPacotesRouteImport } from './routes/admin/pacotes'
+import { Route as AdminCampanhasRouteImport } from './routes/admin/campanhas'
 
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalRoute = LegalRouteImport.update({
+  id: '/legal',
+  path: '/legal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CadastroRoute = CadastroRouteImport.update({
+  id: '/cadastro',
+  path: '/cadastro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const LegalTermosRoute = LegalTermosRouteImport.update({
+  id: '/termos',
+  path: '/termos',
+  getParentRoute: () => LegalRoute,
+} as any)
+const LegalRenovacaoRoute = LegalRenovacaoRouteImport.update({
+  id: '/renovacao',
+  path: '/renovacao',
+  getParentRoute: () => LegalRoute,
+} as any)
+const LegalPrivacidadeRoute = LegalPrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
+  getParentRoute: () => LegalRoute,
+} as any)
+const LegalBonificacaoRoute = LegalBonificacaoRouteImport.update({
+  id: '/bonificacao',
+  path: '/bonificacao',
+  getParentRoute: () => LegalRoute,
+} as any)
+const LegalAntifraudeRoute = LegalAntifraudeRouteImport.update({
+  id: '/antifraude',
+  path: '/antifraude',
+  getParentRoute: () => LegalRoute,
+} as any)
+const AppRenovacaoRoute = AppRenovacaoRouteImport.update({
+  id: '/renovacao',
+  path: '/renovacao',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRedeRoute = AppRedeRouteImport.update({
+  id: '/rede',
+  path: '/rede',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppExtratoRoute = AppExtratoRouteImport.update({
+  id: '/extrato',
+  path: '/extrato',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCampanhasRoute = AppCampanhasRouteImport.update({
+  id: '/campanhas',
+  path: '/campanhas',
+  getParentRoute: () => AppRoute,
+} as any)
+const ApiConfigRoute = ApiConfigRouteImport.update({
+  id: '/api/config',
+  path: '/api/config',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminProvasRoute = AdminProvasRouteImport.update({
+  id: '/provas',
+  path: '/provas',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPacotesRoute = AdminPacotesRouteImport.update({
+  id: '/pacotes',
+  path: '/pacotes',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCampanhasRoute = AdminCampanhasRouteImport.update({
+  id: '/campanhas',
+  path: '/campanhas',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/app': typeof AppRouteWithChildren
+  '/cadastro': typeof CadastroRoute
+  '/legal': typeof LegalRouteWithChildren
+  '/login': typeof LoginRoute
+  '/admin/campanhas': typeof AdminCampanhasRoute
+  '/admin/pacotes': typeof AdminPacotesRoute
+  '/admin/provas': typeof AdminProvasRoute
+  '/api/config': typeof ApiConfigRoute
+  '/app/campanhas': typeof AppCampanhasRoute
+  '/app/extrato': typeof AppExtratoRoute
+  '/app/rede': typeof AppRedeRoute
+  '/app/renovacao': typeof AppRenovacaoRoute
+  '/legal/antifraude': typeof LegalAntifraudeRoute
+  '/legal/bonificacao': typeof LegalBonificacaoRoute
+  '/legal/privacidade': typeof LegalPrivacidadeRoute
+  '/legal/renovacao': typeof LegalRenovacaoRoute
+  '/legal/termos': typeof LegalTermosRoute
+  '/admin/': typeof AdminIndexRoute
+  '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cadastro': typeof CadastroRoute
+  '/legal': typeof LegalRouteWithChildren
+  '/login': typeof LoginRoute
+  '/admin/campanhas': typeof AdminCampanhasRoute
+  '/admin/pacotes': typeof AdminPacotesRoute
+  '/admin/provas': typeof AdminProvasRoute
+  '/api/config': typeof ApiConfigRoute
+  '/app/campanhas': typeof AppCampanhasRoute
+  '/app/extrato': typeof AppExtratoRoute
+  '/app/rede': typeof AppRedeRoute
+  '/app/renovacao': typeof AppRenovacaoRoute
+  '/legal/antifraude': typeof LegalAntifraudeRoute
+  '/legal/bonificacao': typeof LegalBonificacaoRoute
+  '/legal/privacidade': typeof LegalPrivacidadeRoute
+  '/legal/renovacao': typeof LegalRenovacaoRoute
+  '/legal/termos': typeof LegalTermosRoute
+  '/admin': typeof AdminIndexRoute
+  '/app': typeof AppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/app': typeof AppRouteWithChildren
+  '/cadastro': typeof CadastroRoute
+  '/legal': typeof LegalRouteWithChildren
+  '/login': typeof LoginRoute
+  '/admin/campanhas': typeof AdminCampanhasRoute
+  '/admin/pacotes': typeof AdminPacotesRoute
+  '/admin/provas': typeof AdminProvasRoute
+  '/api/config': typeof ApiConfigRoute
+  '/app/campanhas': typeof AppCampanhasRoute
+  '/app/extrato': typeof AppExtratoRoute
+  '/app/rede': typeof AppRedeRoute
+  '/app/renovacao': typeof AppRenovacaoRoute
+  '/legal/antifraude': typeof LegalAntifraudeRoute
+  '/legal/bonificacao': typeof LegalBonificacaoRoute
+  '/legal/privacidade': typeof LegalPrivacidadeRoute
+  '/legal/renovacao': typeof LegalRenovacaoRoute
+  '/legal/termos': typeof LegalTermosRoute
+  '/admin/': typeof AdminIndexRoute
+  '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/app'
+    | '/cadastro'
+    | '/legal'
+    | '/login'
+    | '/admin/campanhas'
+    | '/admin/pacotes'
+    | '/admin/provas'
+    | '/api/config'
+    | '/app/campanhas'
+    | '/app/extrato'
+    | '/app/rede'
+    | '/app/renovacao'
+    | '/legal/antifraude'
+    | '/legal/bonificacao'
+    | '/legal/privacidade'
+    | '/legal/renovacao'
+    | '/legal/termos'
+    | '/admin/'
+    | '/app/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/cadastro'
+    | '/legal'
+    | '/login'
+    | '/admin/campanhas'
+    | '/admin/pacotes'
+    | '/admin/provas'
+    | '/api/config'
+    | '/app/campanhas'
+    | '/app/extrato'
+    | '/app/rede'
+    | '/app/renovacao'
+    | '/legal/antifraude'
+    | '/legal/bonificacao'
+    | '/legal/privacidade'
+    | '/legal/renovacao'
+    | '/legal/termos'
+    | '/admin'
+    | '/app'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/app'
+    | '/cadastro'
+    | '/legal'
+    | '/login'
+    | '/admin/campanhas'
+    | '/admin/pacotes'
+    | '/admin/provas'
+    | '/api/config'
+    | '/app/campanhas'
+    | '/app/extrato'
+    | '/app/rede'
+    | '/app/renovacao'
+    | '/legal/antifraude'
+    | '/legal/bonificacao'
+    | '/legal/privacidade'
+    | '/legal/renovacao'
+    | '/legal/termos'
+    | '/admin/'
+    | '/app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
+  AppRoute: typeof AppRouteWithChildren
+  CadastroRoute: typeof CadastroRoute
+  LegalRoute: typeof LegalRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  ApiConfigRoute: typeof ApiConfigRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal': {
+      id: '/legal'
+      path: '/legal'
+      fullPath: '/legal'
+      preLoaderRoute: typeof LegalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cadastro': {
+      id: '/cadastro'
+      path: '/cadastro'
+      fullPath: '/cadastro'
+      preLoaderRoute: typeof CadastroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +329,174 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/': {
+      id: '/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/legal/termos': {
+      id: '/legal/termos'
+      path: '/termos'
+      fullPath: '/legal/termos'
+      preLoaderRoute: typeof LegalTermosRouteImport
+      parentRoute: typeof LegalRoute
+    }
+    '/legal/renovacao': {
+      id: '/legal/renovacao'
+      path: '/renovacao'
+      fullPath: '/legal/renovacao'
+      preLoaderRoute: typeof LegalRenovacaoRouteImport
+      parentRoute: typeof LegalRoute
+    }
+    '/legal/privacidade': {
+      id: '/legal/privacidade'
+      path: '/privacidade'
+      fullPath: '/legal/privacidade'
+      preLoaderRoute: typeof LegalPrivacidadeRouteImport
+      parentRoute: typeof LegalRoute
+    }
+    '/legal/bonificacao': {
+      id: '/legal/bonificacao'
+      path: '/bonificacao'
+      fullPath: '/legal/bonificacao'
+      preLoaderRoute: typeof LegalBonificacaoRouteImport
+      parentRoute: typeof LegalRoute
+    }
+    '/legal/antifraude': {
+      id: '/legal/antifraude'
+      path: '/antifraude'
+      fullPath: '/legal/antifraude'
+      preLoaderRoute: typeof LegalAntifraudeRouteImport
+      parentRoute: typeof LegalRoute
+    }
+    '/app/renovacao': {
+      id: '/app/renovacao'
+      path: '/renovacao'
+      fullPath: '/app/renovacao'
+      preLoaderRoute: typeof AppRenovacaoRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/rede': {
+      id: '/app/rede'
+      path: '/rede'
+      fullPath: '/app/rede'
+      preLoaderRoute: typeof AppRedeRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/extrato': {
+      id: '/app/extrato'
+      path: '/extrato'
+      fullPath: '/app/extrato'
+      preLoaderRoute: typeof AppExtratoRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/campanhas': {
+      id: '/app/campanhas'
+      path: '/campanhas'
+      fullPath: '/app/campanhas'
+      preLoaderRoute: typeof AppCampanhasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/api/config': {
+      id: '/api/config'
+      path: '/api/config'
+      fullPath: '/api/config'
+      preLoaderRoute: typeof ApiConfigRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/provas': {
+      id: '/admin/provas'
+      path: '/provas'
+      fullPath: '/admin/provas'
+      preLoaderRoute: typeof AdminProvasRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/pacotes': {
+      id: '/admin/pacotes'
+      path: '/pacotes'
+      fullPath: '/admin/pacotes'
+      preLoaderRoute: typeof AdminPacotesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/campanhas': {
+      id: '/admin/campanhas'
+      path: '/campanhas'
+      fullPath: '/admin/campanhas'
+      preLoaderRoute: typeof AdminCampanhasRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
+interface AdminRouteChildren {
+  AdminCampanhasRoute: typeof AdminCampanhasRoute
+  AdminPacotesRoute: typeof AdminPacotesRoute
+  AdminProvasRoute: typeof AdminProvasRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminCampanhasRoute: AdminCampanhasRoute,
+  AdminPacotesRoute: AdminPacotesRoute,
+  AdminProvasRoute: AdminProvasRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
+interface AppRouteChildren {
+  AppCampanhasRoute: typeof AppCampanhasRoute
+  AppExtratoRoute: typeof AppExtratoRoute
+  AppRedeRoute: typeof AppRedeRoute
+  AppRenovacaoRoute: typeof AppRenovacaoRoute
+  AppIndexRoute: typeof AppIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppCampanhasRoute: AppCampanhasRoute,
+  AppExtratoRoute: AppExtratoRoute,
+  AppRedeRoute: AppRedeRoute,
+  AppRenovacaoRoute: AppRenovacaoRoute,
+  AppIndexRoute: AppIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
+interface LegalRouteChildren {
+  LegalAntifraudeRoute: typeof LegalAntifraudeRoute
+  LegalBonificacaoRoute: typeof LegalBonificacaoRoute
+  LegalPrivacidadeRoute: typeof LegalPrivacidadeRoute
+  LegalRenovacaoRoute: typeof LegalRenovacaoRoute
+  LegalTermosRoute: typeof LegalTermosRoute
+}
+
+const LegalRouteChildren: LegalRouteChildren = {
+  LegalAntifraudeRoute: LegalAntifraudeRoute,
+  LegalBonificacaoRoute: LegalBonificacaoRoute,
+  LegalPrivacidadeRoute: LegalPrivacidadeRoute,
+  LegalRenovacaoRoute: LegalRenovacaoRoute,
+  LegalTermosRoute: LegalTermosRoute,
+}
+
+const LegalRouteWithChildren = LegalRoute._addFileChildren(LegalRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
+  AppRoute: AppRouteWithChildren,
+  CadastroRoute: CadastroRoute,
+  LegalRoute: LegalRouteWithChildren,
+  LoginRoute: LoginRoute,
+  ApiConfigRoute: ApiConfigRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

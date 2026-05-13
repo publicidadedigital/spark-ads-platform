@@ -13,8 +13,10 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as LegalRouteImport } from './routes/legal'
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as AppRouteImport } from './routes/app'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as LegalTermosRouteImport } from './routes/legal/termos'
 import { Route as LegalRenovacaoRouteImport } from './routes/legal/renovacao'
 import { Route as LegalPrivacidadeRouteImport } from './routes/legal/privacidade'
@@ -25,6 +27,9 @@ import { Route as AppRedeRouteImport } from './routes/app/rede'
 import { Route as AppExtratoRouteImport } from './routes/app/extrato'
 import { Route as AppCampanhasRouteImport } from './routes/app/campanhas'
 import { Route as ApiConfigRouteImport } from './routes/api/config'
+import { Route as AdminProvasRouteImport } from './routes/admin/provas'
+import { Route as AdminPacotesRouteImport } from './routes/admin/pacotes'
+import { Route as AdminCampanhasRouteImport } from './routes/admin/campanhas'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -46,6 +51,11 @@ const AppRoute = AppRouteImport.update({
   path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -55,6 +65,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRoute,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
 } as any)
 const LegalTermosRoute = LegalTermosRouteImport.update({
   id: '/termos',
@@ -106,13 +121,32 @@ const ApiConfigRoute = ApiConfigRouteImport.update({
   path: '/api/config',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminProvasRoute = AdminProvasRouteImport.update({
+  id: '/provas',
+  path: '/provas',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPacotesRoute = AdminPacotesRouteImport.update({
+  id: '/pacotes',
+  path: '/pacotes',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCampanhasRoute = AdminCampanhasRouteImport.update({
+  id: '/campanhas',
+  path: '/campanhas',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/app': typeof AppRouteWithChildren
   '/cadastro': typeof CadastroRoute
   '/legal': typeof LegalRouteWithChildren
   '/login': typeof LoginRoute
+  '/admin/campanhas': typeof AdminCampanhasRoute
+  '/admin/pacotes': typeof AdminPacotesRoute
+  '/admin/provas': typeof AdminProvasRoute
   '/api/config': typeof ApiConfigRoute
   '/app/campanhas': typeof AppCampanhasRoute
   '/app/extrato': typeof AppExtratoRoute
@@ -123,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/legal/privacidade': typeof LegalPrivacidadeRoute
   '/legal/renovacao': typeof LegalRenovacaoRoute
   '/legal/termos': typeof LegalTermosRoute
+  '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
@@ -130,6 +165,9 @@ export interface FileRoutesByTo {
   '/cadastro': typeof CadastroRoute
   '/legal': typeof LegalRouteWithChildren
   '/login': typeof LoginRoute
+  '/admin/campanhas': typeof AdminCampanhasRoute
+  '/admin/pacotes': typeof AdminPacotesRoute
+  '/admin/provas': typeof AdminProvasRoute
   '/api/config': typeof ApiConfigRoute
   '/app/campanhas': typeof AppCampanhasRoute
   '/app/extrato': typeof AppExtratoRoute
@@ -140,15 +178,20 @@ export interface FileRoutesByTo {
   '/legal/privacidade': typeof LegalPrivacidadeRoute
   '/legal/renovacao': typeof LegalRenovacaoRoute
   '/legal/termos': typeof LegalTermosRoute
+  '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/app': typeof AppRouteWithChildren
   '/cadastro': typeof CadastroRoute
   '/legal': typeof LegalRouteWithChildren
   '/login': typeof LoginRoute
+  '/admin/campanhas': typeof AdminCampanhasRoute
+  '/admin/pacotes': typeof AdminPacotesRoute
+  '/admin/provas': typeof AdminProvasRoute
   '/api/config': typeof ApiConfigRoute
   '/app/campanhas': typeof AppCampanhasRoute
   '/app/extrato': typeof AppExtratoRoute
@@ -159,16 +202,21 @@ export interface FileRoutesById {
   '/legal/privacidade': typeof LegalPrivacidadeRoute
   '/legal/renovacao': typeof LegalRenovacaoRoute
   '/legal/termos': typeof LegalTermosRoute
+  '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/app'
     | '/cadastro'
     | '/legal'
     | '/login'
+    | '/admin/campanhas'
+    | '/admin/pacotes'
+    | '/admin/provas'
     | '/api/config'
     | '/app/campanhas'
     | '/app/extrato'
@@ -179,6 +227,7 @@ export interface FileRouteTypes {
     | '/legal/privacidade'
     | '/legal/renovacao'
     | '/legal/termos'
+    | '/admin/'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -186,6 +235,9 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/legal'
     | '/login'
+    | '/admin/campanhas'
+    | '/admin/pacotes'
+    | '/admin/provas'
     | '/api/config'
     | '/app/campanhas'
     | '/app/extrato'
@@ -196,14 +248,19 @@ export interface FileRouteTypes {
     | '/legal/privacidade'
     | '/legal/renovacao'
     | '/legal/termos'
+    | '/admin'
     | '/app'
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/app'
     | '/cadastro'
     | '/legal'
     | '/login'
+    | '/admin/campanhas'
+    | '/admin/pacotes'
+    | '/admin/provas'
     | '/api/config'
     | '/app/campanhas'
     | '/app/extrato'
@@ -214,11 +271,13 @@ export interface FileRouteTypes {
     | '/legal/privacidade'
     | '/legal/renovacao'
     | '/legal/termos'
+    | '/admin/'
     | '/app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
   AppRoute: typeof AppRouteWithChildren
   CadastroRoute: typeof CadastroRoute
   LegalRoute: typeof LegalRouteWithChildren
@@ -256,6 +315,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -269,6 +335,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/'
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/legal/termos': {
       id: '/legal/termos'
@@ -340,8 +413,45 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiConfigRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/provas': {
+      id: '/admin/provas'
+      path: '/provas'
+      fullPath: '/admin/provas'
+      preLoaderRoute: typeof AdminProvasRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/pacotes': {
+      id: '/admin/pacotes'
+      path: '/pacotes'
+      fullPath: '/admin/pacotes'
+      preLoaderRoute: typeof AdminPacotesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/campanhas': {
+      id: '/admin/campanhas'
+      path: '/campanhas'
+      fullPath: '/admin/campanhas'
+      preLoaderRoute: typeof AdminCampanhasRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
+
+interface AdminRouteChildren {
+  AdminCampanhasRoute: typeof AdminCampanhasRoute
+  AdminPacotesRoute: typeof AdminPacotesRoute
+  AdminProvasRoute: typeof AdminProvasRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminCampanhasRoute: AdminCampanhasRoute,
+  AdminPacotesRoute: AdminPacotesRoute,
+  AdminProvasRoute: AdminProvasRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface AppRouteChildren {
   AppCampanhasRoute: typeof AppCampanhasRoute
@@ -381,6 +491,7 @@ const LegalRouteWithChildren = LegalRoute._addFileChildren(LegalRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
   AppRoute: AppRouteWithChildren,
   CadastroRoute: CadastroRoute,
   LegalRoute: LegalRouteWithChildren,

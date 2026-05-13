@@ -8,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { CreditCard, QrCode, Receipt, ShieldCheck, Loader2 } from "lucide-react";
 import { createCheckout, PAYMENT_METHODS, type PaymentMethod } from "@/lib/payments/provider";
+import { createCheckoutOrder } from "@/lib/payments/checkout.functions";
 
 export const Route = createFileRoute("/app/checkout/$packageId")({ component: CheckoutPage });
 
@@ -38,24 +39,22 @@ function CheckoutPage() {
     if (!supabase || !pkg || !profile || !user) return;
     setSubmitting(true);
     try {
+      // 1) Cria a intenção de ciclo no servidor (server fn valida usuário e pacote).
+      const { data: sess } = await supabase.auth.getSession();
+      const accessToken = sess.session?.access_token;
+      if (!accessToken) throw new Error("Sessão expirada");
+      const order = await createCheckoutOrder({ data: { packageId: pkg.id, accessToken } });
+
+      // 2) Inicia o pagamento no gateway (stub por enquanto).
       const result = await createCheckout({
         packageId: pkg.id,
         packageNome: pkg.nome,
-        valor: Number(pkg.valor),
+        valor: order.valor,
         method,
         userId: profile.id,
         userEmail: user.email ?? "",
+        cycleId: order.cycleId,
       });
-
-      // Registra a intenção de pagamento no banco (status pendente).
-      // Quando o webhook do gateway chegar, o ciclo deve ser ativado.
-      const { error } = await supabase.from("user_cycles").insert({
-        user_id: profile.id,
-        package_id: pkg.id,
-        valor_pacote: pkg.valor,
-        status: "aguardando_renovacao",
-      });
-      if (error) throw error;
 
       toast.success("Pagamento iniciado! Aguarde a confirmação.", {
         description: `ID: ${result.paymentId}`,

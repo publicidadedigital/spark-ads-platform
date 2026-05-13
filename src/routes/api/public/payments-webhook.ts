@@ -86,7 +86,7 @@ export const Route = createFileRoute("/api/public/payments-webhook")({
         }
 
         // Busca o ciclo
-        const { data: cycle, error: cycleErr } = await supabaseAdmin
+        const { data: cycle, error: cycleErr } = await getAdminClient()
           .from("user_cycles")
           .select("id, user_id, package_id, valor_pacote, status")
           .eq("id", parsed.cycle_id)
@@ -105,7 +105,7 @@ export const Route = createFileRoute("/api/public/payments-webhook")({
         }
 
         if (parsed.status === "failed") {
-          const { error } = await supabaseAdmin
+          const { error } = await getAdminClient()
             .from("user_cycles")
             .update({ status: "bloqueado" })
             .eq("id", cycle.id);
@@ -115,7 +115,7 @@ export const Route = createFileRoute("/api/public/payments-webhook")({
 
         // approved
         const now = new Date().toISOString();
-        const { error: updErr } = await supabaseAdmin
+        const { error: updErr } = await getAdminClient()
           .from("user_cycles")
           .update({
             status: "ativo",
@@ -127,13 +127,13 @@ export const Route = createFileRoute("/api/public/payments-webhook")({
         if (updErr) return json({ error: updErr.message }, 500);
 
         // Ativa o pacote no perfil
-        await supabaseAdmin
+        await getAdminClient()
           .from("users_profile")
           .update({ pacote_ativo_id: cycle.package_id, status: "ativo" })
           .eq("id", cycle.user_id);
 
         // Registra transação de crédito (entrada do pagamento)
-        await supabaseAdmin.from("wallet_transactions").insert({
+        await getAdminClient().from("wallet_transactions").insert({
           user_id: cycle.user_id,
           cycle_id: cycle.id,
           tipo: "credito",

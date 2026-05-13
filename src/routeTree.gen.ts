@@ -10,10 +10,16 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as LegalRouteImport } from './routes/legal'
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app/index'
+import { Route as LegalTermosRouteImport } from './routes/legal/termos'
+import { Route as LegalRenovacaoRouteImport } from './routes/legal/renovacao'
+import { Route as LegalPrivacidadeRouteImport } from './routes/legal/privacidade'
+import { Route as LegalBonificacaoRouteImport } from './routes/legal/bonificacao'
+import { Route as LegalAntifraudeRouteImport } from './routes/legal/antifraude'
 import { Route as AppRenovacaoRouteImport } from './routes/app/renovacao'
 import { Route as AppRedeRouteImport } from './routes/app/rede'
 import { Route as AppExtratoRouteImport } from './routes/app/extrato'
@@ -23,6 +29,11 @@ import { Route as ApiConfigRouteImport } from './routes/api/config'
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalRoute = LegalRouteImport.update({
+  id: '/legal',
+  path: '/legal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CadastroRoute = CadastroRouteImport.update({
@@ -44,6 +55,31 @@ const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRoute,
+} as any)
+const LegalTermosRoute = LegalTermosRouteImport.update({
+  id: '/termos',
+  path: '/termos',
+  getParentRoute: () => LegalRoute,
+} as any)
+const LegalRenovacaoRoute = LegalRenovacaoRouteImport.update({
+  id: '/renovacao',
+  path: '/renovacao',
+  getParentRoute: () => LegalRoute,
+} as any)
+const LegalPrivacidadeRoute = LegalPrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
+  getParentRoute: () => LegalRoute,
+} as any)
+const LegalBonificacaoRoute = LegalBonificacaoRouteImport.update({
+  id: '/bonificacao',
+  path: '/bonificacao',
+  getParentRoute: () => LegalRoute,
+} as any)
+const LegalAntifraudeRoute = LegalAntifraudeRouteImport.update({
+  id: '/antifraude',
+  path: '/antifraude',
+  getParentRoute: () => LegalRoute,
 } as any)
 const AppRenovacaoRoute = AppRenovacaoRouteImport.update({
   id: '/renovacao',
@@ -75,23 +111,35 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/cadastro': typeof CadastroRoute
+  '/legal': typeof LegalRouteWithChildren
   '/login': typeof LoginRoute
   '/api/config': typeof ApiConfigRoute
   '/app/campanhas': typeof AppCampanhasRoute
   '/app/extrato': typeof AppExtratoRoute
   '/app/rede': typeof AppRedeRoute
   '/app/renovacao': typeof AppRenovacaoRoute
+  '/legal/antifraude': typeof LegalAntifraudeRoute
+  '/legal/bonificacao': typeof LegalBonificacaoRoute
+  '/legal/privacidade': typeof LegalPrivacidadeRoute
+  '/legal/renovacao': typeof LegalRenovacaoRoute
+  '/legal/termos': typeof LegalTermosRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cadastro': typeof CadastroRoute
+  '/legal': typeof LegalRouteWithChildren
   '/login': typeof LoginRoute
   '/api/config': typeof ApiConfigRoute
   '/app/campanhas': typeof AppCampanhasRoute
   '/app/extrato': typeof AppExtratoRoute
   '/app/rede': typeof AppRedeRoute
   '/app/renovacao': typeof AppRenovacaoRoute
+  '/legal/antifraude': typeof LegalAntifraudeRoute
+  '/legal/bonificacao': typeof LegalBonificacaoRoute
+  '/legal/privacidade': typeof LegalPrivacidadeRoute
+  '/legal/renovacao': typeof LegalRenovacaoRoute
+  '/legal/termos': typeof LegalTermosRoute
   '/app': typeof AppIndexRoute
 }
 export interface FileRoutesById {
@@ -99,12 +147,18 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/cadastro': typeof CadastroRoute
+  '/legal': typeof LegalRouteWithChildren
   '/login': typeof LoginRoute
   '/api/config': typeof ApiConfigRoute
   '/app/campanhas': typeof AppCampanhasRoute
   '/app/extrato': typeof AppExtratoRoute
   '/app/rede': typeof AppRedeRoute
   '/app/renovacao': typeof AppRenovacaoRoute
+  '/legal/antifraude': typeof LegalAntifraudeRoute
+  '/legal/bonificacao': typeof LegalBonificacaoRoute
+  '/legal/privacidade': typeof LegalPrivacidadeRoute
+  '/legal/renovacao': typeof LegalRenovacaoRoute
+  '/legal/termos': typeof LegalTermosRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
@@ -113,35 +167,53 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/cadastro'
+    | '/legal'
     | '/login'
     | '/api/config'
     | '/app/campanhas'
     | '/app/extrato'
     | '/app/rede'
     | '/app/renovacao'
+    | '/legal/antifraude'
+    | '/legal/bonificacao'
+    | '/legal/privacidade'
+    | '/legal/renovacao'
+    | '/legal/termos'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/cadastro'
+    | '/legal'
     | '/login'
     | '/api/config'
     | '/app/campanhas'
     | '/app/extrato'
     | '/app/rede'
     | '/app/renovacao'
+    | '/legal/antifraude'
+    | '/legal/bonificacao'
+    | '/legal/privacidade'
+    | '/legal/renovacao'
+    | '/legal/termos'
     | '/app'
   id:
     | '__root__'
     | '/'
     | '/app'
     | '/cadastro'
+    | '/legal'
     | '/login'
     | '/api/config'
     | '/app/campanhas'
     | '/app/extrato'
     | '/app/rede'
     | '/app/renovacao'
+    | '/legal/antifraude'
+    | '/legal/bonificacao'
+    | '/legal/privacidade'
+    | '/legal/renovacao'
+    | '/legal/termos'
     | '/app/'
   fileRoutesById: FileRoutesById
 }
@@ -149,6 +221,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
   CadastroRoute: typeof CadastroRoute
+  LegalRoute: typeof LegalRouteWithChildren
   LoginRoute: typeof LoginRoute
   ApiConfigRoute: typeof ApiConfigRoute
 }
@@ -160,6 +233,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal': {
+      id: '/legal'
+      path: '/legal'
+      fullPath: '/legal'
+      preLoaderRoute: typeof LegalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cadastro': {
@@ -189,6 +269,41 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/'
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/legal/termos': {
+      id: '/legal/termos'
+      path: '/termos'
+      fullPath: '/legal/termos'
+      preLoaderRoute: typeof LegalTermosRouteImport
+      parentRoute: typeof LegalRoute
+    }
+    '/legal/renovacao': {
+      id: '/legal/renovacao'
+      path: '/renovacao'
+      fullPath: '/legal/renovacao'
+      preLoaderRoute: typeof LegalRenovacaoRouteImport
+      parentRoute: typeof LegalRoute
+    }
+    '/legal/privacidade': {
+      id: '/legal/privacidade'
+      path: '/privacidade'
+      fullPath: '/legal/privacidade'
+      preLoaderRoute: typeof LegalPrivacidadeRouteImport
+      parentRoute: typeof LegalRoute
+    }
+    '/legal/bonificacao': {
+      id: '/legal/bonificacao'
+      path: '/bonificacao'
+      fullPath: '/legal/bonificacao'
+      preLoaderRoute: typeof LegalBonificacaoRouteImport
+      parentRoute: typeof LegalRoute
+    }
+    '/legal/antifraude': {
+      id: '/legal/antifraude'
+      path: '/antifraude'
+      fullPath: '/legal/antifraude'
+      preLoaderRoute: typeof LegalAntifraudeRouteImport
+      parentRoute: typeof LegalRoute
     }
     '/app/renovacao': {
       id: '/app/renovacao'
@@ -246,10 +361,29 @@ const AppRouteChildren: AppRouteChildren = {
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
+interface LegalRouteChildren {
+  LegalAntifraudeRoute: typeof LegalAntifraudeRoute
+  LegalBonificacaoRoute: typeof LegalBonificacaoRoute
+  LegalPrivacidadeRoute: typeof LegalPrivacidadeRoute
+  LegalRenovacaoRoute: typeof LegalRenovacaoRoute
+  LegalTermosRoute: typeof LegalTermosRoute
+}
+
+const LegalRouteChildren: LegalRouteChildren = {
+  LegalAntifraudeRoute: LegalAntifraudeRoute,
+  LegalBonificacaoRoute: LegalBonificacaoRoute,
+  LegalPrivacidadeRoute: LegalPrivacidadeRoute,
+  LegalRenovacaoRoute: LegalRenovacaoRoute,
+  LegalTermosRoute: LegalTermosRoute,
+}
+
+const LegalRouteWithChildren = LegalRoute._addFileChildren(LegalRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
   CadastroRoute: CadastroRoute,
+  LegalRoute: LegalRouteWithChildren,
   LoginRoute: LoginRoute,
   ApiConfigRoute: ApiConfigRoute,
 }

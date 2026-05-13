@@ -32,6 +32,7 @@ import { Route as AdminPacotesRouteImport } from './routes/admin/pacotes'
 import { Route as AdminCampanhasRouteImport } from './routes/admin/campanhas'
 import { Route as AdminAdminsRouteImport } from './routes/admin/admins'
 import { Route as AppCheckoutPackageIdRouteImport } from './routes/app/checkout.$packageId'
+import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments-webhook'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -148,6 +149,12 @@ const AppCheckoutPackageIdRoute = AppCheckoutPackageIdRouteImport.update({
   path: '/checkout/$packageId',
   getParentRoute: () => AppRoute,
 } as any)
+const ApiPublicPaymentsWebhookRoute =
+  ApiPublicPaymentsWebhookRouteImport.update({
+    id: '/api/public/payments-webhook',
+    path: '/api/public/payments-webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -172,6 +179,7 @@ export interface FileRoutesByFullPath {
   '/legal/termos': typeof LegalTermosRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
+  '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
   '/app/checkout/$packageId': typeof AppCheckoutPackageIdRoute
 }
 export interface FileRoutesByTo {
@@ -195,6 +203,7 @@ export interface FileRoutesByTo {
   '/legal/termos': typeof LegalTermosRoute
   '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
+  '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
   '/app/checkout/$packageId': typeof AppCheckoutPackageIdRoute
 }
 export interface FileRoutesById {
@@ -221,6 +230,7 @@ export interface FileRoutesById {
   '/legal/termos': typeof LegalTermosRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
+  '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
   '/app/checkout/$packageId': typeof AppCheckoutPackageIdRoute
 }
 export interface FileRouteTypes {
@@ -248,6 +258,7 @@ export interface FileRouteTypes {
     | '/legal/termos'
     | '/admin/'
     | '/app/'
+    | '/api/public/payments-webhook'
     | '/app/checkout/$packageId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -271,6 +282,7 @@ export interface FileRouteTypes {
     | '/legal/termos'
     | '/admin'
     | '/app'
+    | '/api/public/payments-webhook'
     | '/app/checkout/$packageId'
   id:
     | '__root__'
@@ -296,6 +308,7 @@ export interface FileRouteTypes {
     | '/legal/termos'
     | '/admin/'
     | '/app/'
+    | '/api/public/payments-webhook'
     | '/app/checkout/$packageId'
   fileRoutesById: FileRoutesById
 }
@@ -307,6 +320,7 @@ export interface RootRouteChildren {
   LegalRoute: typeof LegalRouteWithChildren
   LoginRoute: typeof LoginRoute
   ApiConfigRoute: typeof ApiConfigRoute
+  ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -472,6 +486,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCheckoutPackageIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/api/public/payments-webhook': {
+      id: '/api/public/payments-webhook'
+      path: '/api/public/payments-webhook'
+      fullPath: '/api/public/payments-webhook'
+      preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -539,6 +560,7 @@ const rootRouteChildren: RootRouteChildren = {
   LegalRoute: LegalRouteWithChildren,
   LoginRoute: LoginRoute,
   ApiConfigRoute: ApiConfigRoute,
+  ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

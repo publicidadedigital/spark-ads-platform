@@ -41,7 +41,10 @@ function CheckoutPage() {
     setSubmitting(true);
     try {
       // 1) Cria a intenção de ciclo no servidor (server fn valida usuário e pacote).
-      const order = await createCheckoutOrder({ data: { packageId: pkg.id } });
+      const { data: sess } = await supabase.auth.getSession();
+      const accessToken = sess.session?.access_token;
+      if (!accessToken) throw new Error("Sessão expirada");
+      const order = await createCheckoutOrder({ data: { packageId: pkg.id, accessToken } });
 
       // 2) Inicia o pagamento no gateway (stub por enquanto).
       const result = await createCheckout({

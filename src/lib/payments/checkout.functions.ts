@@ -1,11 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestHeader } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { getAdminClient } from "@/lib/supabase/admin.server";
 
 /**
  * Cria um pedido de checkout (intenção de pagamento).
- * - Valida o usuário via bearer token.
+ * - Valida o usuário via access token enviado pelo cliente.
  * - Carrega o pacote do servidor (não confia no preço enviado pelo cliente).
  * - Insere user_cycles com status `aguardando_renovacao` usando service role
  *   (a RLS hoje só permite admin inserir; por isso a operação acontece no server).
@@ -15,17 +14,16 @@ import { getAdminClient } from "@/lib/supabase/admin.server";
  */
 export const createCheckoutOrder = createServerFn({ method: "POST" })
   .inputValidator((input) =>
-    z.object({ packageId: z.string().uuid() }).parse(input),
+    z
+      .object({
+        packageId: z.string().uuid(),
+        accessToken: z.string().min(10),
+      })
+      .parse(input),
   )
   .handler(async ({ data }) => {
-    const auth = getRequestHeader("authorization");
-    const token = auth?.toLowerCase().startsWith("bearer ")
-      ? auth.slice(7).trim()
-      : null;
-    if (!token) throw new Error("Não autenticado");
-
     const admin = getAdminClient();
-    const { data: userRes, error: userErr } = await admin.auth.getUser(token);
+    const { data: userRes, error: userErr } = await admin.auth.getUser(data.accessToken);
     if (userErr || !userRes?.user) throw new Error("Sessão inválida");
     const authUserId = userRes.user.id;
 

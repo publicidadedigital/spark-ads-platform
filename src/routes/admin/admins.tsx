@@ -27,26 +27,24 @@ function AdminAdmins() {
   async function load() {
     if (!supabase) return;
     setLoading(true);
-    // user_roles + join via foreign relation a users_profile (id = user_id)
-    const { data, error } = await supabase
+    const { data: roles } = await supabase
       .from("user_roles")
-      .select("user_id, role, profile:users_profile!user_roles_user_id_fkey(nome,email,instagram)")
+      .select("user_id, role")
       .eq("role", "admin");
-    if (error) {
-      // Fallback: busca os perfis em separado
-      const { data: roles } = await supabase.from("user_roles").select("user_id, role").eq("role", "admin");
-      const ids = (roles ?? []).map((r) => r.user_id);
-      const { data: profiles } = ids.length
-        ? await supabase.from("users_profile").select("id,nome,email,instagram").in("id", ids)
-        : { data: [] as any[] };
-      const merged = (roles ?? []).map((r) => ({
-        ...r,
-        profile: profiles?.find((p: any) => p.id === r.user_id) ?? null,
-      }));
-      setRows(merged as AdminRow[]);
-    } else {
-      setRows((data ?? []) as unknown as AdminRow[]);
+    const ids = (roles ?? []).map((r) => r.user_id);
+    let profiles: any[] = [];
+    if (ids.length) {
+      const { data } = await supabase
+        .from("users_profile")
+        .select("auth_user_id,nome,email,instagram")
+        .in("auth_user_id", ids);
+      profiles = data ?? [];
     }
+    const merged = (roles ?? []).map((r) => ({
+      ...r,
+      profile: profiles.find((p) => p.auth_user_id === r.user_id) ?? null,
+    }));
+    setRows(merged as AdminRow[]);
     setLoading(false);
   }
 

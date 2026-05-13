@@ -45,7 +45,7 @@ function AdminAdmins() {
       }));
       setRows(merged as AdminRow[]);
     } else {
-      setRows((data ?? []) as AdminRow[]);
+      setRows((data ?? []) as unknown as AdminRow[]);
     }
     setLoading(false);
   }

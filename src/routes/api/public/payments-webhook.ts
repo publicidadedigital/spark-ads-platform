@@ -27,7 +27,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createHmac, timingSafeEqual } from "crypto";
 import { z } from "zod";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { getAdminClient } from "@/lib/supabase/admin.server";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",

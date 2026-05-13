@@ -174,12 +174,13 @@ create table if not exists public.campaign_shares (
   motivo_rejeicao text,
   reviewed_by uuid references auth.users(id),
   reviewed_at timestamptz,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  shared_on_date date generated always as ((created_at at time zone 'UTC')::date) stored
 );
 alter table public.campaign_shares enable row level security;
 create index if not exists idx_shares_user_date on public.campaign_shares(user_id, created_at);
 create unique index if not exists uniq_share_per_day
-  on public.campaign_shares(user_id, campaign_id, (created_at::date));
+  on public.campaign_shares(user_id, campaign_id, shared_on_date);
 create unique index if not exists uniq_shared_link
   on public.campaign_shares(shared_link);
 

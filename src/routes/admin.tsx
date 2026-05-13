@@ -2,12 +2,13 @@ import { createFileRoute, Outlet, Link, useNavigate, useLocation } from "@tansta
 import { useEffect } from "react";
 import { useAuth } from "@/lib/supabase/auth";
 import { Button } from "@/components/ui/button";
-import { Sparkles, LogOut, Users, Megaphone, CheckSquare, Package } from "lucide-react";
+import { Sparkles, LogOut, Users, Megaphone, CheckSquare, Package, ShieldAlert, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({ component: AdminLayout });
 
 const nav = [
   { to: "/admin", label: "Usuários", icon: Users, exact: true },
+  { to: "/admin/admins", label: "Administradores", icon: ShieldCheck },
   { to: "/admin/campanhas", label: "Campanhas", icon: Megaphone },
   { to: "/admin/provas", label: "Provas", icon: CheckSquare },
   { to: "/admin/pacotes", label: "Pacotes", icon: Package },
@@ -20,11 +21,34 @@ function AdminLayout() {
 
   useEffect(() => {
     if (!loading && !session) navigate({ to: "/login" });
-    if (!loading && session && !isAdmin) navigate({ to: "/app" });
-  }, [loading, session, isAdmin, navigate]);
+  }, [loading, session, navigate]);
 
-  if (loading || !session || !isAdmin) {
+  if (loading) {
     return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Verificando permissões...</div>;
+  }
+
+  if (!session) return null;
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-noir-gradient flex items-center justify-center px-4">
+        <div className="max-w-md w-full text-center bg-card/60 border border-destructive/40 rounded-lg p-8">
+          <ShieldAlert className="h-12 w-12 text-destructive mx-auto mb-4" />
+          <h1 className="text-2xl font-bold mb-2">Acesso Negado</h1>
+          <p className="text-sm text-muted-foreground mb-6">
+            Você não possui o papel <span className="text-gold font-semibold">admin</span> e
+            não pode acessar esta área. Caso acredite ser um engano, peça a um administrador
+            para promover seu usuário.
+          </p>
+          <div className="flex gap-2 justify-center">
+            <Button variant="outline" onClick={() => navigate({ to: "/app" })}>Ir para o app</Button>
+            <Button variant="ghost" onClick={() => { signOut(); navigate({ to: "/login" }); }}>
+              <LogOut className="h-4 w-4 mr-2" /> Sair
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

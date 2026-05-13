@@ -114,7 +114,7 @@ function Dashboard() {
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-semibold">Progresso do ciclo</h3>
           {s.cycle && s.cycle.percentual >= 200 && (
-            <Link to="/_app/renovacao" as any><Button size="sm" className="bg-gold-gradient text-primary-foreground">Renovar pacote</Button></Link>
+            <Link to="/app/renovacao"><Button size="sm" className="bg-gold-gradient text-primary-foreground">Renovar pacote</Button></Link>
           )}
         </div>
         <Progress value={Math.min(100, (s.cycle?.percentual ?? 0) / 2)} className="h-3" />

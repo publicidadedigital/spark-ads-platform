@@ -30,6 +30,7 @@ import { Route as ApiConfigRouteImport } from './routes/api/config'
 import { Route as AdminProvasRouteImport } from './routes/admin/provas'
 import { Route as AdminPacotesRouteImport } from './routes/admin/pacotes'
 import { Route as AdminCampanhasRouteImport } from './routes/admin/campanhas'
+import { Route as AdminAdminsRouteImport } from './routes/admin/admins'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -136,6 +137,11 @@ const AdminCampanhasRoute = AdminCampanhasRouteImport.update({
   path: '/campanhas',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAdminsRoute = AdminAdminsRouteImport.update({
+  id: '/admins',
+  path: '/admins',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -144,6 +150,7 @@ export interface FileRoutesByFullPath {
   '/cadastro': typeof CadastroRoute
   '/legal': typeof LegalRouteWithChildren
   '/login': typeof LoginRoute
+  '/admin/admins': typeof AdminAdminsRoute
   '/admin/campanhas': typeof AdminCampanhasRoute
   '/admin/pacotes': typeof AdminPacotesRoute
   '/admin/provas': typeof AdminProvasRoute
@@ -165,6 +172,7 @@ export interface FileRoutesByTo {
   '/cadastro': typeof CadastroRoute
   '/legal': typeof LegalRouteWithChildren
   '/login': typeof LoginRoute
+  '/admin/admins': typeof AdminAdminsRoute
   '/admin/campanhas': typeof AdminCampanhasRoute
   '/admin/pacotes': typeof AdminPacotesRoute
   '/admin/provas': typeof AdminProvasRoute
@@ -189,6 +197,7 @@ export interface FileRoutesById {
   '/cadastro': typeof CadastroRoute
   '/legal': typeof LegalRouteWithChildren
   '/login': typeof LoginRoute
+  '/admin/admins': typeof AdminAdminsRoute
   '/admin/campanhas': typeof AdminCampanhasRoute
   '/admin/pacotes': typeof AdminPacotesRoute
   '/admin/provas': typeof AdminProvasRoute
@@ -214,6 +223,7 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/legal'
     | '/login'
+    | '/admin/admins'
     | '/admin/campanhas'
     | '/admin/pacotes'
     | '/admin/provas'
@@ -235,6 +245,7 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/legal'
     | '/login'
+    | '/admin/admins'
     | '/admin/campanhas'
     | '/admin/pacotes'
     | '/admin/provas'
@@ -258,6 +269,7 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/legal'
     | '/login'
+    | '/admin/admins'
     | '/admin/campanhas'
     | '/admin/pacotes'
     | '/admin/provas'
@@ -434,10 +446,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCampanhasRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/admins': {
+      id: '/admin/admins'
+      path: '/admins'
+      fullPath: '/admin/admins'
+      preLoaderRoute: typeof AdminAdminsRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
+  AdminAdminsRoute: typeof AdminAdminsRoute
   AdminCampanhasRoute: typeof AdminCampanhasRoute
   AdminPacotesRoute: typeof AdminPacotesRoute
   AdminProvasRoute: typeof AdminProvasRoute
@@ -445,6 +465,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAdminsRoute: AdminAdminsRoute,
   AdminCampanhasRoute: AdminCampanhasRoute,
   AdminPacotesRoute: AdminPacotesRoute,
   AdminProvasRoute: AdminProvasRoute,
@@ -501,3 +522,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

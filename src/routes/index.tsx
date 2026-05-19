@@ -48,9 +48,6 @@ function Header() {
 function Hero() {
   return (
     <section className="container mx-auto px-4 py-20 md:py-32 text-center">
-      <div className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/5 px-4 py-1.5 text-xs text-gold mb-6">
-        <Sparkles className="h-3 w-3" /> Nova era da publicidade digital
-      </div>
       <h1 className="text-4xl md:text-7xl font-bold tracking-tight mb-6">
         Compartilhe. <span className="gold-text-gradient">Monetize.</span><br /> Construa renda.
       </h1>

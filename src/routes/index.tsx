@@ -19,6 +19,8 @@ function Landing() {
       <Hero />
       <Stats />
       <Features />
+      <Showcase />
+
       <Plans />
       <Compliance />
       <CTA />
@@ -130,6 +132,68 @@ function Features() {
             <p className="text-sm text-muted-foreground">{d}</p>
           </Card>
         ))}
+      </div>
+    </section>
+  );
+}
+
+function Showcase() {
+  return (
+    <section className="container mx-auto px-4 py-20">
+      <div className="grid md:grid-cols-2 gap-10 items-center">
+        <div className="relative order-2 md:order-1">
+          <div className="absolute -inset-6 bg-gold-gradient opacity-20 blur-3xl rounded-full" />
+          <img
+            src={phoneImg}
+            alt="Painel de ganhos do aplicativo Viralink"
+            width={1200}
+            height={1400}
+            loading="lazy"
+            className="relative rounded-2xl shadow-elegant border border-border/50 w-full object-cover"
+          />
+        </div>
+        <div className="order-1 md:order-2">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Acompanhe seus ganhos <span className="gold-text-gradient">em tempo real</span>
+          </h2>
+          <p className="text-muted-foreground mb-6">
+            Visualize a evolução do seu ciclo, bonificações diárias, indicações e rentabilidade de equipe
+            num painel transparente, no celular ou no desktop.
+          </p>
+          <ul className="space-y-3 text-sm">
+            <li className="flex gap-2"><CheckCircle2 className="h-5 w-5 text-primary shrink-0" /> Painel diário com progresso do ciclo</li>
+            <li className="flex gap-2"><CheckCircle2 className="h-5 w-5 text-primary shrink-0" /> Extrato detalhado de bônus e indicações</li>
+            <li className="flex gap-2"><CheckCircle2 className="h-5 w-5 text-primary shrink-0" /> Solicitação de saque rápida e segura</li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-10 items-center mt-24">
+        <div>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Uma comunidade de <span className="gold-text-gradient">criadores reais</span>
+          </h2>
+          <p className="text-muted-foreground mb-6">
+            Milhares de criadores já fazem parte da rede Viralink, transformando o tempo nas redes sociais
+            em uma nova fonte de renda — com transparência, suporte e regras claras.
+          </p>
+          <Link to="/cadastro">
+            <Button size="lg" className="bg-gold-gradient text-primary-foreground shadow-gold">
+              Fazer parte agora <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
+        <div className="relative">
+          <div className="absolute -inset-6 bg-gold-gradient opacity-20 blur-3xl rounded-full" />
+          <img
+            src={teamImg}
+            alt="Criadores de conteúdo brasileiros usando a plataforma"
+            width={1600}
+            height={1000}
+            loading="lazy"
+            className="relative rounded-2xl shadow-elegant border border-border/50 w-full object-cover"
+          />
+        </div>
       </div>
     </section>
   );

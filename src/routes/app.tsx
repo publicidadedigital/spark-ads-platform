@@ -1,9 +1,10 @@
+import { Logo } from "@/components/Logo";
 import { createFileRoute, Outlet, Link, useNavigate, useLocation } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useAuth } from "@/lib/supabase/auth";
 import { Button } from "@/components/ui/button";
 import {
-  Sparkles, LayoutDashboard, Megaphone, Receipt, Users, RefreshCw,
+  LayoutDashboard, Megaphone, Receipt, Users, RefreshCw,
   Shield, LogOut, Menu,
 } from "lucide-react";
 import {
@@ -46,10 +47,10 @@ function AppLayout() {
                 <SidebarContent isAdmin={isAdmin} pathname={location.pathname} />
               </SheetContent>
             </Sheet>
-            <Link to="/app" className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-gold" />
-              <span className="font-bold tracking-tight">AURUM</span>
+            <Link to="/app" className="flex items-center">
+              <Logo className="h-7 w-7" />
             </Link>
+
           </div>
           <Button variant="ghost" size="sm" onClick={() => { signOut(); navigate({ to: "/" }); }}>
             <LogOut className="h-4 w-4 mr-2" /> Sair

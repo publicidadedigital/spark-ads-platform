@@ -1,3 +1,4 @@
+import { Logo } from "@/components/Logo";
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
@@ -6,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 const schema = z.object({
@@ -67,10 +67,10 @@ function CadastroPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-noir-gradient px-4 py-10">
       <Card className="w-full max-w-md p-8 bg-card/80 border-border/50">
-        <Link to="/" className="flex items-center gap-2 justify-center mb-6">
-          <Sparkles className="h-6 w-6 text-gold" />
-          <span className="font-bold text-lg">AURUM</span>
+        <Link to="/" className="flex items-center justify-center mb-6">
+          <Logo className="h-9 w-9" textClassName="text-lg" />
         </Link>
+
         <h1 className="text-2xl font-bold text-center mb-2">Criar conta</h1>
         <p className="text-sm text-muted-foreground text-center mb-6">Comece a compartilhar e ganhar.</p>
         {ref && <p className="text-xs text-gold text-center mb-4">Indicação detectada</p>}

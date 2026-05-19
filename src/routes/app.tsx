@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useAuth } from "@/lib/supabase/auth";
 import { Button } from "@/components/ui/button";
 import {
-  Sparkles, LayoutDashboard, Megaphone, Receipt, Users, RefreshCw,
+  LayoutDashboard, Megaphone, Receipt, Users, RefreshCw,
   Shield, LogOut, Menu,
 } from "lucide-react";
 import {

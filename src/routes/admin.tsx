@@ -3,7 +3,7 @@ import { createFileRoute, Outlet, Link, useNavigate, useLocation } from "@tansta
 import { useEffect } from "react";
 import { useAuth } from "@/lib/supabase/auth";
 import { Button } from "@/components/ui/button";
-import { Sparkles, LogOut, Users, Megaphone, CheckSquare, Package, ShieldAlert, ShieldCheck } from "lucide-react";
+import { LogOut, Users, Megaphone, CheckSquare, Package, ShieldAlert, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({ component: AdminLayout });
 

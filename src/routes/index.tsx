@@ -3,8 +3,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
-  Share2, TrendingUp, Shield, Users, Wallet, CheckCircle2, ArrowRight,
+  Share2, TrendingUp, Shield, Users, Wallet, CheckCircle2, ArrowRight, Star,
 } from "lucide-react";
+import t1 from "@/assets/testimonial-1.jpg";
+import t2 from "@/assets/testimonial-2.jpg";
+import t3 from "@/assets/testimonial-3.jpg";
 import heroImg from "@/assets/hero-influencer.jpg";
 import teamImg from "@/assets/creators-team.jpg";
 import phoneImg from "@/assets/phone-dashboard.jpg";
@@ -20,7 +23,7 @@ function Landing() {
       <Stats />
       <Features />
       <Showcase />
-
+      <Testimonials />
       <Plans />
       <Compliance />
       <CTA />
@@ -194,6 +197,71 @@ function Showcase() {
             className="relative rounded-2xl shadow-elegant border border-border/50 w-full object-cover"
           />
         </div>
+      </div>
+    </section>
+  );
+}
+
+function Testimonials() {
+  const depoimentos = [
+    {
+      img: t1,
+      nome: "Ana Clara M.",
+      funcao: "Criadora de conteúdo — São Paulo",
+      texto: "Entrei no Viralink há 3 meses e já recuperei o valor do pacote. Compartilho no meu Instagram de moda e o painel mostra tudo em tempo real. Super transparente!",
+      nota: 5,
+    },
+    {
+      img: t2,
+      nome: "Lucas Ribeiro",
+      funcao: "Digital creator — Rio de Janeiro",
+      texto: "A plataforma mudou minha rotina. Antes só postava por hobby, agora tenho uma renda extra consistente todos os dias. O suporte também é excelente.",
+      nota: 5,
+    },
+    {
+      img: t3,
+      nome: "Mariana Souza",
+      funcao: "Influencer — Belo Horizonte",
+      texto: "Fiquei no Inicial por 2 ciclos, depois fiz o upgrade. Hoje ganho por compartilhamento, indicação e equipe. A melhor decisão que tomei no digital.",
+      nota: 5,
+    },
+  ];
+
+  return (
+    <section className="container mx-auto px-4 py-20">
+      <div className="text-center mb-12">
+        <h2 className="text-3xl md:text-4xl font-bold mb-3">Quem já usa, recomenda</h2>
+        <p className="text-muted-foreground max-w-xl mx-auto">
+          Depoimentos de criadores reais que transformaram seu tempo nas redes em renda.
+        </p>
+      </div>
+      <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        {depoimentos.map((d) => (
+          <Card key={d.nome} className="p-6 bg-card/50 border-border/50 hover:border-primary/30 transition flex flex-col">
+            <div className="flex items-center gap-4 mb-4">
+              <img
+                src={d.img}
+                alt={d.nome}
+                width={64}
+                height={64}
+                loading="lazy"
+                className="w-16 h-16 rounded-full object-cover border-2 border-primary/40"
+              />
+              <div>
+                <div className="font-semibold">{d.nome}</div>
+                <div className="text-xs text-muted-foreground">{d.funcao}</div>
+                <div className="flex gap-0.5 mt-1">
+                  {Array.from({ length: d.nota }).map((_, i) => (
+                    <Star key={i} className="h-3.5 w-3.5 text-primary fill-primary" />
+                  ))}
+                </div>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed flex-1">
+              "{d.texto}"
+            </p>
+          </Card>
+        ))}
       </div>
     </section>
   );

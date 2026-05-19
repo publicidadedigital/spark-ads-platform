@@ -3,8 +3,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
-  Sparkles, Share2, TrendingUp, Shield, Users, Wallet, CheckCircle2, ArrowRight,
+  Share2, TrendingUp, Shield, Users, Wallet, CheckCircle2, ArrowRight,
 } from "lucide-react";
+import heroImg from "@/assets/hero-influencer.jpg";
+import teamImg from "@/assets/creators-team.jpg";
+import phoneImg from "@/assets/phone-dashboard.jpg";
+
 
 export const Route = createFileRoute("/")({ component: Landing });
 
@@ -47,27 +51,42 @@ function Header() {
 
 function Hero() {
   return (
-    <section className="container mx-auto px-4 py-20 md:py-32 text-center">
-      <h1 className="text-4xl md:text-7xl font-bold tracking-tight mb-6">
-        Compartilhe. <span className="gold-text-gradient">Monetize.</span><br /> Construa renda.
-      </h1>
-      <p className="max-w-2xl mx-auto text-lg text-muted-foreground mb-10">
-        Aurum conecta você às melhores campanhas digitais. Compartilhe 5 publicidades por dia
-        no seu Instagram e receba bonificações diárias, indicações multinível e rentabilidade de equipe.
-      </p>
-      <div className="flex flex-col sm:flex-row gap-3 justify-center">
-        <Link to="/cadastro">
-          <Button size="lg" className="bg-gold-gradient text-primary-foreground shadow-gold">
-            Começar agora <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </Link>
-        <a href="#como-funciona">
-          <Button size="lg" variant="outline">Ver como funciona</Button>
-        </a>
+    <section className="container mx-auto px-4 py-16 md:py-24">
+      <div className="grid md:grid-cols-2 gap-10 items-center">
+        <div className="text-center md:text-left">
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
+            Compartilhe. <span className="gold-text-gradient">Monetize.</span><br /> Construa renda.
+          </h1>
+          <p className="text-lg text-muted-foreground mb-8">
+            Viralink conecta você às melhores campanhas digitais. Compartilhe 5 publicidades por dia
+            no seu Instagram e receba bonificações diárias, indicações multinível e rentabilidade de equipe.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
+            <Link to="/cadastro">
+              <Button size="lg" className="bg-gold-gradient text-primary-foreground shadow-gold">
+                Começar agora <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+            <a href="#como-funciona">
+              <Button size="lg" variant="outline">Ver como funciona</Button>
+            </a>
+          </div>
+        </div>
+        <div className="relative">
+          <div className="absolute -inset-4 bg-gold-gradient opacity-30 blur-3xl rounded-full" />
+          <img
+            src={heroImg}
+            alt="Criadora de conteúdo compartilhando campanhas no Instagram"
+            width={1600}
+            height={1200}
+            className="relative rounded-2xl shadow-elegant border border-border/50 w-full object-cover"
+          />
+        </div>
       </div>
     </section>
   );
 }
+
 
 function Stats() {
   const items = [

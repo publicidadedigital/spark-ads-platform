@@ -23,7 +23,7 @@ function Landing() {
       <Stats />
       <Features />
       <Showcase />
-
+      <Testimonials />
       <Plans />
       <Compliance />
       <CTA />

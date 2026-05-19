@@ -31,10 +31,10 @@ function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-noir-gradient px-4">
       <Card className="w-full max-w-md p-8 bg-card/80 border-border/50">
-        <Link to="/" className="flex items-center gap-2 justify-center mb-6">
-          <Sparkles className="h-6 w-6 text-gold" />
-          <span className="font-bold text-lg">AURUM</span>
+        <Link to="/" className="flex items-center justify-center mb-6">
+          <Logo className="h-9 w-9" textClassName="text-lg" />
         </Link>
+
         <h1 className="text-2xl font-bold text-center mb-2">Entrar</h1>
         <p className="text-sm text-muted-foreground text-center mb-6">Acesse sua conta</p>
         <form onSubmit={handleSubmit} className="space-y-4">

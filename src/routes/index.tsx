@@ -26,10 +26,10 @@ function Header() {
   return (
     <header className="border-b border-border/50 backdrop-blur-md sticky top-0 z-50 bg-background/70">
       <div className="container mx-auto flex items-center justify-between px-4 py-4">
-        <Link to="/" className="flex items-center gap-2">
-          <Sparkles className="h-6 w-6 text-gold" />
-          <span className="text-xl font-bold tracking-tight">AURUM</span>
+        <Link to="/" className="flex items-center">
+          <Logo className="h-8 w-8" textClassName="text-xl" />
         </Link>
+
         <nav className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
           <a href="#como-funciona" className="hover:text-foreground transition">Como funciona</a>
           <a href="#planos" className="hover:text-foreground transition">Planos</a>

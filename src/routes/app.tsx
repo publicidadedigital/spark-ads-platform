@@ -46,10 +46,10 @@ function AppLayout() {
                 <SidebarContent isAdmin={isAdmin} pathname={location.pathname} />
               </SheetContent>
             </Sheet>
-            <Link to="/app" className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-gold" />
-              <span className="font-bold tracking-tight">AURUM</span>
+            <Link to="/app" className="flex items-center">
+              <Logo className="h-7 w-7" />
             </Link>
+
           </div>
           <Button variant="ghost" size="sm" onClick={() => { signOut(); navigate({ to: "/" }); }}>
             <LogOut className="h-4 w-4 mr-2" /> Sair

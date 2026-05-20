@@ -5,9 +5,6 @@ import { Card } from "@/components/ui/card";
 import {
   Share2, TrendingUp, Shield, Users, Wallet, CheckCircle2, ArrowRight, Star,
 } from "lucide-react";
-import t1 from "@/assets/testimonial-1.jpg";
-import t2 from "@/assets/testimonial-2.jpg";
-import t3 from "@/assets/testimonial-3.jpg";
 import heroImg from "@/assets/hero-influencer.jpg";
 import teamImg from "@/assets/creators-team.jpg";
 import phoneImg from "@/assets/phone-dashboard.jpg";

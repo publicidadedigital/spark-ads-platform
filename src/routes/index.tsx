@@ -328,7 +328,7 @@ function Footer() {
   return (
     <footer className="border-t border-border/50 mt-12">
       <div className="container mx-auto px-4 py-8 text-center text-sm text-muted-foreground">
-        © {new Date().getFullYear()} Aurum. Todos os direitos reservados.
+        © {new Date().getFullYear()} Viralink. Todos os direitos reservados.
       </div>
     </footer>
   );

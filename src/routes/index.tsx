@@ -92,10 +92,10 @@ function Hero() {
 
 function Stats() {
   const items = [
-    { v: "0,26%", l: "Rentabilidade diária por compartilhamento" },
     { v: "200%", l: "Limite por ciclo de pacote" },
     { v: "5+10", l: "Níveis de indicação e equipe" },
     { v: "5/dia", l: "Compartilhamentos por dia" },
+    { v: "385 dias", l: "Tempo médio para dobrar o pacote" },
   ];
   return (
     <section className="container mx-auto px-4 py-12 grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -112,7 +112,7 @@ function Stats() {
 function Features() {
   const items = [
     { icon: Share2, t: "Campanhas curadas", d: "Receba diariamente publicidades aprovadas, com texto sugerido e instruções claras." },
-    { icon: Wallet, t: "Bonificação diária", d: "0,26% sobre o valor do seu pacote por dia ao cumprir os 5 compartilhamentos." },
+    { icon: Wallet, t: "Bonificação diária", d: "Receba ganhos diários ao cumprir os 5 compartilhamentos do dia." },
     { icon: Users, t: "Rede multinível", d: "Indicação 20% no 1º nível, 5% do 2º ao 5º; rentabilidade de equipe 1% até o 10º nível." },
     { icon: TrendingUp, t: "Ciclo até 200%", d: "Acompanhe seu progresso até atingir o limite e renove para iniciar um novo ciclo." },
     { icon: Shield, t: "Antifraude robusto", d: "Validação de CPF, e-mail, telefone e Instagram únicos, fingerprint de dispositivo e análise manual." },
@@ -253,9 +253,10 @@ function Testimonials() {
 
 function Plans() {
   const items = [
-    { n: "Inicial", v: "R$ 300", desc: "Para começar a divulgar e ganhar." },
-    { n: "Intermediário", v: "R$ 600", desc: "Mais bonificação por ciclo." },
-    { n: "Premium", v: "R$ 1.200", desc: "Máximo retorno por compartilhamento." },
+    { n: "Start", v: "R$ 300", diario: "R$ 0,78", desc: "Comece a divulgar e ganhar." },
+    { n: "Plus", v: "R$ 600", diario: "R$ 1,56", desc: "Mais bonificação por ciclo." },
+    { n: "Pro", v: "R$ 1.200", diario: "R$ 3,12", desc: "Retorno acelerado por compartilhamento." },
+    { n: "Elite", v: "R$ 5.000", diario: "R$ 13,00", desc: "Máximo potencial de ganhos." },
   ];
   return (
     <section id="planos" className="container mx-auto px-4 py-20">
@@ -263,15 +264,16 @@ function Plans() {
         <h2 className="text-3xl md:text-4xl font-bold mb-3">Pacotes disponíveis</h2>
         <p className="text-muted-foreground">Escolha o pacote ideal para o seu objetivo.</p>
       </div>
-      <div className="grid md:grid-cols-3 gap-4 max-w-5xl mx-auto">
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
         {items.map((p, i) => (
-          <Card key={p.n} className={`p-8 bg-card/50 border-border/50 ${i === 1 ? "border-gold/60 shadow-gold" : ""}`}>
-            <div className="text-sm text-muted-foreground">{p.n}</div>
+          <Card key={p.n} className={`p-8 bg-card/50 border-border/50 ${i === 3 ? "border-gold/60 shadow-gold" : ""}`}>
+            <div className="text-sm text-muted-foreground">Pacote {p.n}</div>
             <div className="text-4xl font-bold gold-text-gradient mt-2">{p.v}</div>
             <p className="text-sm text-muted-foreground mt-3">{p.desc}</p>
             <ul className="mt-6 space-y-2 text-sm">
-              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> Ciclo até 200%</li>
-              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> Bonificação diária 0,26%</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> Ganho diário {p.diario}</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> Ciclo até 200% (≈385 dias)</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> 1.925 compartilhamentos para dobrar</li>
               <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> Rede multinível</li>
             </ul>
             <Link to="/cadastro" className="block mt-6">

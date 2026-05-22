@@ -282,9 +282,6 @@ function Plans() {
           </Card>
         ))}
       </div>
-      <p className="text-xs text-muted-foreground text-center mt-6">
-        Mensalidade de R$120/mês para manter elegibilidade total aos bônus.
-      </p>
     </section>
   );
 }

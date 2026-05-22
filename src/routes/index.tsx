@@ -253,9 +253,10 @@ function Testimonials() {
 
 function Plans() {
   const items = [
-    { n: "Inicial", v: "R$ 300", desc: "Para começar a divulgar e ganhar." },
-    { n: "Intermediário", v: "R$ 600", desc: "Mais bonificação por ciclo." },
-    { n: "Premium", v: "R$ 1.200", desc: "Máximo retorno por compartilhamento." },
+    { n: "Start", v: "R$ 300", diario: "R$ 0,78", desc: "Comece a divulgar e ganhar." },
+    { n: "Plus", v: "R$ 600", diario: "R$ 1,56", desc: "Mais bonificação por ciclo." },
+    { n: "Pro", v: "R$ 1.200", diario: "R$ 3,12", desc: "Retorno acelerado por compartilhamento." },
+    { n: "Elite", v: "R$ 5.000", diario: "R$ 13,00", desc: "Máximo potencial de ganhos." },
   ];
   return (
     <section id="planos" className="container mx-auto px-4 py-20">

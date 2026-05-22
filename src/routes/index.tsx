@@ -264,15 +264,16 @@ function Plans() {
         <h2 className="text-3xl md:text-4xl font-bold mb-3">Pacotes disponíveis</h2>
         <p className="text-muted-foreground">Escolha o pacote ideal para o seu objetivo.</p>
       </div>
-      <div className="grid md:grid-cols-3 gap-4 max-w-5xl mx-auto">
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
         {items.map((p, i) => (
-          <Card key={p.n} className={`p-8 bg-card/50 border-border/50 ${i === 1 ? "border-gold/60 shadow-gold" : ""}`}>
-            <div className="text-sm text-muted-foreground">{p.n}</div>
+          <Card key={p.n} className={`p-8 bg-card/50 border-border/50 ${i === 3 ? "border-gold/60 shadow-gold" : ""}`}>
+            <div className="text-sm text-muted-foreground">Pacote {p.n}</div>
             <div className="text-4xl font-bold gold-text-gradient mt-2">{p.v}</div>
             <p className="text-sm text-muted-foreground mt-3">{p.desc}</p>
             <ul className="mt-6 space-y-2 text-sm">
-              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> Ciclo até 200%</li>
-              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> Bonificação diária 0,26%</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> Ganho diário {p.diario}</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> Ciclo até 200% (≈385 dias)</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> 1.925 compartilhamentos para dobrar</li>
               <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> Rede multinível</li>
             </ul>
             <Link to="/cadastro" className="block mt-6">

@@ -113,7 +113,7 @@ function Features() {
   const items = [
     { icon: Share2, t: "Campanhas curadas", d: "Receba diariamente publicidades aprovadas, com texto sugerido e instruções claras." },
     { icon: Wallet, t: "Bonificação diária", d: "Receba ganhos diários ao cumprir os 5 compartilhamentos do dia." },
-    { icon: Users, t: "Rede multinível", d: "Indicação 20% no 1º nível, 5% do 2º ao 5º; rentabilidade de equipe 1% até o 10º nível." },
+    { icon: Users, t: "Programa de afiliados", d: "Indicação 20% no 1º nível, 5% do 2º ao 5º; rentabilidade de equipe 1% até o 10º nível." },
     { icon: TrendingUp, t: "Ciclo até 200%", d: "Acompanhe seu progresso até atingir o limite e renove para iniciar um novo ciclo." },
     { icon: Shield, t: "Antifraude robusto", d: "Validação de CPF, e-mail, telefone e Instagram únicos, fingerprint de dispositivo e análise manual." },
     { icon: CheckCircle2, t: "Aprovação manual", d: "Cada compartilhamento passa por análise para garantir qualidade e conformidade." },
@@ -274,7 +274,7 @@ function Plans() {
               <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> Ganho diário {p.diario}</li>
               <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> Ciclo até 200% (≈385 dias)</li>
               <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> 1.925 compartilhamentos para dobrar</li>
-              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> Rede multinível</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> Programa de afiliados</li>
             </ul>
             <Link to="/cadastro" className="block mt-6">
               <Button className="w-full bg-gold-gradient text-primary-foreground">Quero esse</Button>
@@ -282,9 +282,6 @@ function Plans() {
           </Card>
         ))}
       </div>
-      <p className="text-xs text-muted-foreground text-center mt-6">
-        Mensalidade de R$120/mês para manter elegibilidade total aos bônus.
-      </p>
     </section>
   );
 }

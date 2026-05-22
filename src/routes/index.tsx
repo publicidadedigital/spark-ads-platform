@@ -274,7 +274,7 @@ function Plans() {
               <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> Ganho diário {p.diario}</li>
               <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> Ciclo até 200% (≈385 dias)</li>
               <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> 1.925 compartilhamentos para dobrar</li>
-              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> Rede multinível</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> Programa de afiliados</li>
             </ul>
             <Link to="/cadastro" className="block mt-6">
               <Button className="w-full bg-gold-gradient text-primary-foreground">Quero esse</Button>

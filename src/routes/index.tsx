@@ -92,10 +92,10 @@ function Hero() {
 
 function Stats() {
   const items = [
-    { v: "0,26%", l: "Rentabilidade diária por compartilhamento" },
     { v: "200%", l: "Limite por ciclo de pacote" },
     { v: "5+10", l: "Níveis de indicação e equipe" },
     { v: "5/dia", l: "Compartilhamentos por dia" },
+    { v: "385 dias", l: "Tempo médio para dobrar o pacote" },
   ];
   return (
     <section className="container mx-auto px-4 py-12 grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -112,7 +112,7 @@ function Stats() {
 function Features() {
   const items = [
     { icon: Share2, t: "Campanhas curadas", d: "Receba diariamente publicidades aprovadas, com texto sugerido e instruções claras." },
-    { icon: Wallet, t: "Bonificação diária", d: "0,26% sobre o valor do seu pacote por dia ao cumprir os 5 compartilhamentos." },
+    { icon: Wallet, t: "Bonificação diária", d: "Receba ganhos diários ao cumprir os 5 compartilhamentos do dia." },
     { icon: Users, t: "Rede multinível", d: "Indicação 20% no 1º nível, 5% do 2º ao 5º; rentabilidade de equipe 1% até o 10º nível." },
     { icon: TrendingUp, t: "Ciclo até 200%", d: "Acompanhe seu progresso até atingir o limite e renove para iniciar um novo ciclo." },
     { icon: Shield, t: "Antifraude robusto", d: "Validação de CPF, e-mail, telefone e Instagram únicos, fingerprint de dispositivo e análise manual." },

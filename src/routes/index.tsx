@@ -23,6 +23,7 @@ function Landing() {
       <Testimonials />
       <Plans />
       <Compliance />
+      <Disclaimer />
       <CTA />
       <Footer />
     </div>
@@ -310,6 +311,52 @@ function Compliance() {
   );
 }
 
+function Disclaimer() {
+  return (
+    <section id="disclaimer" className="container mx-auto px-4 py-20">
+      <Card className="p-8 md:p-12 bg-card/50 border-border/50 max-w-4xl mx-auto">
+        <div className="flex items-center gap-3 mb-4">
+          <Shield className="h-8 w-8 text-muted-foreground" />
+          <h2 className="text-2xl md:text-3xl font-bold">Aviso importante (Disclaimer)</h2>
+        </div>
+        <div className="space-y-4 text-sm text-muted-foreground leading-relaxed">
+          <p>
+            A Viralink é uma plataforma de participação em campanhas publicitárias e atividades de
+            divulgação digital. <strong className="text-foreground">Não somos uma instituição financeira,
+            banco, corretora, fundo de investimento, distribuidora de valores mobiliários ou empresa
+            de investimentos</strong>, e não oferecemos produtos financeiros de qualquer natureza.
+          </p>
+          <p>
+            A aquisição de pacotes representa a contratação de um plano de participação em campanhas e
+            atividades da plataforma. <strong className="text-foreground">Em nenhuma hipótese a compra
+            de pacotes deve ser interpretada como investimento, aplicação financeira ou promessa de
+            rentabilidade.</strong> Não há garantia, previsão ou compromisso de ganhos, lucros ou retorno
+            sobre qualquer valor pago.
+          </p>
+          <p>
+            Eventuais recompensas e bonificações dependem do cumprimento integral das atividades exigidas
+            (como compartilhamentos diários), da disponibilidade de campanhas no período, das regras do
+            plano escolhido e/ou do desempenho do participante na construção e desenvolvimento de equipe,
+            conforme as políticas internas da plataforma. <strong className="text-foreground">Os resultados
+            podem variar significativamente de pessoa para pessoa</strong> e estão sujeitos a fatores
+            individuais de engajamento, dedicação e conformidade com as regras.
+          </p>
+          <p>
+            Antes de participar, é responsabilidade do usuário ler e compreender integralmente os Termos de
+            Uso, a Política de Privacidade, as Regras de Bonificação e a Política Antifraude. Ao aderir à
+            plataforma, o usuário declara ciência destas condições e da natureza não financeira da atividade.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-3 mt-6">
+          <Link to="/legal/termos"><Button variant="outline" size="sm">Termos de uso</Button></Link>
+          <Link to="/legal/bonificacao"><Button variant="outline" size="sm">Regras de bonificação</Button></Link>
+          <Link to="/legal/privacidade"><Button variant="outline" size="sm">Privacidade</Button></Link>
+        </div>
+      </Card>
+    </section>
+  );
+}
+
 function CTA() {
   return (
     <section className="container mx-auto px-4 py-20 text-center">
@@ -320,6 +367,11 @@ function CTA() {
           Criar minha conta <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </Link>
+      <p className="text-xs text-muted-foreground mt-8 max-w-2xl mx-auto">
+        Ao prosseguir, você declara ciência de que a Viralink não é instituição financeira e que a aquisição
+        de pacotes não constitui investimento, não havendo garantia de ganhos. Recompensas dependem do
+        cumprimento das atividades e regras do plano. <a href="#disclaimer" className="underline hover:text-foreground">Leia o aviso completo</a>.
+      </p>
     </section>
   );
 }
@@ -327,8 +379,12 @@ function CTA() {
 function Footer() {
   return (
     <footer className="border-t border-border/50 mt-12">
-      <div className="container mx-auto px-4 py-8 text-center text-sm text-muted-foreground">
-        © {new Date().getFullYear()} Viralink. Todos os direitos reservados.
+      <div className="container mx-auto px-4 py-8 space-y-3 text-center text-xs text-muted-foreground">
+        <p className="max-w-3xl mx-auto">
+          A Viralink não é uma instituição financeira e a compra de pacotes não constitui investimento.
+          Não há promessa de ganhos — recompensas dependem do cumprimento das atividades e regras da plataforma.
+        </p>
+        <p>© {new Date().getFullYear()} Viralink. Todos os direitos reservados.</p>
       </div>
     </footer>
   );

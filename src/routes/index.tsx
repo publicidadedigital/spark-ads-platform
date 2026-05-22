@@ -23,6 +23,7 @@ function Landing() {
       <Testimonials />
       <Plans />
       <Compliance />
+      <Disclaimer />
       <CTA />
       <Footer />
     </div>

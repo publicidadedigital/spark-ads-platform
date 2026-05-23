@@ -94,7 +94,7 @@ function Dashboard() {
   const restantes = Math.max(0, s.metaDia - s.sharesHoje);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 dashboard-page">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold">Dashboard</h1>
@@ -103,7 +103,7 @@ function Dashboard() {
         <StatusBadge status={s.status} />
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 dashboard-stat-grid">
         <Stat icon={Wallet} label="Saldo do ciclo" value={`R$ ${s.saldo.toFixed(2)}`} />
         <Stat icon={TrendingUp} label="Pacote ativo" value={s.pacote?.nome ?? "Nenhum"} sub={s.pacote ? `R$ ${Number(s.pacote.valor).toFixed(2)}` : "Adquira um pacote"} />
         <Stat icon={Share2} label="Compartilhamentos hoje" value={`${s.sharesHoje} / ${s.metaDia}`} sub={restantes > 0 ? `Faltam ${restantes}` : "Meta cumprida"} />
@@ -121,7 +121,7 @@ function Dashboard() {
         <p className="text-xs text-muted-foreground mt-2">{(s.cycle?.percentual ?? 0).toFixed(2)}% de 200%</p>
       </Card>
 
-      <div className="grid md:grid-cols-3 gap-4">
+      <div className="grid md:grid-cols-3 gap-4 dashboard-earnings-grid">
         <Stat label="Ganhos diários" value={`R$ ${s.ganhosDiarios.toFixed(2)}`} />
         <Stat label="Ganhos por indicação" value={`R$ ${s.ganhosIndicacao.toFixed(2)}`} />
         <Stat label="Ganhos de equipe" value={`R$ ${s.ganhosEquipe.toFixed(2)}`} />

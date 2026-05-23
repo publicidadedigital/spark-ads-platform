@@ -79,7 +79,7 @@ function RenovacaoPage() {
         .select("id,nome,valor,descricao,status")
         .eq("status", "ativo")
         .order("valor");
-      setPackages((pks ?? []) as PackageRow[]);
+      setPackages(uniquePackages((pks ?? []) as PackageRow[]));
       setLoading(false);
     })();
   }, [supabase, user]);
@@ -456,6 +456,16 @@ function addDays(date: Date, days: number) {
 
 function moneyValue(value: number | string | null | undefined) {
   return Number(value ?? 0);
+}
+
+function uniquePackages(packages: PackageRow[]) {
+  const seen = new Set<string>();
+  return packages.filter((pkg) => {
+    const key = `${pkg.nome}-${moneyValue(pkg.valor)}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function formatMoney(value: number) {

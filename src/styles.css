@@ -93,6 +93,9 @@
 }
 
 @layer utilities {
+  .app-container {
+    max-width: min(1480px, calc(100vw - 48px));
+  }
   .bg-gold-gradient { background: var(--gradient-gold); }
   .bg-noir-gradient { background: var(--gradient-noir); }
   .shadow-gold { box-shadow: var(--shadow-gold); }

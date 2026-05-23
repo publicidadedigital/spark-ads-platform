@@ -64,7 +64,7 @@ function AppLayout() {
           <div className="flex items-center gap-3">
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden"><Menu /></Button>
+                <Button variant="ghost" size="icon" className="app-mobile-menu md:hidden"><Menu /></Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-72">
                 <SidebarContent isAdmin={isAdmin} pathname={location.pathname} />
@@ -81,8 +81,8 @@ function AppLayout() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-6 grid md:grid-cols-[240px_1fr] gap-6">
-        <aside className="hidden md:block">
+      <div className="container mx-auto px-4 py-6 grid md:grid-cols-[240px_1fr] gap-6 app-shell-grid">
+        <aside className="hidden md:block app-sidebar">
           <SidebarContent isAdmin={isAdmin} pathname={location.pathname} />
         </aside>
         <main className="min-w-0"><Outlet /></main>

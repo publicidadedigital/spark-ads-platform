@@ -10,6 +10,19 @@ import appCss from "../styles.css?url";
 import { AuthProvider } from "@/lib/supabase/auth";
 import { Toaster } from "@/components/ui/sonner";
 
+const criticalCss = `
+  *,::before,::after{box-sizing:border-box;border-color:#1f2937}html,body,#root{min-height:100%;margin:0}body{background:#020617;color:#f8fafc;font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}img{display:block;max-width:100%;height:auto}button,input,textarea,select{font:inherit}
+  .min-h-screen{min-height:100vh}.flex{display:flex}.grid{display:grid}.hidden{display:none}.inline-flex{display:inline-flex}.items-center{align-items:center}.items-start{align-items:flex-start}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.shrink-0{flex-shrink:0}.min-w-0{min-width:0}.w-full{width:100%}.h-full{height:100%}.h-4{height:1rem}.w-4{width:1rem}.h-5{height:1.25rem}.w-5{width:1.25rem}.h-7{height:1.75rem}.w-7{width:1.75rem}.h-9{height:2.25rem}.w-9{width:2.25rem}.h-10{height:2.5rem}.w-10{width:2.5rem}.h-12{height:3rem}.w-12{width:3rem}.h-16{height:4rem}.w-16{width:4rem}.h-20{height:5rem}.w-20{width:5rem}.max-w-md{max-width:28rem}.max-w-6xl{max-width:72rem}.container{width:100%;max-width:1200px;margin-inline:auto}.object-contain{object-fit:contain}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.relative{position:relative}.absolute{position:absolute}.sticky{position:sticky}.top-0{top:0}.z-40{z-index:40}
+  .gap-1{gap:.25rem}.gap-2{gap:.5rem}.gap-3{gap:.75rem}.gap-4{gap:1rem}.gap-5{gap:1.25rem}.gap-6{gap:1.5rem}.space-y-1>*+*{margin-top:.25rem}.space-y-2>*+*{margin-top:.5rem}.space-y-3>*+*{margin-top:.75rem}.space-y-4>*+*{margin-top:1rem}.space-y-6>*+*{margin-top:1.5rem}.mx-auto{margin-inline:auto}.mt-1{margin-top:.25rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}.mt-4{margin-top:1rem}.mt-6{margin-top:1.5rem}.mb-1{margin-bottom:.25rem}.mb-2{margin-bottom:.5rem}.mb-3{margin-bottom:.75rem}.mb-4{margin-bottom:1rem}.mb-6{margin-bottom:1.5rem}.ml-auto{margin-left:auto}.mr-2{margin-right:.5rem}
+  .p-3{padding:.75rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.p-8{padding:2rem}.px-3{padding-inline:.75rem}.px-4{padding-inline:1rem}.px-6{padding-inline:1.5rem}.py-1{padding-block:.25rem}.py-2{padding-block:.5rem}.py-3{padding-block:.75rem}.py-4{padding-block:1rem}.py-6{padding-block:1.5rem}.pt-4{padding-top:1rem}.pb-1{padding-bottom:.25rem}
+  .rounded-md{border-radius:.5rem}.rounded-lg{border-radius:.75rem}.rounded-xl{border-radius:1rem}.rounded-2xl{border-radius:1.25rem}.rounded-full{border-radius:9999px}.border{border:1px solid #1e293b}.border-b{border-bottom:1px solid #1e293b}.border-t{border-top:1px solid #1e293b}.border-border\/50{border-color:rgba(51,65,85,.5)}.border-gold\/30{border-color:rgba(37,99,235,.35)}.bg-background\/80{background:rgba(2,6,23,.8)}.bg-card\/80{background:rgba(15,23,42,.82)}.bg-card{background:#0f172a}.bg-transparent{background:transparent}.bg-noir-gradient{background:linear-gradient(180deg,#030712,#020617)}.bg-gold-gradient{background:linear-gradient(135deg,#2563eb,#38bdf8)}.bg-gold\/10{background:rgba(37,99,235,.12)}.text-gold,.text-primary{color:#3b82f6}.text-foreground{color:#f8fafc}.text-card-foreground{color:#f8fafc}.text-muted-foreground{color:#94a3b8}.text-primary-foreground{color:#fff}
+  .text-xs{font-size:.75rem;line-height:1rem}.text-sm{font-size:.875rem;line-height:1.25rem}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.font-medium{font-weight:500}.font-semibold{font-weight:600}.font-bold{font-weight:700}.text-center{text-align:center}.uppercase{text-transform:uppercase}.tracking-tight{letter-spacing:-.025em}.tracking-wider{letter-spacing:.05em}.leading-none{line-height:1}.shadow{box-shadow:0 12px 34px rgba(0,0,0,.35)}.shadow-lg{box-shadow:0 20px 50px rgba(0,0,0,.4)}.backdrop-blur-md{backdrop-filter:blur(12px)}
+  .transition,.transition-colors{transition:all .15s ease}.cursor-pointer{cursor:pointer}.disabled\:opacity-50:disabled{opacity:.5}.disabled\:cursor-not-allowed:disabled{cursor:not-allowed}.hover\:opacity-90:hover{opacity:.9}.hover\:underline:hover{text-decoration:underline}.hover\:bg-card:hover{background:#0f172a}.hover\:text-foreground:hover{color:#f8fafc}
+  input,textarea{border:1px solid #1e293b;background:transparent;color:#f8fafc;border-radius:.5rem;padding:.5rem .75rem;width:100%;outline:none}input:focus,textarea:focus{box-shadow:0 0 0 1px #2563eb}.inline-flex,button{align-items:center;justify-content:center}button{border:0;border-radius:.5rem;min-height:2.25rem;padding:.5rem 1rem;color:#fff;background:#2563eb;cursor:pointer}
+  @media (min-width:768px){.md\:block{display:block}.md\:hidden{display:none}.md\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.md\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.md\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.md\:grid-cols-\[240px_1fr\]{grid-template-columns:240px minmax(0,1fr)}}
+  @media (min-width:1280px){.xl\:grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}.xl\:grid-cols-\[minmax\(0\,1fr\)_304px\]{grid-template-columns:minmax(0,1fr) 304px}.xl\:grid-cols-\[minmax\(0\,1fr\)_330px\]{grid-template-columns:minmax(0,1fr) 330px}}
+`;
+
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -71,7 +84,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" className="dark">
-      <head><HeadContent /></head>
+      <head>
+        <HeadContent />
+        <style dangerouslySetInnerHTML={{ __html: criticalCss }} />
+      </head>
       <body><div id="root">{children}</div><Scripts /></body>
     </html>
   );

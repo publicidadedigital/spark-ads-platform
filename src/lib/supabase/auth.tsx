@@ -48,6 +48,16 @@ function withTimeout<T>(promise: Promise<T>, ms: number, message: string) {
   });
 }
 
+function clearStoredAuth() {
+  try {
+    Object.keys(window.localStorage)
+      .filter((key) => key === "supabase.auth.token" || key.startsWith("sb-"))
+      .forEach((key) => window.localStorage.removeItem(key));
+  } catch {
+    // Browsers can block localStorage access in some privacy modes.
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -58,6 +68,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let unsub: (() => void) | undefined;
     let mounted = true;
+    const failsafe = window.setTimeout(() => {
+      if (!mounted) return;
+      console.warn("Supabase auth init timed out; clearing stored auth");
+      clearStoredAuth();
+      setSession(null);
+      setIsAdmin(false);
+      setLoading(false);
+    }, 10000);
 
     withTimeout(getSupabase(), 8000, "Tempo esgotado ao carregar a configuração")
       .then(async (sb) => {
@@ -90,14 +108,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           lastCheckedUserId.current = uid;
           setIsAdmin(await withTimeout(checkAdmin(sb, uid), 8000, "Tempo esgotado ao validar permissões"));
         }
+        window.clearTimeout(failsafe);
         setLoading(false);
       }).catch((e) => {
         console.error("Supabase init failed", e);
+        clearStoredAuth();
+        window.clearTimeout(failsafe);
         setLoading(false);
       });
 
     return () => {
       mounted = false;
+      window.clearTimeout(failsafe);
       unsub?.();
     };
   }, []);

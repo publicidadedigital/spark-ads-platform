@@ -30,6 +30,14 @@ function AppLayout() {
     if (!loading && !session) navigate({ to: "/login" });
   }, [loading, session, navigate]);
 
+  useEffect(() => {
+    if (session) return;
+    const timeout = window.setTimeout(() => {
+      window.location.replace("/login");
+    }, 12000);
+    return () => window.clearTimeout(timeout);
+  }, [session]);
+
   if (loading || !session) {
     return (
       <div

@@ -32,6 +32,22 @@ async function checkAdmin(sb: SupabaseClient, userId: string) {
   return !!data;
 }
 
+function withTimeout<T>(promise: Promise<T>, ms: number, message: string) {
+  return new Promise<T>((resolve, reject) => {
+    const timeout = window.setTimeout(() => reject(new Error(message)), ms);
+    promise.then(
+      (value) => {
+        window.clearTimeout(timeout);
+        resolve(value);
+      },
+      (error) => {
+        window.clearTimeout(timeout);
+        reject(error);
+      },
+    );
+  });
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -43,37 +59,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let unsub: (() => void) | undefined;
     let mounted = true;
 
-    getSupabase().then(async (sb) => {
-      if (!mounted) return;
-      setSupabase(sb);
+    withTimeout(getSupabase(), 8000, "Tempo esgotado ao carregar a configuração")
+      .then(async (sb) => {
+        if (!mounted) return;
+        setSupabase(sb);
 
-      const sub = sb.auth.onAuthStateChange((_evt, s) => {
-        setSession(s);
-        const uid = s?.user?.id ?? null;
-        // Só re-checa admin quando o user id muda de fato
+        const sub = sb.auth.onAuthStateChange((_evt, s) => {
+          setSession(s);
+          const uid = s?.user?.id ?? null;
+          // Só re-checa admin quando o user id muda de fato
+          if (uid && uid !== lastCheckedUserId.current) {
+            lastCheckedUserId.current = uid;
+            checkAdmin(sb, uid).then(setIsAdmin);
+          } else if (!uid) {
+            lastCheckedUserId.current = null;
+            setIsAdmin(false);
+          }
+        });
+        unsub = () => sub.data.subscription.unsubscribe();
+
+        const { data } = await withTimeout(
+          sb.auth.getSession(),
+          8000,
+          "Tempo esgotado ao recuperar a sessão",
+        );
+        if (!mounted) return;
+        setSession(data.session);
+        const uid = data.session?.user?.id ?? null;
         if (uid && uid !== lastCheckedUserId.current) {
           lastCheckedUserId.current = uid;
-          checkAdmin(sb, uid).then(setIsAdmin);
-        } else if (!uid) {
-          lastCheckedUserId.current = null;
-          setIsAdmin(false);
+          setIsAdmin(await withTimeout(checkAdmin(sb, uid), 8000, "Tempo esgotado ao validar permissões"));
         }
+        setLoading(false);
+      }).catch((e) => {
+        console.error("Supabase init failed", e);
+        setLoading(false);
       });
-      unsub = () => sub.data.subscription.unsubscribe();
-
-      const { data } = await sb.auth.getSession();
-      if (!mounted) return;
-      setSession(data.session);
-      const uid = data.session?.user?.id ?? null;
-      if (uid && uid !== lastCheckedUserId.current) {
-        lastCheckedUserId.current = uid;
-        setIsAdmin(await checkAdmin(sb, uid));
-      }
-      setLoading(false);
-    }).catch((e) => {
-      console.error("Supabase init failed", e);
-      setLoading(false);
-    });
 
     return () => {
       mounted = false;

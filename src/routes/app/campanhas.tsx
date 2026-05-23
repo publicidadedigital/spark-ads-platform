@@ -13,10 +13,8 @@ import {
   Check,
   CircleHelp,
   Clock,
-  Copy,
   ExternalLink,
   Flame,
-  Gift,
   Instagram,
   Link2,
   Megaphone,
@@ -26,7 +24,6 @@ import {
   Sparkles,
   Star,
   Trophy,
-  Upload,
   Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -164,7 +161,7 @@ function CampanhasPage() {
               </Button>
             </div>
 
-            <div className="mt-6 grid gap-3 lg:grid-cols-4">
+            <div className="mt-6 grid gap-3 md:grid-cols-2 min-[1400px]:grid-cols-4">
               <MetricCard label="Publicidades de hoje" value={`${submittedCount} / ${DAILY_GOAL}`} sub={`Restam ${remaining} para completar`} icon={Megaphone} />
               <MetricCard label="Bônus do dia" value={formatMoney(DAILY_BONUS)} sub={`Ao completar ${DAILY_GOAL} publicações`} icon={Wallet} tone="success" />
               <MetricCard label="Sequência atual" value={`${currentStreak} dias`} sub="Continue assim!" icon={Flame} tone="warning" />
@@ -173,12 +170,12 @@ function CampanhasPage() {
           </Card>
 
           <Card className="overflow-hidden border-violet-500/35 bg-[radial-gradient(circle_at_right,rgba(245,181,27,0.22),transparent_28%),linear-gradient(90deg,rgba(88,28,135,0.55),rgba(2,6,23,0.55))] p-5">
-            <div className="grid gap-5 lg:grid-cols-[1fr_420px_250px] lg:items-center">
+            <div className="grid gap-5 xl:grid-cols-[minmax(220px,1fr)_minmax(360px,420px)_minmax(190px,250px)] xl:items-center">
               <div>
                 <h2 className="font-semibold">Complete as {DAILY_GOAL} publicidades diárias</h2>
                 <p className="mt-1 text-sm text-muted-foreground">e garanta seu bônus completo!</p>
               </div>
-              <div className="flex items-center justify-center gap-3">
+              <div className="flex min-w-0 items-center justify-center gap-2">
                 {Array.from({ length: DAILY_GOAL }, (_, index) => {
                   const done = submittedCount > index;
                   return (
@@ -189,12 +186,12 @@ function CampanhasPage() {
                         {index + 1}
                         {done && <Check className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-success text-success-foreground" />}
                       </div>
-                      {index < DAILY_GOAL - 1 && <div className={`h-px w-10 ${submittedCount > index + 1 ? "bg-success" : "bg-primary/30"}`} />}
+                      {index < DAILY_GOAL - 1 && <div className={`h-px w-8 min-[1400px]:w-10 ${submittedCount > index + 1 ? "bg-success" : "bg-primary/30"}`} />}
                     </div>
                   );
                 })}
               </div>
-              <div className="flex items-center justify-center gap-4 border-l border-primary/20 pl-4">
+              <div className="flex items-center justify-center gap-4 border-primary/20 xl:border-l xl:pl-4">
                 <Trophy className="h-14 w-14 text-amber-300 drop-shadow-[0_0_16px_rgba(245,181,27,0.45)]" />
                 <div>
                   <p className="text-sm text-muted-foreground">Bônus diário</p>

@@ -60,7 +60,7 @@ function AppLayout() {
   return (
     <div className="min-h-screen bg-noir-gradient">
       <header className="border-b border-border/50 backdrop-blur-md sticky top-0 z-40 bg-background/80">
-        <div className="container mx-auto flex items-center justify-between px-4 py-3">
+        <div className="container app-container mx-auto flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
             <Sheet>
               <SheetTrigger asChild>
@@ -81,7 +81,7 @@ function AppLayout() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-6 grid md:grid-cols-[240px_1fr] gap-6 app-shell-grid">
+      <div className="container app-container mx-auto px-4 py-6 grid md:grid-cols-[240px_1fr] gap-6 app-shell-grid">
         <aside className="hidden md:block app-sidebar">
           <SidebarContent isAdmin={isAdmin} pathname={location.pathname} />
         </aside>

@@ -71,7 +71,7 @@
   --gradient-noir: linear-gradient(180deg, oklch(0.09 0.003 260), oklch(0.04 0 0));
   --shadow-gold: 0 10px 40px -12px oklch(0.60 0.22 258 / 0.45);
   --shadow-elegant: 0 8px 32px -8px oklch(0 0 0 / 0.7);
-  --asset-cache-key: "auth-failsafe-20260523";
+  --asset-cache-key: "responsive-dashboard-20260602";
 }
 
 .dark {
@@ -79,23 +79,42 @@
   --foreground: oklch(0.98 0 0);
 }
 
-
 @layer base {
   * {
     border-color: var(--color-border);
   }
-  html, body {
+
+  html,
+  body,
+  #root {
+    min-height: 100%;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  html,
+  body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-display);
     -webkit-font-smoothing: antialiased;
   }
+
+  img,
+  video,
+  canvas,
+  svg {
+    max-width: 100%;
+  }
 }
 
 @layer utilities {
   .app-container {
-    max-width: min(1480px, calc(100vw - 48px));
+    width: 100%;
+    max-width: min(1480px, calc(100vw - 32px));
+    margin-inline: auto;
   }
+
   .bg-gold-gradient { background: var(--gradient-gold); }
   .bg-noir-gradient { background: var(--gradient-noir); }
   .shadow-gold { box-shadow: var(--shadow-gold); }
@@ -107,5 +126,127 @@
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+  }
+
+  .app-shell-grid > *,
+  .dashboard-page > *,
+  .dashboard-stat-grid > *,
+  .dashboard-earnings-grid > *,
+  main > * {
+    min-width: 0;
+  }
+
+  .dashboard-stat-grid,
+  .dashboard-earnings-grid {
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  }
+
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+}
+
+@media (max-width: 1399px) {
+  .grid.xl\:grid-cols-5,
+  .grid.xl\:grid-cols-6,
+  .grid[class*="xl:grid-cols-5"],
+  .grid[class*="xl:grid-cols-6"] {
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)) !important;
+  }
+
+  .grid[class*="xl:grid-cols-[minmax(0,1fr)_330px]"],
+  .grid[class*="xl:grid-cols-[minmax(0,1fr)_304px]"] {
+    grid-template-columns: minmax(0, 1fr) 320px !important;
+  }
+}
+
+@media (max-width: 1180px) {
+  .app-shell-grid,
+  .grid.md\:grid-cols-\[240px_1fr\] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .app-sidebar {
+    display: none !important;
+  }
+
+  .app-mobile-menu {
+    display: inline-flex !important;
+  }
+
+  .grid[class*="xl:grid-cols-[minmax(0,1fr)_330px]"],
+  .grid[class*="xl:grid-cols-[minmax(0,1fr)_304px]"],
+  .grid[class*="lg:grid-cols-[1fr_420px_250px]"],
+  .grid[class*="lg:grid-cols-[1.4fr_1fr_1fr]"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 920px) {
+  .app-container {
+    max-width: calc(100vw - 24px);
+  }
+
+  .grid.md\:grid-cols-2,
+  .grid.md\:grid-cols-3,
+  .grid.md\:grid-cols-4,
+  .dashboard-stat-grid,
+  .dashboard-earnings-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .flex.lg\:flex-row,
+  .flex.md\:flex-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .grid[class*="xl:grid-cols-[minmax(220px,1fr)_minmax(360px,420px)_minmax(190px,250px)]"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-container {
+    max-width: calc(100vw - 16px);
+  }
+
+  .p-8 { padding: 1.25rem !important; }
+  .p-6 { padding: 1rem !important; }
+  .p-5 { padding: .875rem !important; }
+
+  .text-3xl { font-size: 1.55rem !important; line-height: 2rem !important; }
+  .text-2xl { font-size: 1.35rem !important; line-height: 1.8rem !important; }
+  .text-xl { font-size: 1.1rem !important; line-height: 1.55rem !important; }
+
+  .grid.sm\:grid-cols-2,
+  .grid.sm\:grid-cols-3,
+  .grid.xl\:grid-cols-5,
+  .grid.xl\:grid-cols-6,
+  .grid[class*="xl:grid-cols-5"],
+  .grid[class*="xl:grid-cols-6"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .min-w-\[820px\] {
+    min-width: 680px !important;
+  }
+
+  [class*="aspect-[4/3]"],
+  .aspect-\[4\/3\] {
+    min-height: 170px;
+  }
+
+  button,
+  .inline-flex {
+    min-width: 0;
   }
 }

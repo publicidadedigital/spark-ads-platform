@@ -1,17 +1,24 @@
-import logo from "@/assets/viralink-symbol.jpeg";
+import { viralHubLogo } from "@/assets/viral-hub-logo";
 
-export function Logo({ className = "h-7 w-7", showText = true, textClassName = "" }: { className?: string; showText?: boolean; textClassName?: string }) {
+export function Logo({
+  className = "h-9 w-auto max-w-[150px]",
+  showText = true,
+  textClassName = "",
+}: {
+  className?: string;
+  showText?: boolean;
+  textClassName?: string;
+}) {
   return (
-    <span className="flex items-center gap-2">
+    <span className="flex items-center gap-2 min-w-0">
       <img
-        src={logo}
-        alt="Viralink"
-        className={`${className} object-contain rounded-md`}
-        style={{ mixBlendMode: "screen" }}
+        src={viralHubLogo}
+        alt="Viral Hub"
+        className={`${className} object-contain`}
       />
       {showText && (
-        <span className={`font-bold tracking-tight ${textClassName}`}>
-          VIRA<span className="text-primary">LINK</span>
+        <span className={`font-bold tracking-tight whitespace-nowrap ${textClassName}`}>
+          VIRAL <span className="text-primary">HUB</span>
         </span>
       )}
     </span>

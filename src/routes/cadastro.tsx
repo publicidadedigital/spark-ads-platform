@@ -68,7 +68,7 @@ function CadastroPage() {
     <div className="min-h-screen flex items-center justify-center bg-noir-gradient px-4 py-10">
       <Card className="w-full max-w-md p-8 bg-card/80 border-border/50">
         <Link to="/" className="flex items-center justify-center mb-6">
-          <Logo className="h-9 w-9" textClassName="text-lg" />
+          <Logo className="h-10 w-auto max-w-[170px]" textClassName="text-lg" />
         </Link>
 
         <h1 className="text-2xl font-bold text-center mb-2">Criar conta</h1>

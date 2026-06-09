@@ -1,8 +1,8 @@
 import { viralHubLogo } from "@/assets/viral-hub-logo";
 
 export function Logo({
-  className = "h-9 w-auto max-w-[150px]",
-  showText = true,
+  className = "h-11 w-auto max-w-[150px]",
+  showText = false,
   textClassName = "",
 }: {
   className?: string;
@@ -10,14 +10,14 @@ export function Logo({
   textClassName?: string;
 }) {
   return (
-    <span className="flex items-center gap-2 min-w-0">
+    <span className="inline-flex items-center min-w-0 shrink-0 leading-none">
       <img
         src={viralHubLogo}
         alt="Viral Hub"
-        className={`${className} object-contain`}
+        className={`${className} max-h-14 object-contain`}
       />
       {showText && (
-        <span className={`font-bold tracking-tight whitespace-nowrap ${textClassName}`}>
+        <span className={`ml-2 font-bold tracking-tight whitespace-nowrap ${textClassName}`}>
           VIRAL <span className="text-primary">HUB</span>
         </span>
       )}

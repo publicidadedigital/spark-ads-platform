@@ -35,7 +35,7 @@ function Header() {
     <header className="border-b border-border/50 backdrop-blur-md sticky top-0 z-50 bg-background/70">
       <div className="container mx-auto flex items-center justify-between px-4 py-4">
         <Link to="/" className="flex items-center">
-          <Logo className="h-8 w-8" textClassName="text-xl" />
+          <Logo className="h-8 w-auto max-w-[140px]" textClassName="text-xl" />
         </Link>
 
         <nav className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
@@ -61,7 +61,7 @@ function Hero() {
             Compartilhe. <span className="gold-text-gradient">Monetize.</span><br /> Construa renda.
           </h1>
           <p className="text-lg text-muted-foreground mb-8">
-            Viralink conecta você às melhores campanhas digitais. Compartilhe 5 publicidades por dia
+            Viral Hub conecta você às melhores campanhas digitais. Compartilhe 5 publicidades por dia
             no seu Instagram e receba bonificações diárias, indicações multinível e rentabilidade de equipe.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
@@ -146,7 +146,7 @@ function Showcase() {
           <div className="absolute -inset-6 bg-gold-gradient opacity-20 blur-3xl rounded-full" />
           <img
             src={phoneImg}
-            alt="Painel de ganhos do aplicativo Viralink"
+            alt="Painel de ganhos do aplicativo Viral Hub"
             width={1200}
             height={1400}
             loading="lazy"
@@ -175,7 +175,7 @@ function Showcase() {
             Uma comunidade de <span className="gold-text-gradient">criadores reais</span>
           </h2>
           <p className="text-muted-foreground mb-6">
-            Milhares de criadores já fazem parte da rede Viralink, transformando o tempo nas redes sociais
+            Milhares de criadores já fazem parte da rede Viral Hub, transformando o tempo nas redes sociais
             em uma nova fonte de renda — com transparência, suporte e regras claras.
           </p>
           <Link to="/cadastro">
@@ -205,7 +205,7 @@ function Testimonials() {
     {
       nome: "Ana Clara M.",
       funcao: "Criadora de conteúdo — São Paulo",
-      texto: "Entrei no Viralink há 3 meses e já recuperei o valor do pacote. Compartilho no meu Instagram de moda e o painel mostra tudo em tempo real. Super transparente!",
+      texto: "Entrei na Viral Hub há 3 meses e já recuperei o valor do pacote. Compartilho no meu Instagram de moda e o painel mostra tudo em tempo real. Super transparente!",
       nota: 5,
     },
     {
@@ -321,7 +321,7 @@ function Disclaimer() {
         </div>
         <div className="space-y-4 text-sm text-muted-foreground leading-relaxed">
           <p>
-            A Viralink é uma plataforma de participação em campanhas publicitárias e atividades de
+            A Viral Hub é uma plataforma de participação em campanhas publicitárias e atividades de
             divulgação digital. <strong className="text-foreground">Não somos uma instituição financeira,
             banco, corretora, fundo de investimento, distribuidora de valores mobiliários ou empresa
             de investimentos</strong>, e não oferecemos produtos financeiros de qualquer natureza.
@@ -368,7 +368,7 @@ function CTA() {
         </Button>
       </Link>
       <p className="text-xs text-muted-foreground mt-8 max-w-2xl mx-auto">
-        Ao prosseguir, você declara ciência de que a Viralink não é instituição financeira e que a aquisição
+        Ao prosseguir, você declara ciência de que a Viral Hub não é instituição financeira e que a aquisição
         de pacotes não constitui investimento, não havendo garantia de ganhos. Recompensas dependem do
         cumprimento das atividades e regras do plano. <a href="#disclaimer" className="underline hover:text-foreground">Leia o aviso completo</a>.
       </p>
@@ -381,10 +381,10 @@ function Footer() {
     <footer className="border-t border-border/50 mt-12">
       <div className="container mx-auto px-4 py-8 space-y-3 text-center text-xs text-muted-foreground">
         <p className="max-w-3xl mx-auto">
-          A Viralink não é uma instituição financeira e a compra de pacotes não constitui investimento.
+          A Viral Hub não é uma instituição financeira e a compra de pacotes não constitui investimento.
           Não há promessa de ganhos — recompensas dependem do cumprimento das atividades e regras da plataforma.
         </p>
-        <p>© {new Date().getFullYear()} Viralink. Todos os direitos reservados.</p>
+        <p>© {new Date().getFullYear()} Viral Hub. Todos os direitos reservados.</p>
       </div>
     </footer>
   );

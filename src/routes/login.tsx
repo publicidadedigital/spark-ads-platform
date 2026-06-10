@@ -1,6 +1,6 @@
 import { Logo } from "@/components/Logo";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/supabase/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,14 +8,36 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/login")({ component: LoginPage });
+export const Route = createFileRoute("/login")({
+  validateSearch: (s) => ({
+    email_confirmed: (s.email_confirmed as string) || "",
+    reason: (s.reason as string) || "",
+  }),
+  component: LoginPage,
+});
 
 function LoginPage() {
   const { supabase } = useAuth();
   const navigate = useNavigate();
+  const search = useSearch({ from: "/login" });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (search.email_confirmed === "1") {
+      toast.success("E-mail confirmado com sucesso. Voce ja pode entrar.");
+    }
+    if (search.email_confirmed === "0") {
+      const messageByReason: Record<string, string> = {
+        missing_token: "Link de confirmacao incompleto.",
+        invalid_token: "Link de confirmacao invalido.",
+        expired_token: "Link de confirmacao expirado. Solicite um novo envio.",
+        server_error: "Nao foi possivel confirmar o e-mail agora.",
+      };
+      toast.error(messageByReason[search.reason] || "Nao foi possivel confirmar o e-mail.");
+    }
+  }, [search.email_confirmed, search.reason]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -51,7 +73,7 @@ function LoginPage() {
           </Button>
         </form>
         <p className="text-sm text-center text-muted-foreground mt-6">
-          Não tem conta? <Link to="/cadastro" className="text-gold hover:underline">Cadastre-se</Link>
+          Nao tem conta? <Link to="/cadastro" className="text-gold hover:underline">Cadastre-se</Link>
         </p>
       </Card>
     </div>

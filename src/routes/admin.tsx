@@ -57,8 +57,8 @@ function AdminLayout() {
       <header className="border-b border-border/50 bg-background/80">
         <div className="container mx-auto flex items-center justify-between px-4 py-3">
           <Link to="/admin" className="flex items-center gap-2">
-            <Logo className="h-8 w-auto max-w-[140px]" showText={false} />
-            <span className="font-bold tracking-tight">VIRAL <span className="text-primary">HUB</span> <span className="text-primary text-xs">ADMIN</span></span>
+            <Logo className="h-8 w-auto max-w-[180px]" textClassName="text-base" />
+            <span className="text-primary text-xs font-bold tracking-wider">ADMIN</span>
           </Link>
 
           <Button variant="ghost" size="sm" onClick={() => { signOut(); navigate({ to: "/" }); }}>

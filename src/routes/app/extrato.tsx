@@ -155,7 +155,7 @@ function ExtratoPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "extrato-viralink.csv";
+    link.download = "extrato-viral-hub.csv";
     link.click();
     URL.revokeObjectURL(url);
   };

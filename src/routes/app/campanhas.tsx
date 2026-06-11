@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { calculateDailyShareBonus } from "@/lib/business/rules";
 import {
   Check,
   CircleHelp,
@@ -56,8 +57,12 @@ type Bonus = {
   created_at: string;
 };
 
+type ActiveCycle = {
+  id: string;
+  valor_pacote: number | string | null;
+};
+
 const DAILY_GOAL = 5;
-const DAILY_BONUS = 50;
 
 function CampanhasPage() {
   const { supabase, user } = useAuth();
@@ -66,6 +71,7 @@ function CampanhasPage() {
   const [monthBonuses, setMonthBonuses] = useState<Bonus[]>([]);
   const [profileId, setProfileId] = useState<string | null>(null);
   const [cycleId, setCycleId] = useState<string | null>(null);
+  const [cyclePackageValue, setCyclePackageValue] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -99,7 +105,7 @@ function CampanhasPage() {
     const [{ data: cycle }, { data: cs }, { data: shares }, { data: bonuses }] = await Promise.all([
       supabase
         .from("user_cycles")
-        .select("id")
+        .select("id,valor_pacote")
         .eq("user_id", prof.id)
         .eq("status", "ativo")
         .order("started_at", { ascending: false })
@@ -125,19 +131,22 @@ function CampanhasPage() {
         .gte("created_at", monthStart.toISOString()),
     ]);
 
-    setCycleId(cycle?.id ?? null);
+    const activeCycle = cycle as ActiveCycle | null;
+    setCycleId(activeCycle?.id ?? null);
+    setCyclePackageValue(Number(activeCycle?.valor_pacote ?? 0));
     setCampaigns((cs ?? []) as Campaign[]);
     setSharesToday((shares ?? []) as Share[]);
     setMonthBonuses((bonuses ?? []) as Bonus[]);
     setLoading(false);
   }
 
+  const dailyBonus = calculateDailyShareBonus(cyclePackageValue);
   const sharedToday = useMemo(() => new Set(sharesToday.map((share) => share.campaign_id)), [sharesToday]);
   const approvedCount = sharesToday.filter((share) => share.status === "aprovada").length;
   const submittedCount = sharesToday.length;
   const pendingCount = sharesToday.filter((share) => share.status === "pendente").length;
-  const progress = Math.min(100, Math.round((submittedCount / DAILY_GOAL) * 100));
-  const remaining = Math.max(0, DAILY_GOAL - submittedCount);
+  const progress = Math.min(100, Math.round((approvedCount / DAILY_GOAL) * 100));
+  const remaining = Math.max(0, DAILY_GOAL - approvedCount);
   const totalGanho = monthBonuses.reduce((sum, bonus) => sum + Number(bonus.valor ?? 0), 0);
   const currentStreak = Math.max(1, Math.min(7, approvedCount + pendingCount || submittedCount || 1));
 
@@ -152,7 +161,7 @@ function CampanhasPage() {
               <div>
                 <h1 className="text-3xl font-bold tracking-normal">Campanhas</h1>
                 <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-                  Compartilhe {DAILY_GOAL} publicidades por dia no seu Instagram e ganhe bônus.
+                  Compartilhe {DAILY_GOAL} publicidades por dia no seu Instagram e ganhe bonus.
                   <CircleHelp className="h-4 w-4" />
                 </p>
               </div>
@@ -162,22 +171,22 @@ function CampanhasPage() {
             </div>
 
             <div className="mt-6 grid gap-3 md:grid-cols-2 min-[1400px]:grid-cols-4">
-              <MetricCard label="Publicidades de hoje" value={`${submittedCount} / ${DAILY_GOAL}`} sub={`Restam ${remaining} para completar`} icon={Megaphone} />
-              <MetricCard label="Bônus do dia" value={formatMoney(DAILY_BONUS)} sub={`Ao completar ${DAILY_GOAL} publicações`} icon={Wallet} tone="success" />
-              <MetricCard label="Sequência atual" value={`${currentStreak} dias`} sub="Continue assim!" icon={Flame} tone="warning" />
-              <MetricCard label="Total ganho" value={formatMoney(totalGanho)} sub="Este mês" icon={Sparkles} tone="success" />
+              <MetricCard label="Publicidades aprovadas hoje" value={`${approvedCount} / ${DAILY_GOAL}`} sub={`Restam ${remaining} para completar`} icon={Megaphone} />
+              <MetricCard label="Bonus do dia" value={formatMoney(dailyBonus)} sub={`Ao completar ${DAILY_GOAL} publicacoes`} icon={Wallet} tone="success" />
+              <MetricCard label="Sequencia atual" value={`${currentStreak} dias`} sub="Continue assim!" icon={Flame} tone="warning" />
+              <MetricCard label="Total ganho" value={formatMoney(totalGanho)} sub="Este mes" icon={Sparkles} tone="success" />
             </div>
           </Card>
 
           <Card className="overflow-hidden border-violet-500/35 bg-[radial-gradient(circle_at_right,rgba(245,181,27,0.22),transparent_28%),linear-gradient(90deg,rgba(88,28,135,0.55),rgba(2,6,23,0.55))] p-5">
             <div className="grid gap-5 xl:grid-cols-[minmax(220px,1fr)_minmax(360px,420px)_minmax(190px,250px)] xl:items-center">
               <div>
-                <h2 className="font-semibold">Complete as {DAILY_GOAL} publicidades diárias</h2>
-                <p className="mt-1 text-sm text-muted-foreground">e garanta seu bônus completo!</p>
+                <h2 className="font-semibold">Complete as {DAILY_GOAL} publicidades diarias</h2>
+                <p className="mt-1 text-sm text-muted-foreground">e garanta seu bonus completo!</p>
               </div>
               <div className="flex min-w-0 items-center justify-center gap-2">
                 {Array.from({ length: DAILY_GOAL }, (_, index) => {
-                  const done = submittedCount > index;
+                  const done = approvedCount > index;
                   return (
                     <div key={index} className="flex items-center">
                       <div className={`relative flex h-11 w-11 items-center justify-center rounded-full border font-bold ${
@@ -186,7 +195,7 @@ function CampanhasPage() {
                         {index + 1}
                         {done && <Check className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-success text-success-foreground" />}
                       </div>
-                      {index < DAILY_GOAL - 1 && <div className={`h-px w-8 min-[1400px]:w-10 ${submittedCount > index + 1 ? "bg-success" : "bg-primary/30"}`} />}
+                      {index < DAILY_GOAL - 1 && <div className={`h-px w-8 min-[1400px]:w-10 ${approvedCount > index + 1 ? "bg-success" : "bg-primary/30"}`} />}
                     </div>
                   );
                 })}
@@ -194,8 +203,8 @@ function CampanhasPage() {
               <div className="flex items-center justify-center gap-4 border-primary/20 xl:border-l xl:pl-4">
                 <Trophy className="h-14 w-14 text-amber-300 drop-shadow-[0_0_16px_rgba(245,181,27,0.45)]" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Bônus diário</p>
-                  <p className="text-2xl font-bold text-amber-300">{formatMoney(DAILY_BONUS)}</p>
+                  <p className="text-sm text-muted-foreground">Bonus diario</p>
+                  <p className="text-2xl font-bold text-amber-300">{formatMoney(dailyBonus)}</p>
                 </div>
               </div>
             </div>
@@ -203,8 +212,8 @@ function CampanhasPage() {
 
           <section>
             <div className="mb-3">
-              <h2 className="text-xl font-semibold">Publicidades disponíveis</h2>
-              <p className="text-sm text-muted-foreground">Escolha uma publicidade, compartilhe no seu Instagram e envie o link para validação.</p>
+              <h2 className="text-xl font-semibold">Publicidades disponiveis</h2>
+              <p className="text-sm text-muted-foreground">Escolha uma publicidade, compartilhe no seu Instagram e envie o link para validacao.</p>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
@@ -230,8 +239,8 @@ function CampanhasPage() {
           <Card className="border-primary/15 bg-card/50 p-5">
             <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
-                <h2 className="text-xl font-semibold">Minhas publicações de hoje</h2>
-                <p className="text-sm text-muted-foreground">Acompanhe o status das suas publicações enviadas.</p>
+                <h2 className="text-xl font-semibold">Minhas publicacoes de hoje</h2>
+                <p className="text-sm text-muted-foreground">Acompanhe o status das suas publicacoes enviadas.</p>
               </div>
               <Button variant="outline" onClick={refresh}>
                 <RefreshCw className="mr-2 h-4 w-4" /> Atualizar
@@ -246,7 +255,7 @@ function CampanhasPage() {
                     <th className="px-3 py-3 text-left font-medium">Link enviado</th>
                     <th className="px-3 py-3 text-left font-medium">Status</th>
                     <th className="px-3 py-3 text-left font-medium">Enviado em</th>
-                    <th className="px-3 py-3 text-left font-medium">Bônus</th>
+                    <th className="px-3 py-3 text-left font-medium">Bonus</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -258,6 +267,7 @@ function CampanhasPage() {
                         index={index + 1}
                         campaign={campaign}
                         share={share}
+                        dailyBonus={dailyBonus}
                         profileId={profileId}
                         cycleId={cycleId}
                         onSubmitted={refresh}
@@ -271,7 +281,7 @@ function CampanhasPage() {
         </div>
 
         <aside className="space-y-4">
-          <ProgressPanel progress={progress} submitted={submittedCount} remaining={remaining} />
+          <ProgressPanel progress={progress} approved={approvedCount} remaining={remaining} />
           <HowItWorks />
           <RulesPanel />
         </aside>
@@ -323,10 +333,11 @@ function CampaignCard({ campaign, index, alreadyShared, profileId, cycleId, onSu
   );
 }
 
-function ShareRow({ campaign, share, index, profileId, cycleId, onSubmitted }: {
+function ShareRow({ campaign, share, index, dailyBonus, profileId, cycleId, onSubmitted }: {
   campaign: Campaign;
   share?: Share;
   index: number;
+  dailyBonus: number;
   profileId: string | null;
   cycleId: string | null;
   onSubmitted: () => void;
@@ -353,7 +364,7 @@ function ShareRow({ campaign, share, index, profileId, cycleId, onSubmitted }: {
       <td className="px-3 py-3 text-muted-foreground">{share ? formatTime(share.created_at) : "-"}</td>
       <td className="px-3 py-3">
         {share?.status === "aprovada" ? (
-          <span className="font-semibold text-success">{formatMoney(DAILY_BONUS / DAILY_GOAL)}</span>
+          <span className="font-semibold text-success">{formatMoney(dailyBonus / DAILY_GOAL)}</span>
         ) : share ? (
           <span className="text-muted-foreground">-</span>
         ) : (
@@ -404,7 +415,7 @@ function ShareDialog({ campaign, profileId, cycleId, onSubmitted, children }: {
         instagram_usado: insta.trim() || null,
       });
       if (error) throw error;
-      toast.success("Compartilhamento enviado para análise");
+      toast.success("Compartilhamento enviado para analise");
       setOpen(false);
       setLink("");
       setInsta("");
@@ -425,7 +436,7 @@ function ShareDialog({ campaign, profileId, cycleId, onSubmitted, children }: {
         <DialogHeader><DialogTitle>Enviar link: {campaign.titulo}</DialogTitle></DialogHeader>
         <div className="space-y-3">
           <div className="rounded-lg border border-primary/20 bg-primary/10 p-3 text-sm text-muted-foreground">
-            Publique no Instagram, mantenha o conteúdo por pelo menos 24h e envie o link da publicação.
+            Publique no Instagram, mantenha o conteudo por pelo menos 24h e envie o link da publicacao.
           </div>
           <div>
             <Label>Link do post compartilhado *</Label>
@@ -436,15 +447,15 @@ function ShareDialog({ campaign, profileId, cycleId, onSubmitted, children }: {
             <Input value={insta} onChange={(e) => setInsta(e.target.value)} placeholder="@seuusuario" />
           </div>
           <div>
-            <Label>Observação opcional</Label>
-            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Algo que ajude na validação" />
+            <Label>Observacao opcional</Label>
+            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Algo que ajude na validacao" />
           </div>
           <div>
-            <Label>Print da publicação (opcional)</Label>
+            <Label>Print da publicacao (opcional)</Label>
             <Input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
           </div>
           <Button onClick={submit} disabled={busy} className="w-full bg-gold-gradient text-primary-foreground">
-            {busy ? "Enviando..." : "Enviar para análise"}
+            {busy ? "Enviando..." : "Enviar para analise"}
           </Button>
         </div>
       </DialogContent>
@@ -452,37 +463,37 @@ function ShareDialog({ campaign, profileId, cycleId, onSubmitted, children }: {
   );
 }
 
-function ProgressPanel({ progress, submitted, remaining }: { progress: number; submitted: number; remaining: number }) {
+function ProgressPanel({ progress, approved, remaining }: { progress: number; approved: number; remaining: number }) {
   return (
     <Card className="border-primary/15 bg-card/50 p-5">
-      <h3 className="font-semibold">Progresso diário</h3>
+      <h3 className="font-semibold">Progresso diario</h3>
       <div className="mt-5 flex items-center gap-5">
         <div className="grid h-36 w-36 place-items-center rounded-full" style={{ background: `conic-gradient(#2563eb ${progress * 3.6}deg, rgba(37,99,235,0.18) 0deg)` }}>
           <div className="grid h-28 w-28 place-items-center rounded-full bg-card text-center">
             <div>
-              <p className="text-3xl font-bold">{submitted}<span className="text-base text-muted-foreground"> / {DAILY_GOAL}</span></p>
-              <p className="text-xs text-muted-foreground">publicações</p>
+              <p className="text-3xl font-bold">{approved}<span className="text-base text-muted-foreground"> / {DAILY_GOAL}</span></p>
+              <p className="text-xs text-muted-foreground">aprovadas</p>
             </div>
           </div>
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm text-muted-foreground">Faltam {remaining} publicações para completar seu bônus de hoje.</p>
+          <p className="text-sm text-muted-foreground">Faltam {remaining} publicacoes aprovadas para completar seu bonus de hoje.</p>
           <Progress value={progress} className="mt-4 h-2 bg-primary/10" />
           <p className="mt-2 text-sm font-semibold text-primary">{progress}%</p>
         </div>
       </div>
-      <Button className="mt-5 w-full bg-primary text-primary-foreground">Ver minhas publicações</Button>
+      <Button className="mt-5 w-full bg-primary text-primary-foreground">Ver minhas publicacoes</Button>
     </Card>
   );
 }
 
 function HowItWorks() {
   const steps = [
-    { icon: Megaphone, title: "Escolha uma publicidade", text: "Selecione uma das opções disponíveis para hoje." },
-    { icon: Instagram, title: "Compartilhe no Instagram", text: "Publique no feed, stories ou reels em conta pública." },
-    { icon: Link2, title: "Envie o link", text: "Cole o link da publicação para validação." },
-    { icon: Clock, title: "Aguarde a validação", text: "Nossa equipe analisará sua publicação." },
-    { icon: Star, title: "Ganhe seu bônus", text: "Se aprovado, o bônus será liberado automaticamente." },
+    { icon: Megaphone, title: "Escolha uma publicidade", text: "Selecione uma das opcoes disponiveis para hoje." },
+    { icon: Instagram, title: "Compartilhe no Instagram", text: "Publique no feed, stories ou reels em conta publica." },
+    { icon: Link2, title: "Envie o link", text: "Cole o link da publicacao para validacao." },
+    { icon: Clock, title: "Aguarde a validacao", text: "Nossa equipe analisara sua publicacao." },
+    { icon: Star, title: "Ganhe seu bonus", text: "Se aprovado, o bonus sera liberado automaticamente." },
   ];
 
   return (
@@ -510,11 +521,11 @@ function HowItWorks() {
 
 function RulesPanel() {
   const rules = [
-    "5 publicações por dia (obrigatório)",
-    "Conta do Instagram deve ser pública",
-    "Não é permitido editar a publicação após o envio do link",
-    "Conteúdo deve permanecer publicado por no mínimo 24h",
-    "Bônus liberado após validação",
+    "5 publicacoes aprovadas por dia (obrigatorio)",
+    "Conta do Instagram deve ser publica",
+    "Nao e permitido editar a publicacao apos o envio do link",
+    "Conteudo deve permanecer publicado por no minimo 24h",
+    "Bonus liberado somente apos validacao das 5 publicacoes",
   ];
   return (
     <Card className="border-primary/15 bg-card/50 p-5">
@@ -527,7 +538,7 @@ function RulesPanel() {
         ))}
       </div>
       <Button variant="outline" className="mt-5 w-full border-primary/30 bg-primary/10 text-primary">
-        Dúvidas? Fale com nosso suporte!
+        Duvidas? Fale com nosso suporte!
       </Button>
     </Card>
   );
@@ -563,7 +574,7 @@ function StatusBadge({ status }: { status: string }) {
     return <Badge className="border-destructive/30 bg-destructive/15 text-destructive hover:bg-destructive/15">Rejeitado</Badge>;
   }
   if (status === "pendente") {
-    return <Badge className="border-primary/30 bg-primary/15 text-primary hover:bg-primary/15"><Clock className="mr-1 h-3 w-3" /> Em análise</Badge>;
+    return <Badge className="border-primary/30 bg-primary/15 text-primary hover:bg-primary/15"><Clock className="mr-1 h-3 w-3" /> Em analise</Badge>;
   }
   return <Badge className="border-amber-400/30 bg-amber-500/15 text-amber-300 hover:bg-amber-500/15">Pendente</Badge>;
 }
@@ -573,7 +584,7 @@ function cardColor(index: number) {
 }
 
 function formatMoney(value: number) {
-  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  return value.toLocaleString("en-US", { style: "currency", currency: "USD" });
 }
 
 function formatTime(value: string) {

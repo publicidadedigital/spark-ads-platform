@@ -71,7 +71,7 @@ function AppLayout() {
               </SheetContent>
             </Sheet>
             <Link to="/app" className="flex items-center">
-              <Logo className="h-7 w-7" />
+              <Logo className="h-8 w-auto max-w-[140px]" />
             </Link>
 
           </div>

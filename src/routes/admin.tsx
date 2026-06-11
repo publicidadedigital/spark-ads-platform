@@ -3,16 +3,17 @@ import { createFileRoute, Outlet, Link, useNavigate, useLocation } from "@tansta
 import { useEffect } from "react";
 import { useAuth } from "@/lib/supabase/auth";
 import { Button } from "@/components/ui/button";
-import { LogOut, Users, Megaphone, CheckSquare, Package, ShieldAlert, ShieldCheck } from "lucide-react";
+import { LogOut, Users, Megaphone, CheckSquare, Package, ShieldAlert, ShieldCheck, Bug } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({ component: AdminLayout });
 
 const nav = [
-  { to: "/admin", label: "Usuários", icon: Users, exact: true },
+  { to: "/admin", label: "Usuarios", icon: Users, exact: true },
   { to: "/admin/admins", label: "Administradores", icon: ShieldCheck },
   { to: "/admin/campanhas", label: "Campanhas", icon: Megaphone },
   { to: "/admin/provas", label: "Provas", icon: CheckSquare },
   { to: "/admin/pacotes", label: "Pacotes", icon: Package },
+  { to: "/admin/logs", label: "Logs do Sistema", icon: Bug },
 ];
 
 function AdminLayout() {
@@ -25,7 +26,7 @@ function AdminLayout() {
   }, [loading, session, navigate]);
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Verificando permissões...</div>;
+    return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Verificando permissoes...</div>;
   }
 
   if (!session) return null;
@@ -37,9 +38,9 @@ function AdminLayout() {
           <ShieldAlert className="h-12 w-12 text-destructive mx-auto mb-4" />
           <h1 className="text-2xl font-bold mb-2">Acesso Negado</h1>
           <p className="text-sm text-muted-foreground mb-6">
-            Você não possui o papel <span className="text-gold font-semibold">admin</span> e
-            não pode acessar esta área. Caso acredite ser um engano, peça a um administrador
-            para promover seu usuário.
+            Voce nao possui o papel <span className="text-gold font-semibold">admin</span> e
+            nao pode acessar esta area. Caso acredite ser um engano, peca a um administrador
+            para promover seu usuario.
           </p>
           <div className="flex gap-2 justify-center">
             <Button variant="outline" onClick={() => navigate({ to: "/app" })}>Ir para o app</Button>
@@ -72,7 +73,7 @@ function AdminLayout() {
             {nav.map(({ to, label, icon: Icon, exact }) => {
               const active = exact ? loc.pathname === to : loc.pathname.startsWith(to);
               return (
-                <Link key={to} to={to} className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition ${
+                <Link key={to} to={to as any} className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition ${
                   active ? "bg-gold/10 text-gold border border-gold/30" : "text-muted-foreground hover:bg-card hover:text-foreground"
                 }`}><Icon className="h-4 w-4" />{label}</Link>
               );

@@ -5,12 +5,16 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { buildPackageAccounting } from "@/lib/business/rules";
 import { toast } from "sonner";
-import { CreditCard, QrCode, Receipt, ShieldCheck, Loader2 } from "lucide-react";
-import { createCheckout, PAYMENT_METHODS, type PaymentMethod } from "@/lib/payments/provider";
+import { QrCode, Receipt, ShieldCheck, Loader2, Bitcoin, Wallet } from "lucide-react";
+import { createCheckout, PAYMENT_METHODS, type CheckoutResult, type PaymentMethod } from "@/lib/payments/provider";
 import { createCheckoutOrder } from "@/lib/payments/checkout.functions";
 
 export const Route = createFileRoute("/app/checkout/$packageId")({ component: CheckoutPage });
+
+const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
 function CheckoutPage() {
   const { packageId } = Route.useParams();
@@ -21,6 +25,7 @@ function CheckoutPage() {
   const [method, setMethod] = useState<PaymentMethod>("pix");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [checkoutResult, setCheckoutResult] = useState<CheckoutResult | null>(null);
 
   useEffect(() => {
     if (!supabase || !user) return;
@@ -39,13 +44,11 @@ function CheckoutPage() {
     if (!supabase || !pkg || !profile || !user) return;
     setSubmitting(true);
     try {
-      // 1) Cria a intenção de ciclo no servidor (server fn valida usuário e pacote).
       const { data: sess } = await supabase.auth.getSession();
       const accessToken = sess.session?.access_token;
-      if (!accessToken) throw new Error("Sessão expirada");
+      if (!accessToken) throw new Error("Sessao expirada");
       const order = await createCheckoutOrder({ data: { packageId: pkg.id, accessToken } });
 
-      // 2) Inicia o pagamento no gateway (stub por enquanto).
       const result = await createCheckout({
         packageId: pkg.id,
         packageNome: pkg.nome,
@@ -54,12 +57,13 @@ function CheckoutPage() {
         userId: profile.id,
         userEmail: user.email ?? "",
         cycleId: order.cycleId,
+        accessToken,
       });
 
-      toast.success("Pagamento iniciado! Aguarde a confirmação.", {
+      setCheckoutResult(result);
+      toast.success(method === "pix" ? "Pix gerado com sucesso." : "Pagamento iniciado.", {
         description: `ID: ${result.paymentId}`,
       });
-      navigate({ to: "/app" });
     } catch (e: any) {
       toast.error(e.message ?? "Erro ao iniciar pagamento");
     } finally {
@@ -68,9 +72,10 @@ function CheckoutPage() {
   }
 
   if (loading) return <p className="text-muted-foreground">Carregando...</p>;
-  if (!pkg) return <p className="text-muted-foreground">Pacote não encontrado.</p>;
+  if (!pkg) return <p className="text-muted-foreground">Pacote nao encontrado.</p>;
 
-  const icons: Record<PaymentMethod, any> = { pix: QrCode, card: CreditCard, boleto: Receipt };
+  const accounting = buildPackageAccounting(Number(pkg.package_value ?? pkg.valor));
+  const icons: Record<PaymentMethod, any> = { pix: QrCode, crypto: Bitcoin, internal_balance: Wallet };
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -80,13 +85,16 @@ function CheckoutPage() {
       </div>
 
       <Card className="p-6 bg-card/50 border-border/50">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <div className="text-xs text-muted-foreground">Pacote selecionado</div>
             <div className="text-lg font-semibold">{pkg.nome}</div>
             {pkg.descricao && <p className="text-xs text-muted-foreground mt-1">{pkg.descricao}</p>}
           </div>
-          <div className="text-3xl font-bold gold-text-gradient">R$ {Number(pkg.valor).toFixed(2)}</div>
+          <div className="text-left md:text-right">
+            <div className="text-3xl font-bold gold-text-gradient">{usd.format(accounting.total_paid)}</div>
+            <p className="text-xs text-muted-foreground">Pacote {usd.format(accounting.bonusable_amount)} + curso {usd.format(accounting.course_fee)}</p>
+          </div>
         </div>
       </Card>
 
@@ -115,11 +123,25 @@ function CheckoutPage() {
         </RadioGroup>
       </Card>
 
+      {checkoutResult?.pixCode && (
+        <Card className="space-y-4 p-6 bg-card/50 border-primary/30">
+          <div>
+            <h3 className="font-semibold">Pix Efí gerado</h3>
+            <p className="text-sm text-muted-foreground">
+              Valor convertido: {checkoutResult.amountBrl ? brl.format(checkoutResult.amountBrl) : "-"} usando USDT/BRL {checkoutResult.quoteRate?.toFixed(4)} ({checkoutResult.quoteSource}).
+            </p>
+          </div>
+          {checkoutResult.pixQrBase64 && <img src={checkoutResult.pixQrBase64} alt="QR Code Pix" className="mx-auto h-56 w-56 rounded-lg bg-white p-2" />}
+          <div className="rounded-md border border-border/60 bg-background p-3 text-xs break-all text-muted-foreground">{checkoutResult.pixCode}</div>
+          <Button variant="outline" onClick={() => navigator.clipboard.writeText(checkoutResult.pixCode ?? "")}>Copiar Pix copia e cola</Button>
+        </Card>
+      )}
+
       <Card className="p-4 bg-card/30 border-border/50 flex items-start gap-3">
         <ShieldCheck className="h-5 w-5 text-gold shrink-0 mt-0.5" />
         <p className="text-xs text-muted-foreground">
-          Ambiente preparado para integração com gateway de pagamento. A confirmação do pagamento ativará automaticamente
-          seu ciclo via webhook quando a API for conectada.
+          Pagamentos Pix usam Efí e cotacao USDT/BRL do dia. A ativacao ocorre pelo webhook apos confirmacao do pagamento.
+          Saques nunca sao automaticos: sempre passam por solicitacao, revisao administrativa e disparo manual individual ou em massa.
         </p>
       </Card>
 
@@ -127,12 +149,8 @@ function CheckoutPage() {
         <Button variant="outline" onClick={() => navigate({ to: "/app/renovacao" })} disabled={submitting}>
           Voltar
         </Button>
-        <Button
-          onClick={confirmar}
-          disabled={submitting}
-          className="flex-1 bg-gold-gradient text-primary-foreground"
-        >
-          {submitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Processando...</> : `Pagar R$ ${Number(pkg.valor).toFixed(2)}`}
+        <Button onClick={confirmar} disabled={submitting} className="flex-1 bg-gold-gradient text-primary-foreground">
+          {submitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Processando...</> : `Gerar pagamento ${usd.format(accounting.total_paid)}`}
         </Button>
       </div>
     </div>

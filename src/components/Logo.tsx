@@ -10,20 +10,92 @@ export function Logo({
   return (
     <span
       aria-label="Viral Hub"
-      className={`inline-flex ${className} min-h-10 min-w-[150px] shrink-0 items-center gap-2 leading-none`}
+      className={className}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "10px",
+        minWidth: showText ? "150px" : "40px",
+        minHeight: "40px",
+        flexShrink: 0,
+        lineHeight: 1,
+      }}
     >
-      <span className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-primary/45 bg-[#050b18] shadow-[0_0_22px_rgba(59,130,246,0.35)]">
-        <span className="absolute inset-1 rounded-full border border-primary/45" />
-        <span className="absolute left-1/2 top-1 h-8 w-px -translate-x-1/2 bg-primary/40" />
-        <span className="absolute top-1/2 h-px w-8 -translate-y-1/2 bg-primary/30" />
-        <span className="relative flex items-center text-[18px] font-black tracking-[-0.08em]">
-          <span className="text-primary">V</span>
-          <span className="-ml-0.5 text-white">H</span>
+      <span
+        aria-hidden="true"
+        style={{
+          position: "relative",
+          display: "flex",
+          width: "40px",
+          height: "40px",
+          minWidth: "40px",
+          alignItems: "center",
+          justifyContent: "center",
+          overflow: "hidden",
+          borderRadius: "12px",
+          border: "1px solid rgba(59, 130, 246, 0.55)",
+          background: "#050b18",
+          boxShadow: "0 0 22px rgba(59, 130, 246, 0.35)",
+        }}
+      >
+        <span
+          style={{
+            position: "absolute",
+            inset: "5px",
+            borderRadius: "999px",
+            border: "1px solid rgba(59, 130, 246, 0.48)",
+          }}
+        />
+        <span
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: "5px",
+            width: "1px",
+            height: "30px",
+            transform: "translateX(-50%)",
+            background: "rgba(59, 130, 246, 0.45)",
+          }}
+        />
+        <span
+          style={{
+            position: "absolute",
+            left: "5px",
+            top: "50%",
+            width: "30px",
+            height: "1px",
+            transform: "translateY(-50%)",
+            background: "rgba(59, 130, 246, 0.35)",
+          }}
+        />
+        <span
+          style={{
+            position: "relative",
+            display: "flex",
+            alignItems: "center",
+            fontSize: "18px",
+            fontWeight: 950,
+            letterSpacing: "-0.08em",
+            fontFamily: "Inter, system-ui, sans-serif",
+          }}
+        >
+          <span style={{ color: "#2563eb" }}>V</span>
+          <span style={{ marginLeft: "-2px", color: "#ffffff" }}>H</span>
         </span>
       </span>
       {showText && (
-        <span className={`font-black uppercase tracking-wide text-white whitespace-nowrap ${textClassName}`}>
-          VIRAL <span className="text-primary">HUB</span>
+        <span
+          className={textClassName}
+          style={{
+            color: "#ffffff",
+            fontWeight: 950,
+            whiteSpace: "nowrap",
+            textTransform: "uppercase",
+            letterSpacing: "0.03em",
+            fontFamily: "Inter, system-ui, sans-serif",
+          }}
+        >
+          VIRAL <span style={{ color: "#3b82f6" }}>HUB</span>
         </span>
       )}
     </span>

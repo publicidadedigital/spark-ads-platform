@@ -1,16 +1,4 @@
-/**
- * Payment provider abstraction.
- *
- * Esta camada está pronta para ser integrada a um gateway real
- * (Mercado Pago, Stripe, Pagar.me, Asaas, etc.) sem alterar a UI.
- *
- * Para integrar:
- *  1. Implemente `createCheckout` chamando a API do gateway (server function).
- *  2. Configure o webhook do gateway em /api/public/payments-webhook
- *     para confirmar o pagamento e liberar o ciclo no banco.
- */
-
-export type PaymentMethod = "pix" | "card" | "boleto";
+export type PaymentMethod = "pix" | "crypto" | "internal_balance";
 
 export type CheckoutInput = {
   packageId: string;
@@ -19,43 +7,49 @@ export type CheckoutInput = {
   method: PaymentMethod;
   userId: string;
   userEmail: string;
-  /** id do user_cycles criado no servidor — enviado ao gateway como metadata */
   cycleId: string;
+  accessToken?: string;
 };
 
 export type CheckoutResult = {
-  /** id da intenção de pagamento gerada pelo gateway */
   paymentId: string;
-  /** url para redirecionar o usuário (checkout hospedado) — opcional */
   redirectUrl?: string;
-  /** payload Pix (copia e cola) — opcional */
   pixCode?: string;
-  /** QR code em base64 — opcional */
   pixQrBase64?: string;
+  amountUsd?: number;
+  amountBrl?: number;
+  quoteRate?: number;
+  quoteSource?: string;
   status: "pending" | "approved" | "failed";
 };
 
-/**
- * STUB — substituir pela chamada real ao gateway.
- * Hoje apenas devolve um id fake para não bloquear o desenvolvimento.
- */
 export async function createCheckout(input: CheckoutInput): Promise<CheckoutResult> {
-  // TODO: integrar gateway real aqui.
-  // Exemplo:
-  // const res = await fetch("/api/payments/create", {
-  //   method: "POST",
-  //   body: JSON.stringify(input),
-  // });
-  // return res.json();
-  await new Promise((r) => setTimeout(r, 600));
-  return {
-    paymentId: `stub_${crypto.randomUUID()}`,
-    status: "pending",
-  };
+  if (input.method !== "pix") {
+    return {
+      paymentId: `pending_${crypto.randomUUID()}`,
+      status: "pending",
+    };
+  }
+
+  const response = await fetch("/api/public/efi/create-pix-checkout", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(input.accessToken ? { Authorization: `Bearer ${input.accessToken}` } : {}),
+    },
+    body: JSON.stringify(input),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.error ?? "Erro ao criar Pix Efí");
+  }
+
+  return data;
 }
 
 export const PAYMENT_METHODS: { value: PaymentMethod; label: string; desc: string }[] = [
-  { value: "pix", label: "Pix", desc: "Aprovação imediata" },
-  { value: "card", label: "Cartão de crédito", desc: "Em até 12x" },
-  { value: "boleto", label: "Boleto", desc: "Compensação em 1-2 dias úteis" },
+  { value: "pix", label: "Pix", desc: "Brasil: conversao USDT/BRL do dia via Binance" },
+  { value: "crypto", label: "Criptomoeda", desc: "Estrutura preparada para gateway cripto" },
+  { value: "internal_balance", label: "Saldo interno", desc: "Somente saldo disponivel, sem limite" },
 ];

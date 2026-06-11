@@ -3,7 +3,7 @@ import { createFileRoute, Outlet, Link, useNavigate, useLocation } from "@tansta
 import { useEffect } from "react";
 import { useAuth } from "@/lib/supabase/auth";
 import { Button } from "@/components/ui/button";
-import { LogOut, Users, Megaphone, CheckSquare, Package, ShieldAlert, ShieldCheck, Bug } from "lucide-react";
+import { LogOut, Users, Megaphone, CheckSquare, Package, ShieldAlert, ShieldCheck, Bug, Send } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({ component: AdminLayout });
 
@@ -13,6 +13,7 @@ const nav = [
   { to: "/admin/campanhas", label: "Campanhas", icon: Megaphone },
   { to: "/admin/provas", label: "Provas", icon: CheckSquare },
   { to: "/admin/pacotes", label: "Pacotes", icon: Package },
+  { to: "/admin/saques", label: "Saques", icon: Send },
   { to: "/admin/logs", label: "Logs do Sistema", icon: Bug },
 ];
 

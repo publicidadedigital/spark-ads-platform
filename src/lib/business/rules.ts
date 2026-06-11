@@ -2,6 +2,8 @@ export const COURSE_FEE_USD = 10;
 export const POINT_RATE_PER_USD = 0.1;
 export const DAILY_SHARE_BONUS_RATE = 0.0026;
 export const VME_DIRECT_LEG_LIMIT = 0.25;
+export const MIN_WITHDRAWAL_USD = 50;
+export const MAX_WITHDRAWAL_USD = 4000;
 
 export const SIGNUP_RENEWAL_BONUS_MATRIX = [0.2, 0.1, 0.03, 0.03, 0.03] as const;
 export const RESIDUAL_BONUS_LEVELS = 10;
@@ -66,7 +68,7 @@ export type VmeGoalResult = {
 };
 
 export const PACKAGE_CATALOG: PackageDefinition[] = [
-  buildPackageDefinition("start", "Start", 50),
+  buildPackageDefinition("start", "Start", 60),
   buildPackageDefinition("plus", "Plus", 120),
   buildPackageDefinition("pro", "Pro", 300),
   buildPackageDefinition("elite", "Elite", 1000),
@@ -110,6 +112,8 @@ export function inferPackageValue(rawValue: number | string | null | undefined) 
   if (knownPackage) {
     return knownPackage.packageValue;
   }
+
+  if (value === 50) return 60;
 
   return value;
 }
@@ -171,6 +175,16 @@ export function capAmountToCycle(availableCycleRoom: number | string | null | un
   const room = Math.max(0, Number(availableCycleRoom ?? 0));
   const requested = Math.max(0, Number(requestedAmount ?? 0));
   return roundMoney(Math.min(room, requested));
+}
+
+export function isWithdrawalAmountAllowed(amountUsd: number | string | null | undefined) {
+  const amount = Number(amountUsd ?? 0);
+  return Number.isFinite(amount) && amount >= MIN_WITHDRAWAL_USD && amount <= MAX_WITHDRAWAL_USD;
+}
+
+export function isWithdrawalProcessingDay(date = new Date()) {
+  const day = date.getDate();
+  return day === 15 || day === 30;
 }
 
 export function calculateVmeForGoal(legs: VmeLegInput[], targetPoints: number): VmeGoalResult {

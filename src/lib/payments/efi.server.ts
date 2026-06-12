@@ -23,6 +23,12 @@ export type EfiPixChargeResult = {
 const EFI_PROD_BASE_URL = "https://pix.api.efipay.com.br";
 const EFI_SANDBOX_BASE_URL = "https://pix-h.api.efipay.com.br";
 
+type EfiRequestInit = {
+  method?: string;
+  headers?: Record<string, string>;
+  body?: string;
+};
+
 function getBaseUrl() {
   return process.env.EFI_ENV === "production" ? EFI_PROD_BASE_URL : EFI_SANDBOX_BASE_URL;
 }
@@ -40,26 +46,44 @@ function getHttpsAgent() {
   return new https.Agent({ pfx, passphrase });
 }
 
-async function efiFetch(path: string, init: RequestInit = {}) {
-  const agent = getHttpsAgent();
-  const response = await fetch(`${getBaseUrl()}${path}`, {
-    ...init,
-    // @ts-expect-error undici accepts dispatcher in Node runtimes used by Vercel.
-    dispatcher: agent,
-    headers: {
-      "Content-Type": "application/json",
-      ...(init.headers ?? {}),
-    },
+async function efiRequest(path: string, init: EfiRequestInit = {}) {
+  const url = new URL(`${getBaseUrl()}${path}`);
+  const body = init.body ?? "";
+
+  return new Promise<any>((resolve, reject) => {
+    const request = https.request(
+      url,
+      {
+        method: init.method ?? "GET",
+        agent: getHttpsAgent(),
+        headers: {
+          "Content-Type": "application/json",
+          ...(body ? { "Content-Length": Buffer.byteLength(body) } : {}),
+          ...(init.headers ?? {}),
+        },
+      },
+      (response) => {
+        const chunks: Buffer[] = [];
+        response.on("data", (chunk) => chunks.push(Buffer.from(chunk)));
+        response.on("end", () => {
+          const text = Buffer.concat(chunks).toString("utf8");
+          const parsed = text ? JSON.parse(text) : null;
+          const status = response.statusCode ?? 500;
+
+          if (status < 200 || status >= 300) {
+            reject(new Error(`Efí respondeu ${status}: ${text}`));
+            return;
+          }
+
+          resolve(parsed);
+        });
+      },
+    );
+
+    request.on("error", reject);
+    if (body) request.write(body);
+    request.end();
   });
-
-  const text = await response.text();
-  const body = text ? JSON.parse(text) : null;
-
-  if (!response.ok) {
-    throw new Error(`Efí respondeu ${response.status}: ${text}`);
-  }
-
-  return body;
 }
 
 async function getEfiAccessToken() {
@@ -71,7 +95,7 @@ async function getEfiAccessToken() {
   }
 
   const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
-  const body = await efiFetch("/oauth/token", {
+  const body = await efiRequest("/oauth/token", {
     method: "POST",
     headers: {
       Authorization: `Basic ${credentials}`,
@@ -98,7 +122,7 @@ export async function createEfiPixCharge(input: EfiPixChargeInput): Promise<EfiP
     throw new Error("Configure EFI_PIX_KEY.");
   }
 
-  const charge = await efiFetch(`/v2/cob/${input.txid}`, {
+  const charge = await efiRequest(`/v2/cob/${input.txid}`, {
     method: "PUT",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -121,7 +145,7 @@ export async function createEfiPixCharge(input: EfiPixChargeInput): Promise<EfiP
   let qr: any = null;
   const locId = charge?.loc?.id;
   if (locId) {
-    qr = await efiFetch(`/v2/loc/${locId}/qrcode`, {
+    qr = await efiRequest(`/v2/loc/${locId}/qrcode`, {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -139,7 +163,7 @@ export async function createEfiPixCharge(input: EfiPixChargeInput): Promise<EfiP
 
 export async function getEfiPixCharge(txid: string) {
   const token = await getEfiAccessToken();
-  return efiFetch(`/v2/cob/${txid}`, {
+  return efiRequest(`/v2/cob/${txid}`, {
     method: "GET",
     headers: { Authorization: `Bearer ${token}` },
   });

@@ -1,3 +1,4 @@
+import { createHmac } from "crypto";
 import { createFileRoute } from "@tanstack/react-router";
 import { recordSystemErrorLog } from "@/lib/business/audit.server";
 import { getEfiPixCharge } from "@/lib/payments/efi.server";
@@ -46,9 +47,9 @@ export const Route = createFileRoute("/api/public/efi/pix-webhook")({
             await recordSystemErrorLog(admin, {
               module: "efi-pix-webhook",
               errorType: "payment_order_not_found",
-              description: "Efí notificou Pix, mas o pedido nao foi encontrado.",
+              description: "Efi notificou Pix, mas o pedido nao foi encontrado.",
               probableReason: orderError?.message ?? "txid inexistente em payment_orders.",
-              recommendedAction: "Conferir webhook Efí, txid e registros de checkout.",
+              recommendedAction: "Conferir webhook Efi, txid e registros de checkout.",
               severity: "alto",
               metadata: { txid, body },
             });
@@ -60,7 +61,7 @@ export const Route = createFileRoute("/api/public/efi/pix-webhook")({
           try {
             const charge = await getEfiPixCharge(txid);
             const status = String(charge?.status ?? "").toUpperCase();
-            if (!['CONCLUIDA', 'CONCLUIDO'].includes(status)) continue;
+            if (!["CONCLUIDA", "CONCLUIDO"].includes(status)) continue;
 
             await admin
               .from("payment_orders")
@@ -76,11 +77,30 @@ export const Route = createFileRoute("/api/public/efi/pix-webhook")({
             };
 
             if (webhookSecret && process.env.APP_URL) {
-              await fetch(`${process.env.APP_URL}/api/public/payments-webhook`, {
+              const rawPayload = JSON.stringify(payload);
+              const signature = createHmac("sha256", webhookSecret).update(rawPayload).digest("hex");
+              const response = await fetch(`${process.env.APP_URL}/api/public/payments-webhook`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
+                headers: {
+                  "Content-Type": "application/json",
+                  "x-webhook-signature": signature,
+                },
+                body: rawPayload,
               });
+
+              if (!response.ok) {
+                const responseText = await response.text().catch(() => "");
+                await recordSystemErrorLog(admin, {
+                  userId: order.user_id,
+                  module: "efi-pix-webhook",
+                  errorType: "internal_payment_webhook_failed",
+                  description: "Pix foi confirmado na Efi, mas o webhook interno de ativacao falhou.",
+                  probableReason: responseText || `HTTP ${response.status}`,
+                  recommendedAction: "Conferir PAYMENTS_WEBHOOK_SECRET, APP_URL e reconciliar ativacao do ciclo.",
+                  severity: "critico",
+                  metadata: { txid, orderId: order.id, status: response.status },
+                });
+              }
             } else {
               await admin.from("user_cycles").update({ status: "ativo", started_at: new Date().toISOString() }).eq("id", order.cycle_id);
               await admin.from("users_profile").update({ status: "ativo" }).eq("id", order.user_id);
@@ -90,9 +110,9 @@ export const Route = createFileRoute("/api/public/efi/pix-webhook")({
               userId: order.user_id,
               module: "efi-pix-webhook",
               errorType: "pix_confirmation_failed",
-              description: "Falha ao confirmar Pix recebido pela Efí.",
+              description: "Falha ao confirmar Pix recebido pela Efi.",
               probableReason: error?.message ?? "Erro desconhecido.",
-              recommendedAction: "Conferir cobranca na Efí e reconciliar pedido manualmente.",
+              recommendedAction: "Conferir cobranca na Efi e reconciliar pedido manualmente.",
               severity: "critico",
               metadata: { txid, orderId: order.id },
             });

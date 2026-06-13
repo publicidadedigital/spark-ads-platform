@@ -6,10 +6,12 @@ create table if not exists public.payment_orders (
   updated_at timestamptz not null default now(),
   user_id uuid not null,
   cycle_id uuid null,
-  provider text not null default 'efi',
+  provider text not null default 'cakto',
   method text not null check (method in ('pix', 'crypto', 'internal_balance')),
   status text not null default 'pending' check (status in ('pending', 'approved', 'failed', 'expired', 'cancelled')),
   external_id text unique,
+  provider_payment_id text null,
+  checkout_url text null,
   amount_usd numeric(12,2) not null,
   package_value_usd numeric(12,2) not null default 0,
   course_fee_usd numeric(12,2) not null default 0,
@@ -23,9 +25,14 @@ create table if not exists public.payment_orders (
   raw_response jsonb not null default '{}'::jsonb
 );
 
+alter table public.payment_orders alter column provider set default 'cakto';
+alter table public.payment_orders add column if not exists provider_payment_id text null;
+alter table public.payment_orders add column if not exists checkout_url text null;
+
 create index if not exists payment_orders_user_idx on public.payment_orders (user_id, created_at desc);
 create index if not exists payment_orders_status_idx on public.payment_orders (status);
 create index if not exists payment_orders_external_idx on public.payment_orders (external_id);
+create index if not exists payment_orders_provider_payment_idx on public.payment_orders (provider_payment_id);
 
 create table if not exists public.withdrawal_requests (
   id uuid primary key default gen_random_uuid(),

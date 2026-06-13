@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { buildPackageAccounting } from "@/lib/business/rules";
 import { toast } from "sonner";
-import { QrCode, Receipt, ShieldCheck, Loader2, Bitcoin, Wallet } from "lucide-react";
+import { QrCode, ShieldCheck, Loader2, Bitcoin, Wallet, ExternalLink } from "lucide-react";
 import { createCheckout, PAYMENT_METHODS, type CheckoutResult, type PaymentMethod } from "@/lib/payments/provider";
 import { createCheckoutOrder } from "@/lib/payments/checkout.functions";
 
@@ -61,7 +61,7 @@ function CheckoutPage() {
       });
 
       setCheckoutResult(result);
-      toast.success(method === "pix" ? "Pix gerado com sucesso." : "Pagamento iniciado.", {
+      toast.success(method === "pix" ? "Checkout Pix criado com sucesso." : "Pagamento iniciado.", {
         description: `ID: ${result.paymentId}`,
       });
     } catch (e: any) {
@@ -123,10 +123,24 @@ function CheckoutPage() {
         </RadioGroup>
       </Card>
 
+      {checkoutResult?.redirectUrl && (
+        <Card className="space-y-4 p-6 bg-card/50 border-primary/30">
+          <div>
+            <h3 className="font-semibold">Checkout Cakto criado</h3>
+            <p className="text-sm text-muted-foreground">
+              Valor convertido de referencia: {checkoutResult.amountBrl ? brl.format(checkoutResult.amountBrl) : "-"} usando USDT/BRL {checkoutResult.quoteRate?.toFixed(4)} ({checkoutResult.quoteSource}).
+            </p>
+          </div>
+          <Button className="bg-gold-gradient text-primary-foreground" onClick={() => window.open(checkoutResult.redirectUrl, "_blank", "noopener,noreferrer")}>
+            <ExternalLink className="h-4 w-4 mr-2" /> Abrir checkout Cakto
+          </Button>
+        </Card>
+      )}
+
       {checkoutResult?.pixCode && (
         <Card className="space-y-4 p-6 bg-card/50 border-primary/30">
           <div>
-            <h3 className="font-semibold">Pix Efí gerado</h3>
+            <h3 className="font-semibold">Pix Cakto gerado</h3>
             <p className="text-sm text-muted-foreground">
               Valor convertido: {checkoutResult.amountBrl ? brl.format(checkoutResult.amountBrl) : "-"} usando USDT/BRL {checkoutResult.quoteRate?.toFixed(4)} ({checkoutResult.quoteSource}).
             </p>
@@ -140,7 +154,7 @@ function CheckoutPage() {
       <Card className="p-4 bg-card/30 border-border/50 flex items-start gap-3">
         <ShieldCheck className="h-5 w-5 text-gold shrink-0 mt-0.5" />
         <p className="text-xs text-muted-foreground">
-          Pagamentos Pix usam Efí e cotacao USDT/BRL do dia. A ativacao ocorre pelo webhook apos confirmacao do pagamento.
+          Pagamentos Pix usam Cakto. A ativacao ocorre pelo webhook apos confirmacao do pagamento.
           Saques nunca sao automaticos: sempre passam por solicitacao, revisao administrativa e disparo manual individual ou em massa.
         </p>
       </Card>

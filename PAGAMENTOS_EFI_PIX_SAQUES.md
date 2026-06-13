@@ -119,7 +119,7 @@ Tela:
 - `src/routes/app/checkout.$packageId.tsx`
 - `src/lib/withdrawals/withdrawal.functions.ts`
 - `src/routes/admin/saques.tsx`
-- `supabase/migrations/20260611173000_efi_pix_withdrawals.sql`
+- `supabase/migrations/20260613130000_cakto_pix_withdrawals.sql`
 
 ## Pendencias operacionais
 

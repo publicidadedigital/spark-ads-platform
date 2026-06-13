@@ -31,7 +31,7 @@ export async function createCheckout(input: CheckoutInput): Promise<CheckoutResu
     };
   }
 
-  const response = await fetch("/api/public/efi/create-pix-checkout", {
+  const response = await fetch("/api/public/cakto/create-checkout", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -42,14 +42,14 @@ export async function createCheckout(input: CheckoutInput): Promise<CheckoutResu
 
   const data = await response.json();
   if (!response.ok) {
-    throw new Error(data?.error ?? "Erro ao criar Pix Efí");
+    throw new Error(data?.error ?? "Erro ao criar checkout Pix Cakto");
   }
 
   return data;
 }
 
 export const PAYMENT_METHODS: { value: PaymentMethod; label: string; desc: string }[] = [
-  { value: "pix", label: "Pix", desc: "Brasil: conversao USDT/BRL do dia via Binance" },
+  { value: "pix", label: "Pix", desc: "Brasil: checkout Pix via Cakto" },
   { value: "crypto", label: "Criptomoeda", desc: "Estrutura preparada para gateway cripto" },
   { value: "internal_balance", label: "Saldo interno", desc: "Somente saldo disponivel, sem limite" },
 ];

@@ -27,134 +27,43 @@ import { Route as AppRedeRouteImport } from './routes/app/rede'
 import { Route as AppExtratoRouteImport } from './routes/app/extrato'
 import { Route as AppCampanhasRouteImport } from './routes/app/campanhas'
 import { Route as ApiConfigRouteImport } from './routes/api/config'
+import { Route as AdminSaquesRouteImport } from './routes/admin/saques'
 import { Route as AdminProvasRouteImport } from './routes/admin/provas'
 import { Route as AdminPacotesRouteImport } from './routes/admin/pacotes'
 import { Route as AdminCampanhasRouteImport } from './routes/admin/campanhas'
 import { Route as AdminAdminsRouteImport } from './routes/admin/admins'
 import { Route as AppCheckoutPackageIdRouteImport } from './routes/app/checkout.$packageId'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments-webhook'
+import { Route as ApiPublicCaktoWebhookRouteImport } from './routes/api/public/cakto/webhook'
+import { Route as ApiPublicCaktoCreateCheckoutRouteImport } from './routes/api/public/cakto/create-checkout'
 
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LegalRoute = LegalRouteImport.update({
-  id: '/legal',
-  path: '/legal',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CadastroRoute = CadastroRouteImport.update({
-  id: '/cadastro',
-  path: '/cadastro',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AppRoute = AppRouteImport.update({
-  id: '/app',
-  path: '/app',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AppIndexRoute = AppIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppRoute,
-} as any)
-const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminRoute,
-} as any)
-const LegalTermosRoute = LegalTermosRouteImport.update({
-  id: '/termos',
-  path: '/termos',
-  getParentRoute: () => LegalRoute,
-} as any)
-const LegalRenovacaoRoute = LegalRenovacaoRouteImport.update({
-  id: '/renovacao',
-  path: '/renovacao',
-  getParentRoute: () => LegalRoute,
-} as any)
-const LegalPrivacidadeRoute = LegalPrivacidadeRouteImport.update({
-  id: '/privacidade',
-  path: '/privacidade',
-  getParentRoute: () => LegalRoute,
-} as any)
-const LegalBonificacaoRoute = LegalBonificacaoRouteImport.update({
-  id: '/bonificacao',
-  path: '/bonificacao',
-  getParentRoute: () => LegalRoute,
-} as any)
-const LegalAntifraudeRoute = LegalAntifraudeRouteImport.update({
-  id: '/antifraude',
-  path: '/antifraude',
-  getParentRoute: () => LegalRoute,
-} as any)
-const AppRenovacaoRoute = AppRenovacaoRouteImport.update({
-  id: '/renovacao',
-  path: '/renovacao',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppRedeRoute = AppRedeRouteImport.update({
-  id: '/rede',
-  path: '/rede',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppExtratoRoute = AppExtratoRouteImport.update({
-  id: '/extrato',
-  path: '/extrato',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppCampanhasRoute = AppCampanhasRouteImport.update({
-  id: '/campanhas',
-  path: '/campanhas',
-  getParentRoute: () => AppRoute,
-} as any)
-const ApiConfigRoute = ApiConfigRouteImport.update({
-  id: '/api/config',
-  path: '/api/config',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminProvasRoute = AdminProvasRouteImport.update({
-  id: '/provas',
-  path: '/provas',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminPacotesRoute = AdminPacotesRouteImport.update({
-  id: '/pacotes',
-  path: '/pacotes',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminCampanhasRoute = AdminCampanhasRouteImport.update({
-  id: '/campanhas',
-  path: '/campanhas',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminAdminsRoute = AdminAdminsRouteImport.update({
-  id: '/admins',
-  path: '/admins',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AppCheckoutPackageIdRoute = AppCheckoutPackageIdRouteImport.update({
-  id: '/checkout/$packageId',
-  path: '/checkout/$packageId',
-  getParentRoute: () => AppRoute,
-} as any)
-const ApiPublicPaymentsWebhookRoute =
-  ApiPublicPaymentsWebhookRouteImport.update({
-    id: '/api/public/payments-webhook',
-    path: '/api/public/payments-webhook',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+const LoginRoute = LoginRouteImport.update({ id: '/login', path: '/login', getParentRoute: () => rootRouteImport } as any)
+const LegalRoute = LegalRouteImport.update({ id: '/legal', path: '/legal', getParentRoute: () => rootRouteImport } as any)
+const CadastroRoute = CadastroRouteImport.update({ id: '/cadastro', path: '/cadastro', getParentRoute: () => rootRouteImport } as any)
+const AppRoute = AppRouteImport.update({ id: '/app', path: '/app', getParentRoute: () => rootRouteImport } as any)
+const AdminRoute = AdminRouteImport.update({ id: '/admin', path: '/admin', getParentRoute: () => rootRouteImport } as any)
+const IndexRoute = IndexRouteImport.update({ id: '/', path: '/', getParentRoute: () => rootRouteImport } as any)
+const AppIndexRoute = AppIndexRouteImport.update({ id: '/', path: '/', getParentRoute: () => AppRoute } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({ id: '/', path: '/', getParentRoute: () => AdminRoute } as any)
+const LegalTermosRoute = LegalTermosRouteImport.update({ id: '/termos', path: '/termos', getParentRoute: () => LegalRoute } as any)
+const LegalRenovacaoRoute = LegalRenovacaoRouteImport.update({ id: '/renovacao', path: '/renovacao', getParentRoute: () => LegalRoute } as any)
+const LegalPrivacidadeRoute = LegalPrivacidadeRouteImport.update({ id: '/privacidade', path: '/privacidade', getParentRoute: () => LegalRoute } as any)
+const LegalBonificacaoRoute = LegalBonificacaoRouteImport.update({ id: '/bonificacao', path: '/bonificacao', getParentRoute: () => LegalRoute } as any)
+const LegalAntifraudeRoute = LegalAntifraudeRouteImport.update({ id: '/antifraude', path: '/antifraude', getParentRoute: () => LegalRoute } as any)
+const AppRenovacaoRoute = AppRenovacaoRouteImport.update({ id: '/renovacao', path: '/renovacao', getParentRoute: () => AppRoute } as any)
+const AppRedeRoute = AppRedeRouteImport.update({ id: '/rede', path: '/rede', getParentRoute: () => AppRoute } as any)
+const AppExtratoRoute = AppExtratoRouteImport.update({ id: '/extrato', path: '/extrato', getParentRoute: () => AppRoute } as any)
+const AppCampanhasRoute = AppCampanhasRouteImport.update({ id: '/campanhas', path: '/campanhas', getParentRoute: () => AppRoute } as any)
+const ApiConfigRoute = ApiConfigRouteImport.update({ id: '/api/config', path: '/api/config', getParentRoute: () => rootRouteImport } as any)
+const AdminSaquesRoute = AdminSaquesRouteImport.update({ id: '/saques', path: '/saques', getParentRoute: () => AdminRoute } as any)
+const AdminProvasRoute = AdminProvasRouteImport.update({ id: '/provas', path: '/provas', getParentRoute: () => AdminRoute } as any)
+const AdminPacotesRoute = AdminPacotesRouteImport.update({ id: '/pacotes', path: '/pacotes', getParentRoute: () => AdminRoute } as any)
+const AdminCampanhasRoute = AdminCampanhasRouteImport.update({ id: '/campanhas', path: '/campanhas', getParentRoute: () => AdminRoute } as any)
+const AdminAdminsRoute = AdminAdminsRouteImport.update({ id: '/admins', path: '/admins', getParentRoute: () => AdminRoute } as any)
+const AppCheckoutPackageIdRoute = AppCheckoutPackageIdRouteImport.update({ id: '/checkout/$packageId', path: '/checkout/$packageId', getParentRoute: () => AppRoute } as any)
+const ApiPublicPaymentsWebhookRoute = ApiPublicPaymentsWebhookRouteImport.update({ id: '/api/public/payments-webhook', path: '/api/public/payments-webhook', getParentRoute: () => rootRouteImport } as any)
+const ApiPublicCaktoWebhookRoute = ApiPublicCaktoWebhookRouteImport.update({ id: '/api/public/cakto/webhook', path: '/api/public/cakto/webhook', getParentRoute: () => rootRouteImport } as any)
+const ApiPublicCaktoCreateCheckoutRoute = ApiPublicCaktoCreateCheckoutRouteImport.update({ id: '/api/public/cakto/create-checkout', path: '/api/public/cakto/create-checkout', getParentRoute: () => rootRouteImport } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -167,6 +76,7 @@ export interface FileRoutesByFullPath {
   '/admin/campanhas': typeof AdminCampanhasRoute
   '/admin/pacotes': typeof AdminPacotesRoute
   '/admin/provas': typeof AdminProvasRoute
+  '/admin/saques': typeof AdminSaquesRoute
   '/api/config': typeof ApiConfigRoute
   '/app/campanhas': typeof AppCampanhasRoute
   '/app/extrato': typeof AppExtratoRoute
@@ -179,6 +89,8 @@ export interface FileRoutesByFullPath {
   '/legal/termos': typeof LegalTermosRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
+  '/api/public/cakto/create-checkout': typeof ApiPublicCaktoCreateCheckoutRoute
+  '/api/public/cakto/webhook': typeof ApiPublicCaktoWebhookRoute
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
   '/app/checkout/$packageId': typeof AppCheckoutPackageIdRoute
 }
@@ -191,6 +103,7 @@ export interface FileRoutesByTo {
   '/admin/campanhas': typeof AdminCampanhasRoute
   '/admin/pacotes': typeof AdminPacotesRoute
   '/admin/provas': typeof AdminProvasRoute
+  '/admin/saques': typeof AdminSaquesRoute
   '/api/config': typeof ApiConfigRoute
   '/app/campanhas': typeof AppCampanhasRoute
   '/app/extrato': typeof AppExtratoRoute
@@ -203,113 +116,18 @@ export interface FileRoutesByTo {
   '/legal/termos': typeof LegalTermosRoute
   '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
+  '/api/public/cakto/create-checkout': typeof ApiPublicCaktoCreateCheckoutRoute
+  '/api/public/cakto/webhook': typeof ApiPublicCaktoWebhookRoute
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
   '/app/checkout/$packageId': typeof AppCheckoutPackageIdRoute
 }
-export interface FileRoutesById {
-  __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/admin': typeof AdminRouteWithChildren
-  '/app': typeof AppRouteWithChildren
-  '/cadastro': typeof CadastroRoute
-  '/legal': typeof LegalRouteWithChildren
-  '/login': typeof LoginRoute
-  '/admin/admins': typeof AdminAdminsRoute
-  '/admin/campanhas': typeof AdminCampanhasRoute
-  '/admin/pacotes': typeof AdminPacotesRoute
-  '/admin/provas': typeof AdminProvasRoute
-  '/api/config': typeof ApiConfigRoute
-  '/app/campanhas': typeof AppCampanhasRoute
-  '/app/extrato': typeof AppExtratoRoute
-  '/app/rede': typeof AppRedeRoute
-  '/app/renovacao': typeof AppRenovacaoRoute
-  '/legal/antifraude': typeof LegalAntifraudeRoute
-  '/legal/bonificacao': typeof LegalBonificacaoRoute
-  '/legal/privacidade': typeof LegalPrivacidadeRoute
-  '/legal/renovacao': typeof LegalRenovacaoRoute
-  '/legal/termos': typeof LegalTermosRoute
-  '/admin/': typeof AdminIndexRoute
-  '/app/': typeof AppIndexRoute
-  '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
-  '/app/checkout/$packageId': typeof AppCheckoutPackageIdRoute
-}
+export interface FileRoutesById extends FileRoutesByFullPath { __root__: typeof rootRouteImport }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/admin'
-    | '/app'
-    | '/cadastro'
-    | '/legal'
-    | '/login'
-    | '/admin/admins'
-    | '/admin/campanhas'
-    | '/admin/pacotes'
-    | '/admin/provas'
-    | '/api/config'
-    | '/app/campanhas'
-    | '/app/extrato'
-    | '/app/rede'
-    | '/app/renovacao'
-    | '/legal/antifraude'
-    | '/legal/bonificacao'
-    | '/legal/privacidade'
-    | '/legal/renovacao'
-    | '/legal/termos'
-    | '/admin/'
-    | '/app/'
-    | '/api/public/payments-webhook'
-    | '/app/checkout/$packageId'
+  fullPaths: keyof FileRoutesByFullPath
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/cadastro'
-    | '/legal'
-    | '/login'
-    | '/admin/admins'
-    | '/admin/campanhas'
-    | '/admin/pacotes'
-    | '/admin/provas'
-    | '/api/config'
-    | '/app/campanhas'
-    | '/app/extrato'
-    | '/app/rede'
-    | '/app/renovacao'
-    | '/legal/antifraude'
-    | '/legal/bonificacao'
-    | '/legal/privacidade'
-    | '/legal/renovacao'
-    | '/legal/termos'
-    | '/admin'
-    | '/app'
-    | '/api/public/payments-webhook'
-    | '/app/checkout/$packageId'
-  id:
-    | '__root__'
-    | '/'
-    | '/admin'
-    | '/app'
-    | '/cadastro'
-    | '/legal'
-    | '/login'
-    | '/admin/admins'
-    | '/admin/campanhas'
-    | '/admin/pacotes'
-    | '/admin/provas'
-    | '/api/config'
-    | '/app/campanhas'
-    | '/app/extrato'
-    | '/app/rede'
-    | '/app/renovacao'
-    | '/legal/antifraude'
-    | '/legal/bonificacao'
-    | '/legal/privacidade'
-    | '/legal/renovacao'
-    | '/legal/termos'
-    | '/admin/'
-    | '/app/'
-    | '/api/public/payments-webhook'
-    | '/app/checkout/$packageId'
+  to: keyof FileRoutesByTo
+  id: keyof FileRoutesById
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -320,179 +138,40 @@ export interface RootRouteChildren {
   LegalRoute: typeof LegalRouteWithChildren
   LoginRoute: typeof LoginRoute
   ApiConfigRoute: typeof ApiConfigRoute
+  ApiPublicCaktoCreateCheckoutRoute: typeof ApiPublicCaktoCreateCheckoutRoute
+  ApiPublicCaktoWebhookRoute: typeof ApiPublicCaktoWebhookRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/legal': {
-      id: '/legal'
-      path: '/legal'
-      fullPath: '/legal'
-      preLoaderRoute: typeof LegalRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/cadastro': {
-      id: '/cadastro'
-      path: '/cadastro'
-      fullPath: '/cadastro'
-      preLoaderRoute: typeof CadastroRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/app': {
-      id: '/app'
-      path: '/app'
-      fullPath: '/app'
-      preLoaderRoute: typeof AppRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/app/': {
-      id: '/app/'
-      path: '/'
-      fullPath: '/app/'
-      preLoaderRoute: typeof AppIndexRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/admin/': {
-      id: '/admin/'
-      path: '/'
-      fullPath: '/admin/'
-      preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/legal/termos': {
-      id: '/legal/termos'
-      path: '/termos'
-      fullPath: '/legal/termos'
-      preLoaderRoute: typeof LegalTermosRouteImport
-      parentRoute: typeof LegalRoute
-    }
-    '/legal/renovacao': {
-      id: '/legal/renovacao'
-      path: '/renovacao'
-      fullPath: '/legal/renovacao'
-      preLoaderRoute: typeof LegalRenovacaoRouteImport
-      parentRoute: typeof LegalRoute
-    }
-    '/legal/privacidade': {
-      id: '/legal/privacidade'
-      path: '/privacidade'
-      fullPath: '/legal/privacidade'
-      preLoaderRoute: typeof LegalPrivacidadeRouteImport
-      parentRoute: typeof LegalRoute
-    }
-    '/legal/bonificacao': {
-      id: '/legal/bonificacao'
-      path: '/bonificacao'
-      fullPath: '/legal/bonificacao'
-      preLoaderRoute: typeof LegalBonificacaoRouteImport
-      parentRoute: typeof LegalRoute
-    }
-    '/legal/antifraude': {
-      id: '/legal/antifraude'
-      path: '/antifraude'
-      fullPath: '/legal/antifraude'
-      preLoaderRoute: typeof LegalAntifraudeRouteImport
-      parentRoute: typeof LegalRoute
-    }
-    '/app/renovacao': {
-      id: '/app/renovacao'
-      path: '/renovacao'
-      fullPath: '/app/renovacao'
-      preLoaderRoute: typeof AppRenovacaoRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/rede': {
-      id: '/app/rede'
-      path: '/rede'
-      fullPath: '/app/rede'
-      preLoaderRoute: typeof AppRedeRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/extrato': {
-      id: '/app/extrato'
-      path: '/extrato'
-      fullPath: '/app/extrato'
-      preLoaderRoute: typeof AppExtratoRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/campanhas': {
-      id: '/app/campanhas'
-      path: '/campanhas'
-      fullPath: '/app/campanhas'
-      preLoaderRoute: typeof AppCampanhasRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/api/config': {
-      id: '/api/config'
-      path: '/api/config'
-      fullPath: '/api/config'
-      preLoaderRoute: typeof ApiConfigRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/provas': {
-      id: '/admin/provas'
-      path: '/provas'
-      fullPath: '/admin/provas'
-      preLoaderRoute: typeof AdminProvasRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/pacotes': {
-      id: '/admin/pacotes'
-      path: '/pacotes'
-      fullPath: '/admin/pacotes'
-      preLoaderRoute: typeof AdminPacotesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/campanhas': {
-      id: '/admin/campanhas'
-      path: '/campanhas'
-      fullPath: '/admin/campanhas'
-      preLoaderRoute: typeof AdminCampanhasRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/admins': {
-      id: '/admin/admins'
-      path: '/admins'
-      fullPath: '/admin/admins'
-      preLoaderRoute: typeof AdminAdminsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/app/checkout/$packageId': {
-      id: '/app/checkout/$packageId'
-      path: '/checkout/$packageId'
-      fullPath: '/app/checkout/$packageId'
-      preLoaderRoute: typeof AppCheckoutPackageIdRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/api/public/payments-webhook': {
-      id: '/api/public/payments-webhook'
-      path: '/api/public/payments-webhook'
-      fullPath: '/api/public/payments-webhook'
-      preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+    '/login': { id: '/login'; path: '/login'; fullPath: '/login'; preLoaderRoute: typeof LoginRouteImport; parentRoute: typeof rootRouteImport }
+    '/legal': { id: '/legal'; path: '/legal'; fullPath: '/legal'; preLoaderRoute: typeof LegalRouteImport; parentRoute: typeof rootRouteImport }
+    '/cadastro': { id: '/cadastro'; path: '/cadastro'; fullPath: '/cadastro'; preLoaderRoute: typeof CadastroRouteImport; parentRoute: typeof rootRouteImport }
+    '/app': { id: '/app'; path: '/app'; fullPath: '/app'; preLoaderRoute: typeof AppRouteImport; parentRoute: typeof rootRouteImport }
+    '/admin': { id: '/admin'; path: '/admin'; fullPath: '/admin'; preLoaderRoute: typeof AdminRouteImport; parentRoute: typeof rootRouteImport }
+    '/': { id: '/'; path: '/'; fullPath: '/'; preLoaderRoute: typeof IndexRouteImport; parentRoute: typeof rootRouteImport }
+    '/app/': { id: '/app/'; path: '/'; fullPath: '/app/'; preLoaderRoute: typeof AppIndexRouteImport; parentRoute: typeof AppRoute }
+    '/admin/': { id: '/admin/'; path: '/'; fullPath: '/admin/'; preLoaderRoute: typeof AdminIndexRouteImport; parentRoute: typeof AdminRoute }
+    '/legal/termos': { id: '/legal/termos'; path: '/termos'; fullPath: '/legal/termos'; preLoaderRoute: typeof LegalTermosRouteImport; parentRoute: typeof LegalRoute }
+    '/legal/renovacao': { id: '/legal/renovacao'; path: '/renovacao'; fullPath: '/legal/renovacao'; preLoaderRoute: typeof LegalRenovacaoRouteImport; parentRoute: typeof LegalRoute }
+    '/legal/privacidade': { id: '/legal/privacidade'; path: '/privacidade'; fullPath: '/legal/privacidade'; preLoaderRoute: typeof LegalPrivacidadeRouteImport; parentRoute: typeof LegalRoute }
+    '/legal/bonificacao': { id: '/legal/bonificacao'; path: '/bonificacao'; fullPath: '/legal/bonificacao'; preLoaderRoute: typeof LegalBonificacaoRouteImport; parentRoute: typeof LegalRoute }
+    '/legal/antifraude': { id: '/legal/antifraude'; path: '/antifraude'; fullPath: '/legal/antifraude'; preLoaderRoute: typeof LegalAntifraudeRouteImport; parentRoute: typeof LegalRoute }
+    '/app/renovacao': { id: '/app/renovacao'; path: '/renovacao'; fullPath: '/app/renovacao'; preLoaderRoute: typeof AppRenovacaoRouteImport; parentRoute: typeof AppRoute }
+    '/app/rede': { id: '/app/rede'; path: '/rede'; fullPath: '/app/rede'; preLoaderRoute: typeof AppRedeRouteImport; parentRoute: typeof AppRoute }
+    '/app/extrato': { id: '/app/extrato'; path: '/extrato'; fullPath: '/app/extrato'; preLoaderRoute: typeof AppExtratoRouteImport; parentRoute: typeof AppRoute }
+    '/app/campanhas': { id: '/app/campanhas'; path: '/campanhas'; fullPath: '/app/campanhas'; preLoaderRoute: typeof AppCampanhasRouteImport; parentRoute: typeof AppRoute }
+    '/api/config': { id: '/api/config'; path: '/api/config'; fullPath: '/api/config'; preLoaderRoute: typeof ApiConfigRouteImport; parentRoute: typeof rootRouteImport }
+    '/admin/saques': { id: '/admin/saques'; path: '/saques'; fullPath: '/admin/saques'; preLoaderRoute: typeof AdminSaquesRouteImport; parentRoute: typeof AdminRoute }
+    '/admin/provas': { id: '/admin/provas'; path: '/provas'; fullPath: '/admin/provas'; preLoaderRoute: typeof AdminProvasRouteImport; parentRoute: typeof AdminRoute }
+    '/admin/pacotes': { id: '/admin/pacotes'; path: '/pacotes'; fullPath: '/admin/pacotes'; preLoaderRoute: typeof AdminPacotesRouteImport; parentRoute: typeof AdminRoute }
+    '/admin/campanhas': { id: '/admin/campanhas'; path: '/campanhas'; fullPath: '/admin/campanhas'; preLoaderRoute: typeof AdminCampanhasRouteImport; parentRoute: typeof AdminRoute }
+    '/admin/admins': { id: '/admin/admins'; path: '/admins'; fullPath: '/admin/admins'; preLoaderRoute: typeof AdminAdminsRouteImport; parentRoute: typeof AdminRoute }
+    '/app/checkout/$packageId': { id: '/app/checkout/$packageId'; path: '/checkout/$packageId'; fullPath: '/app/checkout/$packageId'; preLoaderRoute: typeof AppCheckoutPackageIdRouteImport; parentRoute: typeof AppRoute }
+    '/api/public/cakto/create-checkout': { id: '/api/public/cakto/create-checkout'; path: '/api/public/cakto/create-checkout'; fullPath: '/api/public/cakto/create-checkout'; preLoaderRoute: typeof ApiPublicCaktoCreateCheckoutRouteImport; parentRoute: typeof rootRouteImport }
+    '/api/public/cakto/webhook': { id: '/api/public/cakto/webhook'; path: '/api/public/cakto/webhook'; fullPath: '/api/public/cakto/webhook'; preLoaderRoute: typeof ApiPublicCaktoWebhookRouteImport; parentRoute: typeof rootRouteImport }
+    '/api/public/payments-webhook': { id: '/api/public/payments-webhook'; path: '/api/public/payments-webhook'; fullPath: '/api/public/payments-webhook'; preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport; parentRoute: typeof rootRouteImport }
   }
 }
 
@@ -501,17 +180,10 @@ interface AdminRouteChildren {
   AdminCampanhasRoute: typeof AdminCampanhasRoute
   AdminPacotesRoute: typeof AdminPacotesRoute
   AdminProvasRoute: typeof AdminProvasRoute
+  AdminSaquesRoute: typeof AdminSaquesRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
-
-const AdminRouteChildren: AdminRouteChildren = {
-  AdminAdminsRoute: AdminAdminsRoute,
-  AdminCampanhasRoute: AdminCampanhasRoute,
-  AdminPacotesRoute: AdminPacotesRoute,
-  AdminProvasRoute: AdminProvasRoute,
-  AdminIndexRoute: AdminIndexRoute,
-}
-
+const AdminRouteChildren: AdminRouteChildren = { AdminAdminsRoute, AdminCampanhasRoute, AdminPacotesRoute, AdminProvasRoute, AdminSaquesRoute, AdminIndexRoute }
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface AppRouteChildren {
@@ -522,16 +194,7 @@ interface AppRouteChildren {
   AppIndexRoute: typeof AppIndexRoute
   AppCheckoutPackageIdRoute: typeof AppCheckoutPackageIdRoute
 }
-
-const AppRouteChildren: AppRouteChildren = {
-  AppCampanhasRoute: AppCampanhasRoute,
-  AppExtratoRoute: AppExtratoRoute,
-  AppRedeRoute: AppRedeRoute,
-  AppRenovacaoRoute: AppRenovacaoRoute,
-  AppIndexRoute: AppIndexRoute,
-  AppCheckoutPackageIdRoute: AppCheckoutPackageIdRoute,
-}
-
+const AppRouteChildren: AppRouteChildren = { AppCampanhasRoute, AppExtratoRoute, AppRedeRoute, AppRenovacaoRoute, AppIndexRoute, AppCheckoutPackageIdRoute }
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 interface LegalRouteChildren {
@@ -541,27 +204,19 @@ interface LegalRouteChildren {
   LegalRenovacaoRoute: typeof LegalRenovacaoRoute
   LegalTermosRoute: typeof LegalTermosRoute
 }
-
-const LegalRouteChildren: LegalRouteChildren = {
-  LegalAntifraudeRoute: LegalAntifraudeRoute,
-  LegalBonificacaoRoute: LegalBonificacaoRoute,
-  LegalPrivacidadeRoute: LegalPrivacidadeRoute,
-  LegalRenovacaoRoute: LegalRenovacaoRoute,
-  LegalTermosRoute: LegalTermosRoute,
-}
-
+const LegalRouteChildren: LegalRouteChildren = { LegalAntifraudeRoute, LegalBonificacaoRoute, LegalPrivacidadeRoute, LegalRenovacaoRoute, LegalTermosRoute }
 const LegalRouteWithChildren = LegalRoute._addFileChildren(LegalRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   AppRoute: AppRouteWithChildren,
-  CadastroRoute: CadastroRoute,
+  CadastroRoute,
   LegalRoute: LegalRouteWithChildren,
-  LoginRoute: LoginRoute,
-  ApiConfigRoute: ApiConfigRoute,
-  ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
+  LoginRoute,
+  ApiConfigRoute,
+  ApiPublicCaktoCreateCheckoutRoute,
+  ApiPublicCaktoWebhookRoute,
+  ApiPublicPaymentsWebhookRoute,
 }
-export const routeTree = rootRouteImport
-  ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+export const routeTree = rootRouteImport._addFileChildren(rootRouteChildren)._addFileTypes<FileRouteTypes>()

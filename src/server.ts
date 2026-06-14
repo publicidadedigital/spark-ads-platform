@@ -25,7 +25,7 @@ function brandedErrorResponse(): Response {
   });
 }
 
-function publicLandingPage(): Response {
+function publicLandingPage(includeBody = true): Response {
   const html = `<!doctype html>
 <html lang="pt-BR">
 <head>
@@ -106,7 +106,7 @@ function publicLandingPage(): Response {
 </body>
 </html>`;
 
-  return new Response(html, {
+  return new Response(includeBody ? html : null, {
     status: 200,
     headers: {
       "content-type": "text/html; charset=utf-8",
@@ -176,12 +176,12 @@ export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     const url = new URL(request.url);
 
-    if (request.method === "GET" && (url.pathname === "/" || url.pathname === "/index.html")) {
-      return publicLandingPage();
+    if ((request.method === "GET" || request.method === "HEAD") && (url.pathname === "/" || url.pathname === "/index.html")) {
+      return publicLandingPage(request.method !== "HEAD");
     }
 
-    if (request.method === "GET" && url.pathname === "/robots.txt") {
-      return new Response("User-agent: *\nAllow: /\n", {
+    if ((request.method === "GET" || request.method === "HEAD") && url.pathname === "/robots.txt") {
+      return new Response(request.method === "HEAD" ? null : "User-agent: *\nAllow: /\n", {
         headers: { "content-type": "text/plain; charset=utf-8" },
       });
     }

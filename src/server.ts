@@ -25,6 +25,22 @@ function brandedErrorResponse(): Response {
   });
 }
 
+function formatServerError(error: unknown) {
+  if (error instanceof Error) {
+    return `${error.name}: ${error.message}\n${error.stack ?? ""}`;
+  }
+
+  try {
+    return typeof error === "string" ? error : JSON.stringify(error, null, 2);
+  } catch {
+    return String(error);
+  }
+}
+
+function logServerError(error: unknown, context: string) {
+  console.error(`[viral-hub:ssr:${context}] ${formatServerError(error)}`);
+}
+
 function isCatastrophicSsrErrorBody(body: string, responseStatus: number): boolean {
   let payload: unknown;
   try {
@@ -51,7 +67,7 @@ function isCatastrophicSsrErrorBody(body: string, responseStatus: number): boole
 }
 
 // h3 swallows in-handler throws into a normal 500 Response with body
-// {"unhandled":true,"message":"HTTPError"} — try/catch alone never fires for those.
+// {"unhandled":true,"message":"HTTPError"} - try/catch alone never fires for those.
 async function normalizeCatastrophicSsrResponse(response: Response): Promise<Response> {
   if (response.status < 500) return response;
   const contentType = response.headers.get("content-type") ?? "";
@@ -62,7 +78,7 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
     return response;
   }
 
-  console.error(consumeLastCapturedError() ?? new Error(`h3 swallowed SSR error: ${body}`));
+  logServerError(consumeLastCapturedError() ?? new Error(`h3 swallowed SSR error: ${body}`), "swallowed");
   return brandedErrorResponse();
 }
 
@@ -73,7 +89,7 @@ export default {
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
     } catch (error) {
-      console.error(error);
+      logServerError(error, "fetch");
       return brandedErrorResponse();
     }
   },

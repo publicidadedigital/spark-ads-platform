@@ -68,10 +68,10 @@ export type VmeGoalResult = {
 };
 
 export const PACKAGE_CATALOG: PackageDefinition[] = [
-  buildPackageDefinition("start", "Start", 60),
-  buildPackageDefinition("plus", "Plus", 120),
-  buildPackageDefinition("pro", "Pro", 300),
-  buildPackageDefinition("elite", "Elite", 1000),
+  buildPackageDefinition("start", "Start", 70),
+  buildPackageDefinition("plus", "Plus", 130),
+  buildPackageDefinition("pro", "Pro", 310),
+  buildPackageDefinition("elite", "Elite", 1010),
 ];
 
 export function roundMoney(value: number) {

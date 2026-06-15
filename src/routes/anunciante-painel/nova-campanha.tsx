@@ -170,7 +170,7 @@ function NovaCampanha() {
 
       <Card className="p-6 bg-card/50 border-border/50 space-y-4">
         <h3 className="font-semibold">2. Escolha o pacote</h3>
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {packages.map((pkg) => (
             <PackageOption key={pkg.id} pkg={pkg} selected={packageId === pkg.id} onSelect={() => setPackageId(pkg.id)} />
           ))}
@@ -196,11 +196,13 @@ function PackageOption({ pkg, selected, onSelect }: { pkg: Pkg; selected: boolea
       type="button"
       onClick={onSelect}
       className={`relative flex flex-col gap-3 rounded-lg border p-4 text-left transition ${
+        highlight ? "pt-7" : ""
+      } ${
         selected ? "border-gold bg-gold/5 shadow-[0_0_24px_rgba(245,181,27,0.15)]" : "border-border/50 hover:bg-card"
       }`}
     >
       {highlight && (
-        <Badge className="absolute -top-3 right-3 border-gold/40 bg-gold/15 text-gold hover:bg-gold/15">{highlight}</Badge>
+        <Badge className="absolute -top-3 left-3 right-3 justify-center border-gold/40 bg-gold/15 text-gold hover:bg-gold/15 text-center whitespace-nowrap overflow-hidden">{highlight}</Badge>
       )}
       <div className="flex items-center justify-between">
         <span className="font-semibold">{pkg.name}</span>

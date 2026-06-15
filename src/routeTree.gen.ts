@@ -21,6 +21,7 @@ import { Route as AnuncianteRouteImport } from './routes/anunciante'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app/index'
+import { Route as AnunciantePainelIndexRouteImport } from './routes/anunciante-painel/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as LegalTermosRouteImport } from './routes/legal/termos'
 import { Route as LegalRenovacaoRouteImport } from './routes/legal/renovacao'
@@ -36,6 +37,8 @@ import { Route as AppIndicacaoAnuncianteRouteImport } from './routes/app/indicac
 import { Route as AppExtratoRouteImport } from './routes/app/extrato'
 import { Route as AppCampanhasRouteImport } from './routes/app/campanhas'
 import { Route as ApiConfigRouteImport } from './routes/api/config'
+import { Route as AnunciantePainelNovaCampanhaRouteImport } from './routes/anunciante-painel/nova-campanha'
+import { Route as AnunciantePainelCampanhasRouteImport } from './routes/anunciante-painel/campanhas'
 import { Route as AdminSegurancaRouteImport } from './routes/admin/seguranca'
 import { Route as AdminSaquesRouteImport } from './routes/admin/saques'
 import { Route as AdminRenovacaoRouteImport } from './routes/admin/renovacao'
@@ -45,6 +48,7 @@ import { Route as AdminPacotesRouteImport } from './routes/admin/pacotes'
 import { Route as AdminLogsRouteImport } from './routes/admin/logs'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminFinanceiroRouteImport } from './routes/admin/financeiro'
+import { Route as AdminCampanhasAnunciantesRouteImport } from './routes/admin/campanhas-anunciantes'
 import { Route as AdminCampanhasRouteImport } from './routes/admin/campanhas'
 import { Route as AdminAdminsRouteImport } from './routes/admin/admins'
 import { Route as AppCheckoutPackageIdRouteImport } from './routes/app/checkout.$packageId'
@@ -114,6 +118,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRoute,
+} as any)
+const AnunciantePainelIndexRoute = AnunciantePainelIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AnunciantePainelRoute,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
@@ -190,6 +199,18 @@ const ApiConfigRoute = ApiConfigRouteImport.update({
   path: '/api/config',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AnunciantePainelNovaCampanhaRoute =
+  AnunciantePainelNovaCampanhaRouteImport.update({
+    id: '/nova-campanha',
+    path: '/nova-campanha',
+    getParentRoute: () => AnunciantePainelRoute,
+  } as any)
+const AnunciantePainelCampanhasRoute =
+  AnunciantePainelCampanhasRouteImport.update({
+    id: '/campanhas',
+    path: '/campanhas',
+    getParentRoute: () => AnunciantePainelRoute,
+  } as any)
 const AdminSegurancaRoute = AdminSegurancaRouteImport.update({
   id: '/seguranca',
   path: '/seguranca',
@@ -235,6 +256,12 @@ const AdminFinanceiroRoute = AdminFinanceiroRouteImport.update({
   path: '/financeiro',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminCampanhasAnunciantesRoute =
+  AdminCampanhasAnunciantesRouteImport.update({
+    id: '/campanhas-anunciantes',
+    path: '/campanhas-anunciantes',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AdminCampanhasRoute = AdminCampanhasRouteImport.update({
   id: '/campanhas',
   path: '/campanhas',
@@ -290,7 +317,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/anunciante': typeof AnuncianteRoute
   '/anunciante-login': typeof AnuncianteLoginRoute
-  '/anunciante-painel': typeof AnunciantePainelRoute
+  '/anunciante-painel': typeof AnunciantePainelRouteWithChildren
   '/anunciante-perfil': typeof AnunciantePerfilRoute
   '/app': typeof AppRouteWithChildren
   '/cadastro': typeof CadastroRoute
@@ -299,6 +326,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/campanhas': typeof AdminCampanhasRoute
+  '/admin/campanhas-anunciantes': typeof AdminCampanhasAnunciantesRoute
   '/admin/financeiro': typeof AdminFinanceiroRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/logs': typeof AdminLogsRoute
@@ -308,6 +336,8 @@ export interface FileRoutesByFullPath {
   '/admin/renovacao': typeof AdminRenovacaoRoute
   '/admin/saques': typeof AdminSaquesRoute
   '/admin/seguranca': typeof AdminSegurancaRoute
+  '/anunciante-painel/campanhas': typeof AnunciantePainelCampanhasRoute
+  '/anunciante-painel/nova-campanha': typeof AnunciantePainelNovaCampanhaRoute
   '/api/config': typeof ApiConfigRoute
   '/app/campanhas': typeof AppCampanhasRoute
   '/app/extrato': typeof AppExtratoRoute
@@ -323,6 +353,7 @@ export interface FileRoutesByFullPath {
   '/legal/renovacao': typeof LegalRenovacaoRoute
   '/legal/termos': typeof LegalTermosRoute
   '/admin/': typeof AdminIndexRoute
+  '/anunciante-painel/': typeof AnunciantePainelIndexRoute
   '/app/': typeof AppIndexRoute
   '/api/public/exchange-rate': typeof ApiPublicExchangeRateRoute
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -336,7 +367,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/anunciante': typeof AnuncianteRoute
   '/anunciante-login': typeof AnuncianteLoginRoute
-  '/anunciante-painel': typeof AnunciantePainelRoute
   '/anunciante-perfil': typeof AnunciantePerfilRoute
   '/cadastro': typeof CadastroRoute
   '/cadastro-anunciante': typeof CadastroAnuncianteRoute
@@ -344,6 +374,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/campanhas': typeof AdminCampanhasRoute
+  '/admin/campanhas-anunciantes': typeof AdminCampanhasAnunciantesRoute
   '/admin/financeiro': typeof AdminFinanceiroRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/logs': typeof AdminLogsRoute
@@ -353,6 +384,8 @@ export interface FileRoutesByTo {
   '/admin/renovacao': typeof AdminRenovacaoRoute
   '/admin/saques': typeof AdminSaquesRoute
   '/admin/seguranca': typeof AdminSegurancaRoute
+  '/anunciante-painel/campanhas': typeof AnunciantePainelCampanhasRoute
+  '/anunciante-painel/nova-campanha': typeof AnunciantePainelNovaCampanhaRoute
   '/api/config': typeof ApiConfigRoute
   '/app/campanhas': typeof AppCampanhasRoute
   '/app/extrato': typeof AppExtratoRoute
@@ -368,6 +401,7 @@ export interface FileRoutesByTo {
   '/legal/renovacao': typeof LegalRenovacaoRoute
   '/legal/termos': typeof LegalTermosRoute
   '/admin': typeof AdminIndexRoute
+  '/anunciante-painel': typeof AnunciantePainelIndexRoute
   '/app': typeof AppIndexRoute
   '/api/public/exchange-rate': typeof ApiPublicExchangeRateRoute
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -383,7 +417,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/anunciante': typeof AnuncianteRoute
   '/anunciante-login': typeof AnuncianteLoginRoute
-  '/anunciante-painel': typeof AnunciantePainelRoute
+  '/anunciante-painel': typeof AnunciantePainelRouteWithChildren
   '/anunciante-perfil': typeof AnunciantePerfilRoute
   '/app': typeof AppRouteWithChildren
   '/cadastro': typeof CadastroRoute
@@ -392,6 +426,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/campanhas': typeof AdminCampanhasRoute
+  '/admin/campanhas-anunciantes': typeof AdminCampanhasAnunciantesRoute
   '/admin/financeiro': typeof AdminFinanceiroRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/logs': typeof AdminLogsRoute
@@ -401,6 +436,8 @@ export interface FileRoutesById {
   '/admin/renovacao': typeof AdminRenovacaoRoute
   '/admin/saques': typeof AdminSaquesRoute
   '/admin/seguranca': typeof AdminSegurancaRoute
+  '/anunciante-painel/campanhas': typeof AnunciantePainelCampanhasRoute
+  '/anunciante-painel/nova-campanha': typeof AnunciantePainelNovaCampanhaRoute
   '/api/config': typeof ApiConfigRoute
   '/app/campanhas': typeof AppCampanhasRoute
   '/app/extrato': typeof AppExtratoRoute
@@ -416,6 +453,7 @@ export interface FileRoutesById {
   '/legal/renovacao': typeof LegalRenovacaoRoute
   '/legal/termos': typeof LegalTermosRoute
   '/admin/': typeof AdminIndexRoute
+  '/anunciante-painel/': typeof AnunciantePainelIndexRoute
   '/app/': typeof AppIndexRoute
   '/api/public/exchange-rate': typeof ApiPublicExchangeRateRoute
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -441,6 +479,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/admin/admins'
     | '/admin/campanhas'
+    | '/admin/campanhas-anunciantes'
     | '/admin/financeiro'
     | '/admin/login'
     | '/admin/logs'
@@ -450,6 +489,8 @@ export interface FileRouteTypes {
     | '/admin/renovacao'
     | '/admin/saques'
     | '/admin/seguranca'
+    | '/anunciante-painel/campanhas'
+    | '/anunciante-painel/nova-campanha'
     | '/api/config'
     | '/app/campanhas'
     | '/app/extrato'
@@ -465,6 +506,7 @@ export interface FileRouteTypes {
     | '/legal/renovacao'
     | '/legal/termos'
     | '/admin/'
+    | '/anunciante-painel/'
     | '/app/'
     | '/api/public/exchange-rate'
     | '/api/public/payments-webhook'
@@ -478,7 +520,6 @@ export interface FileRouteTypes {
     | '/'
     | '/anunciante'
     | '/anunciante-login'
-    | '/anunciante-painel'
     | '/anunciante-perfil'
     | '/cadastro'
     | '/cadastro-anunciante'
@@ -486,6 +527,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/admin/admins'
     | '/admin/campanhas'
+    | '/admin/campanhas-anunciantes'
     | '/admin/financeiro'
     | '/admin/login'
     | '/admin/logs'
@@ -495,6 +537,8 @@ export interface FileRouteTypes {
     | '/admin/renovacao'
     | '/admin/saques'
     | '/admin/seguranca'
+    | '/anunciante-painel/campanhas'
+    | '/anunciante-painel/nova-campanha'
     | '/api/config'
     | '/app/campanhas'
     | '/app/extrato'
@@ -510,6 +554,7 @@ export interface FileRouteTypes {
     | '/legal/renovacao'
     | '/legal/termos'
     | '/admin'
+    | '/anunciante-painel'
     | '/app'
     | '/api/public/exchange-rate'
     | '/api/public/payments-webhook'
@@ -533,6 +578,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/admin/admins'
     | '/admin/campanhas'
+    | '/admin/campanhas-anunciantes'
     | '/admin/financeiro'
     | '/admin/login'
     | '/admin/logs'
@@ -542,6 +588,8 @@ export interface FileRouteTypes {
     | '/admin/renovacao'
     | '/admin/saques'
     | '/admin/seguranca'
+    | '/anunciante-painel/campanhas'
+    | '/anunciante-painel/nova-campanha'
     | '/api/config'
     | '/app/campanhas'
     | '/app/extrato'
@@ -557,6 +605,7 @@ export interface FileRouteTypes {
     | '/legal/renovacao'
     | '/legal/termos'
     | '/admin/'
+    | '/anunciante-painel/'
     | '/app/'
     | '/api/public/exchange-rate'
     | '/api/public/payments-webhook'
@@ -572,7 +621,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   AnuncianteRoute: typeof AnuncianteRoute
   AnuncianteLoginRoute: typeof AnuncianteLoginRoute
-  AnunciantePainelRoute: typeof AnunciantePainelRoute
+  AnunciantePainelRoute: typeof AnunciantePainelRouteWithChildren
   AnunciantePerfilRoute: typeof AnunciantePerfilRoute
   AppRoute: typeof AppRouteWithChildren
   CadastroRoute: typeof CadastroRoute
@@ -673,6 +722,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/'
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/anunciante-painel/': {
+      id: '/anunciante-painel/'
+      path: '/'
+      fullPath: '/anunciante-painel/'
+      preLoaderRoute: typeof AnunciantePainelIndexRouteImport
+      parentRoute: typeof AnunciantePainelRoute
     }
     '/admin/': {
       id: '/admin/'
@@ -779,6 +835,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiConfigRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/anunciante-painel/nova-campanha': {
+      id: '/anunciante-painel/nova-campanha'
+      path: '/nova-campanha'
+      fullPath: '/anunciante-painel/nova-campanha'
+      preLoaderRoute: typeof AnunciantePainelNovaCampanhaRouteImport
+      parentRoute: typeof AnunciantePainelRoute
+    }
+    '/anunciante-painel/campanhas': {
+      id: '/anunciante-painel/campanhas'
+      path: '/campanhas'
+      fullPath: '/anunciante-painel/campanhas'
+      preLoaderRoute: typeof AnunciantePainelCampanhasRouteImport
+      parentRoute: typeof AnunciantePainelRoute
+    }
     '/admin/seguranca': {
       id: '/admin/seguranca'
       path: '/seguranca'
@@ -840,6 +910,13 @@ declare module '@tanstack/react-router' {
       path: '/financeiro'
       fullPath: '/admin/financeiro'
       preLoaderRoute: typeof AdminFinanceiroRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/campanhas-anunciantes': {
+      id: '/admin/campanhas-anunciantes'
+      path: '/campanhas-anunciantes'
+      fullPath: '/admin/campanhas-anunciantes'
+      preLoaderRoute: typeof AdminCampanhasAnunciantesRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/campanhas': {
@@ -911,6 +988,7 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminAdminsRoute: typeof AdminAdminsRoute
   AdminCampanhasRoute: typeof AdminCampanhasRoute
+  AdminCampanhasAnunciantesRoute: typeof AdminCampanhasAnunciantesRoute
   AdminFinanceiroRoute: typeof AdminFinanceiroRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AdminLogsRoute: typeof AdminLogsRoute
@@ -926,6 +1004,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAdminsRoute: AdminAdminsRoute,
   AdminCampanhasRoute: AdminCampanhasRoute,
+  AdminCampanhasAnunciantesRoute: AdminCampanhasAnunciantesRoute,
   AdminFinanceiroRoute: AdminFinanceiroRoute,
   AdminLoginRoute: AdminLoginRoute,
   AdminLogsRoute: AdminLogsRoute,
@@ -939,6 +1018,21 @@ const AdminRouteChildren: AdminRouteChildren = {
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
+interface AnunciantePainelRouteChildren {
+  AnunciantePainelCampanhasRoute: typeof AnunciantePainelCampanhasRoute
+  AnunciantePainelNovaCampanhaRoute: typeof AnunciantePainelNovaCampanhaRoute
+  AnunciantePainelIndexRoute: typeof AnunciantePainelIndexRoute
+}
+
+const AnunciantePainelRouteChildren: AnunciantePainelRouteChildren = {
+  AnunciantePainelCampanhasRoute: AnunciantePainelCampanhasRoute,
+  AnunciantePainelNovaCampanhaRoute: AnunciantePainelNovaCampanhaRoute,
+  AnunciantePainelIndexRoute: AnunciantePainelIndexRoute,
+}
+
+const AnunciantePainelRouteWithChildren =
+  AnunciantePainelRoute._addFileChildren(AnunciantePainelRouteChildren)
 
 interface AppRouteChildren {
   AppCampanhasRoute: typeof AppCampanhasRoute
@@ -991,7 +1085,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   AnuncianteRoute: AnuncianteRoute,
   AnuncianteLoginRoute: AnuncianteLoginRoute,
-  AnunciantePainelRoute: AnunciantePainelRoute,
+  AnunciantePainelRoute: AnunciantePainelRouteWithChildren,
   AnunciantePerfilRoute: AnunciantePerfilRoute,
   AppRoute: AppRouteWithChildren,
   CadastroRoute: CadastroRoute,

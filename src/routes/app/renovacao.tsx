@@ -42,7 +42,7 @@ type Cycle = {
   saldo_bonificacoes: number | string | null;
   status: string;
   started_at: string | null;
-  ended_at?: string | null;
+  completed_at?: string | null;
 };
 
 function RenovacaoPage() {
@@ -66,7 +66,7 @@ function RenovacaoPage() {
       if (prof) {
         const { data: cy } = await supabase
           .from("user_cycles")
-          .select("id,percentual_atual,saldo_bonificacoes,status,started_at,ended_at")
+          .select("id,percentual_atual,saldo_bonificacoes,status,started_at,completed_at")
           .eq("user_id", prof.id)
           .order("started_at", { ascending: false })
           .limit(1)

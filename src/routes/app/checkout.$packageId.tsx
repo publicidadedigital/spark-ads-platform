@@ -128,10 +128,10 @@ function CheckoutPage() {
           <div>
             <h3 className="font-semibold">Pagar via Cakto (cartão, boleto ou Pix)</h3>
             <p className="text-sm text-muted-foreground">
-              Abra a página de pagamento da Cakto para este pacote. Após a confirmação, sua equipe receberá o pagamento e seu ciclo será ativado.
+              Abra a página de pagamento da Cakto para este pacote. Use o mesmo e-mail da sua conta para a ativação ser identificada automaticamente.
             </p>
           </div>
-          <Button variant="outline" className="border-primary/40 bg-primary/10 text-primary" onClick={() => window.open(pkg.cakto_checkout_url, "_blank", "noopener,noreferrer")}>
+          <Button variant="outline" className="border-primary/40 bg-primary/10 text-primary" onClick={() => window.open(buildCaktoCheckoutUrl(pkg.cakto_checkout_url, profile, user), "_blank", "noopener,noreferrer")}>
             <ExternalLink className="h-4 w-4 mr-2" /> Abrir pagamento Cakto
           </Button>
         </Card>
@@ -183,4 +183,23 @@ function CheckoutPage() {
       </div>
     </div>
   );
+}
+
+function buildCaktoCheckoutUrl(baseUrl: string, profile: any, user: { email?: string | null } | null) {
+  const email = profile?.email || user?.email;
+  if (!email) return baseUrl;
+
+  const params = new URLSearchParams();
+  params.set("email", email);
+  params.set("confirmEmail", email);
+  if (profile?.nome) params.set("name", profile.nome);
+
+  const cpfDigits = String(profile?.cpf ?? "").replace(/\D/g, "");
+  if (cpfDigits) params.set("cpf", cpfDigits);
+
+  const phoneDigits = String(profile?.telefone ?? "").replace(/\D/g, "");
+  if (phoneDigits) params.set("phone", phoneDigits.startsWith("55") ? phoneDigits : `55${phoneDigits}`);
+
+  const separator = baseUrl.includes("?") ? "&" : "?";
+  return `${baseUrl}${separator}${params.toString()}`;
 }

@@ -92,7 +92,7 @@ export function buildPackageDefinition(slug: PackageSlug, name: string, packageV
     courseFee: COURSE_FEE_USD,
     totalPaid: roundMoney(normalizedPackageValue + COURSE_FEE_USD),
     cycleLimit200: roundMoney(normalizedPackageValue * 2),
-    dailyBonus: calculateDailyShareBonus(normalizedPackageValue),
+    dailyBonus: roundMoney(normalizedPackageValue * DAILY_SHARE_BONUS_RATE),
   };
 }
 

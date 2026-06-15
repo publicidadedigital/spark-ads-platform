@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/supabase/auth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Building2, LogOut, Mail, MapPin, Megaphone, Phone } from "lucide-react";
+import { Building2, LogOut, Mail, MapPin, Megaphone, Phone, UserCircle } from "lucide-react";
 
 export const Route = createFileRoute("/anunciante-painel")({ component: AdvertiserPanel });
 
@@ -91,6 +91,11 @@ function AdvertiserPanel() {
           </Link>
           <div className="flex items-center gap-3">
             <ExchangeRateTicker />
+            <Link to="/anunciante-perfil">
+              <Button variant="ghost" size="sm">
+                <UserCircle className="h-4 w-4 mr-2" /> Meu Perfil
+              </Button>
+            </Link>
             <Button variant="ghost" size="sm" onClick={() => { signOut(); navigate({ to: "/" }); }}>
               <LogOut className="h-4 w-4 mr-2" /> Sair
             </Button>

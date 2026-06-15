@@ -14,6 +14,7 @@ import { Route as LegalRouteImport } from './routes/legal'
 import { Route as CadastroAnuncianteRouteImport } from './routes/cadastro-anunciante'
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as AppRouteImport } from './routes/app'
+import { Route as AnunciantePerfilRouteImport } from './routes/anunciante-perfil'
 import { Route as AnunciantePainelRouteImport } from './routes/anunciante-painel'
 import { Route as AnuncianteRouteImport } from './routes/anunciante'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -29,6 +30,7 @@ import { Route as AppSegurancaRouteImport } from './routes/app/seguranca'
 import { Route as AppSaqueRouteImport } from './routes/app/saque'
 import { Route as AppRenovacaoRouteImport } from './routes/app/renovacao'
 import { Route as AppRedeRouteImport } from './routes/app/rede'
+import { Route as AppPerfilRouteImport } from './routes/app/perfil'
 import { Route as AppIndicacaoAnuncianteRouteImport } from './routes/app/indicacao-anunciante'
 import { Route as AppExtratoRouteImport } from './routes/app/extrato'
 import { Route as AppCampanhasRouteImport } from './routes/app/campanhas'
@@ -75,6 +77,11 @@ const CadastroRoute = CadastroRouteImport.update({
 const AppRoute = AppRouteImport.update({
   id: '/app',
   path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnunciantePerfilRoute = AnunciantePerfilRouteImport.update({
+  id: '/anunciante-perfil',
+  path: '/anunciante-perfil',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnunciantePainelRoute = AnunciantePainelRouteImport.update({
@@ -150,6 +157,11 @@ const AppRenovacaoRoute = AppRenovacaoRouteImport.update({
 const AppRedeRoute = AppRedeRouteImport.update({
   id: '/rede',
   path: '/rede',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPerfilRoute = AppPerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
   getParentRoute: () => AppRoute,
 } as any)
 const AppIndicacaoAnuncianteRoute = AppIndicacaoAnuncianteRouteImport.update({
@@ -272,6 +284,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/anunciante': typeof AnuncianteRoute
   '/anunciante-painel': typeof AnunciantePainelRoute
+  '/anunciante-perfil': typeof AnunciantePerfilRoute
   '/app': typeof AppRouteWithChildren
   '/cadastro': typeof CadastroRoute
   '/cadastro-anunciante': typeof CadastroAnuncianteRoute
@@ -292,6 +305,7 @@ export interface FileRoutesByFullPath {
   '/app/campanhas': typeof AppCampanhasRoute
   '/app/extrato': typeof AppExtratoRoute
   '/app/indicacao-anunciante': typeof AppIndicacaoAnuncianteRoute
+  '/app/perfil': typeof AppPerfilRoute
   '/app/rede': typeof AppRedeRoute
   '/app/renovacao': typeof AppRenovacaoRoute
   '/app/saque': typeof AppSaqueRoute
@@ -315,6 +329,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/anunciante': typeof AnuncianteRoute
   '/anunciante-painel': typeof AnunciantePainelRoute
+  '/anunciante-perfil': typeof AnunciantePerfilRoute
   '/cadastro': typeof CadastroRoute
   '/cadastro-anunciante': typeof CadastroAnuncianteRoute
   '/legal': typeof LegalRouteWithChildren
@@ -334,6 +349,7 @@ export interface FileRoutesByTo {
   '/app/campanhas': typeof AppCampanhasRoute
   '/app/extrato': typeof AppExtratoRoute
   '/app/indicacao-anunciante': typeof AppIndicacaoAnuncianteRoute
+  '/app/perfil': typeof AppPerfilRoute
   '/app/rede': typeof AppRedeRoute
   '/app/renovacao': typeof AppRenovacaoRoute
   '/app/saque': typeof AppSaqueRoute
@@ -359,6 +375,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/anunciante': typeof AnuncianteRoute
   '/anunciante-painel': typeof AnunciantePainelRoute
+  '/anunciante-perfil': typeof AnunciantePerfilRoute
   '/app': typeof AppRouteWithChildren
   '/cadastro': typeof CadastroRoute
   '/cadastro-anunciante': typeof CadastroAnuncianteRoute
@@ -379,6 +396,7 @@ export interface FileRoutesById {
   '/app/campanhas': typeof AppCampanhasRoute
   '/app/extrato': typeof AppExtratoRoute
   '/app/indicacao-anunciante': typeof AppIndicacaoAnuncianteRoute
+  '/app/perfil': typeof AppPerfilRoute
   '/app/rede': typeof AppRedeRoute
   '/app/renovacao': typeof AppRenovacaoRoute
   '/app/saque': typeof AppSaqueRoute
@@ -405,6 +423,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/anunciante'
     | '/anunciante-painel'
+    | '/anunciante-perfil'
     | '/app'
     | '/cadastro'
     | '/cadastro-anunciante'
@@ -425,6 +444,7 @@ export interface FileRouteTypes {
     | '/app/campanhas'
     | '/app/extrato'
     | '/app/indicacao-anunciante'
+    | '/app/perfil'
     | '/app/rede'
     | '/app/renovacao'
     | '/app/saque'
@@ -448,6 +468,7 @@ export interface FileRouteTypes {
     | '/'
     | '/anunciante'
     | '/anunciante-painel'
+    | '/anunciante-perfil'
     | '/cadastro'
     | '/cadastro-anunciante'
     | '/legal'
@@ -467,6 +488,7 @@ export interface FileRouteTypes {
     | '/app/campanhas'
     | '/app/extrato'
     | '/app/indicacao-anunciante'
+    | '/app/perfil'
     | '/app/rede'
     | '/app/renovacao'
     | '/app/saque'
@@ -491,6 +513,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/anunciante'
     | '/anunciante-painel'
+    | '/anunciante-perfil'
     | '/app'
     | '/cadastro'
     | '/cadastro-anunciante'
@@ -511,6 +534,7 @@ export interface FileRouteTypes {
     | '/app/campanhas'
     | '/app/extrato'
     | '/app/indicacao-anunciante'
+    | '/app/perfil'
     | '/app/rede'
     | '/app/renovacao'
     | '/app/saque'
@@ -536,6 +560,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   AnuncianteRoute: typeof AnuncianteRoute
   AnunciantePainelRoute: typeof AnunciantePainelRoute
+  AnunciantePerfilRoute: typeof AnunciantePerfilRoute
   AppRoute: typeof AppRouteWithChildren
   CadastroRoute: typeof CadastroRoute
   CadastroAnuncianteRoute: typeof CadastroAnuncianteRoute
@@ -585,6 +610,13 @@ declare module '@tanstack/react-router' {
       path: '/app'
       fullPath: '/app'
       preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/anunciante-perfil': {
+      id: '/anunciante-perfil'
+      path: '/anunciante-perfil'
+      fullPath: '/anunciante-perfil'
+      preLoaderRoute: typeof AnunciantePerfilRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/anunciante-painel': {
@@ -690,6 +722,13 @@ declare module '@tanstack/react-router' {
       path: '/rede'
       fullPath: '/app/rede'
       preLoaderRoute: typeof AppRedeRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/perfil': {
+      id: '/app/perfil'
+      path: '/perfil'
+      fullPath: '/app/perfil'
+      preLoaderRoute: typeof AppPerfilRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/indicacao-anunciante': {
@@ -885,6 +924,7 @@ interface AppRouteChildren {
   AppCampanhasRoute: typeof AppCampanhasRoute
   AppExtratoRoute: typeof AppExtratoRoute
   AppIndicacaoAnuncianteRoute: typeof AppIndicacaoAnuncianteRoute
+  AppPerfilRoute: typeof AppPerfilRoute
   AppRedeRoute: typeof AppRedeRoute
   AppRenovacaoRoute: typeof AppRenovacaoRoute
   AppSaqueRoute: typeof AppSaqueRoute
@@ -897,6 +937,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppCampanhasRoute: AppCampanhasRoute,
   AppExtratoRoute: AppExtratoRoute,
   AppIndicacaoAnuncianteRoute: AppIndicacaoAnuncianteRoute,
+  AppPerfilRoute: AppPerfilRoute,
   AppRedeRoute: AppRedeRoute,
   AppRenovacaoRoute: AppRenovacaoRoute,
   AppSaqueRoute: AppSaqueRoute,
@@ -930,6 +971,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   AnuncianteRoute: AnuncianteRoute,
   AnunciantePainelRoute: AnunciantePainelRoute,
+  AnunciantePerfilRoute: AnunciantePerfilRoute,
   AppRoute: AppRouteWithChildren,
   CadastroRoute: CadastroRoute,
   CadastroAnuncianteRoute: CadastroAnuncianteRoute,

@@ -274,8 +274,8 @@ function Plans() {
             <p className="text-sm text-muted-foreground mt-3">{p.desc}</p>
             <ul className="mt-6 space-y-2 text-sm">
               <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> Ganho diário {p.diario}</li>
-              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> Ciclo até 200% (≈385 dias)</li>
-              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> 1.925 compartilhamentos para dobrar</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> Bônus de até 200%</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> Curso exclusivo {p.n}</li>
               <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> Programa de afiliados</li>
             </ul>
             <Link to="/cadastro" className="block mt-6">

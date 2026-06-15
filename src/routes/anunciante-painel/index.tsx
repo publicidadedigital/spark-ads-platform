@@ -7,7 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import {
   Area,
   AreaChart,
+  Bar,
+  BarChart,
   CartesianGrid,
+  Line,
+  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -15,7 +19,7 @@ import {
 } from "recharts";
 import {
   Building2, Mail, MapPin, Megaphone, Phone, PlusCircle,
-  Share2, Eye, Wallet, Rocket, UserCircle, LogOut,
+  Share2, Eye, Wallet, Rocket, UserCircle, LogOut, Users, Percent, Heart,
 } from "lucide-react";
 
 export const Route = createFileRoute("/anunciante-painel/")({ component: AdvertiserDashboard });
@@ -53,8 +57,12 @@ function AdvertiserDashboard() {
     totalShares: 0,
     estimatedReach: 0,
     totalInvested: 0,
+    approvalRate: 0,
+    estimatedEngagement: 0,
   });
   const [sharesByDay, setSharesByDay] = useState<{ label: string; valor: number }[]>([]);
+  const [participantsByDay, setParticipantsByDay] = useState<{ label: string; valor: number }[]>([]);
+  const [growthByDay, setGrowthByDay] = useState<{ label: string; valor: number }[]>([]);
 
   useEffect(() => {
     if (!loading && !session) navigate({ to: "/login" });
@@ -83,6 +91,8 @@ function AdvertiserDashboard() {
       const ids = list.map((c: any) => c.id);
 
       let totalShares = 0;
+      let approvalRate = 0;
+      let estimatedEngagement = 0;
       if (ids.length > 0) {
         const { count, data: events } = await supabase
           .from("advertiser_campaign_events")
@@ -90,6 +100,20 @@ function AdvertiserDashboard() {
           .in("advertiser_campaign_id", ids);
         totalShares = count ?? 0;
         setSharesByDay(buildSharesByDay(events ?? []));
+
+        const { data: shares } = await supabase
+          .from("campaign_shares")
+          .select("user_id,status,created_at,detected_followers")
+          .in("advertiser_campaign_id", ids);
+
+        const shareList = shares ?? [];
+        setParticipantsByDay(buildParticipantsByDay(shareList));
+        setGrowthByDay(buildGrowthByDay(shareList));
+
+        const approved = shareList.filter((s: any) => s.status === "aprovada");
+        const decided = shareList.filter((s: any) => ["aprovada", "rejeitada", "removida"].includes(s.status));
+        approvalRate = decided.length > 0 ? Math.round((approved.length / decided.length) * 100) : 0;
+        estimatedEngagement = approved.reduce((sum: number, s: any) => sum + Number(s.detected_followers ?? 0), 0);
       }
 
       const totalInvested = list.reduce((sum: number, c: any) => sum + Number(c.order?.price_usd ?? 0), 0);
@@ -102,6 +126,8 @@ function AdvertiserDashboard() {
         totalShares,
         estimatedReach,
         totalInvested,
+        approvalRate,
+        estimatedEngagement,
       });
     })();
   }, [supabase, user]);
@@ -168,26 +194,63 @@ function AdvertiserDashboard() {
         <MetricCard label="Total investido" value={usd.format(metrics.totalInvested)} sub="Em campanhas" icon={Wallet} tone="warning" />
       </div>
 
-      <Card className="border-primary/15 bg-card/50 p-5">
-        <h3 className="mb-4 font-semibold">Compartilhamentos recebidos (últimos 14 dias)</h3>
-        <div className="h-56">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={sharesByDay} margin={{ left: -20, right: 8, top: 12, bottom: 0 }}>
-              <defs>
-                <linearGradient id="advertiserShares" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="5%" stopColor="#f5b51b" stopOpacity={0.42} />
-                  <stop offset="95%" stopColor="#f5b51b" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="4 4" vertical={false} opacity={0.45} />
-              <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
-              <YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
-              <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
-              <Area type="monotone" dataKey="valor" stroke="#f5b51b" strokeWidth={3} fill="url(#advertiserShares)" dot={{ r: 3 }} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </Card>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <MetricCard label="Taxa de aprovação" value={`${metrics.approvalRate}%`} sub="Compartilhamentos validados" icon={Percent} tone="success" />
+        <MetricCard label="Engajamento estimado" value={metrics.estimatedEngagement.toLocaleString("pt-BR")} sub="Alcance via seguidores validados" icon={Heart} tone="primary" />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card className="border-primary/15 bg-card/50 p-5">
+          <h3 className="mb-4 font-semibold">Compartilhamentos recebidos (últimos 14 dias)</h3>
+          <div className="h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={sharesByDay} margin={{ left: -20, right: 8, top: 12, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="advertiserShares" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="5%" stopColor="#f5b51b" stopOpacity={0.42} />
+                    <stop offset="95%" stopColor="#f5b51b" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="4 4" vertical={false} opacity={0.45} />
+                <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
+                <YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
+                <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
+                <Area type="monotone" dataKey="valor" stroke="#f5b51b" strokeWidth={3} fill="url(#advertiserShares)" dot={{ r: 3 }} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+
+        <Card className="border-primary/15 bg-card/50 p-5">
+          <h3 className="mb-4 font-semibold">Participantes por dia (últimos 14 dias)</h3>
+          <div className="h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={participantsByDay} margin={{ left: -20, right: 8, top: 12, bottom: 0 }}>
+                <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="4 4" vertical={false} opacity={0.45} />
+                <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
+                <YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
+                <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
+                <Bar dataKey="valor" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+
+        <Card className="border-primary/15 bg-card/50 p-5 lg:col-span-2">
+          <h3 className="mb-4 font-semibold">Crescimento da campanha (compartilhamentos validados, acumulado)</h3>
+          <div className="h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={growthByDay} margin={{ left: -20, right: 8, top: 12, bottom: 0 }}>
+                <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="4 4" vertical={false} opacity={0.45} />
+                <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
+                <YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
+                <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
+                <Line type="monotone" dataKey="valor" stroke="hsl(var(--success))" strokeWidth={3} dot={{ r: 3 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+      </div>
 
       <Card className="border-primary/15 bg-card/50 p-5">
         <h2 className="mb-4 font-semibold">Dados da empresa</h2>
@@ -256,6 +319,43 @@ function buildSharesByDay(events: { created_at: string }[]) {
     if (day) day.valor += 1;
   });
   return days.map(({ label, valor }) => ({ label, valor }));
+}
+
+function buildEmptyDays() {
+  const days: { label: string; key: string }[] = [];
+  const now = new Date();
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    days.push({ label: d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }), key: d.toISOString().slice(0, 10) });
+  }
+  return days;
+}
+
+function buildParticipantsByDay(shares: { user_id: string; created_at: string }[]) {
+  const days = buildEmptyDays();
+  const byKey = new Map(days.map((d) => [d.key, new Set<string>()]));
+  shares.forEach((s) => {
+    const key = s.created_at.slice(0, 10);
+    const set = byKey.get(key);
+    if (set) set.add(s.user_id);
+  });
+  return days.map(({ label, key }) => ({ label, valor: byKey.get(key)?.size ?? 0 }));
+}
+
+function buildGrowthByDay(shares: { status: string; created_at: string }[]) {
+  const days = buildEmptyDays();
+  const byKey = new Map(days.map((d) => [d.key, 0]));
+  shares.forEach((s) => {
+    if (s.status !== "aprovada") return;
+    const key = s.created_at.slice(0, 10);
+    if (byKey.has(key)) byKey.set(key, (byKey.get(key) ?? 0) + 1);
+  });
+  let cumulative = 0;
+  return days.map(({ label, key }) => {
+    cumulative += byKey.get(key) ?? 0;
+    return { label, valor: cumulative };
+  });
 }
 
 function formatCnpj(cnpj: string | null) {

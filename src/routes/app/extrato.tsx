@@ -5,12 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { toast } from "sonner";
-import { requestWithdrawal } from "@/lib/withdrawals/withdrawal.functions";
-import { getTwoFactorStatus } from "@/lib/security/totp.functions";
-import { TwoFactorReminderBanner } from "@/components/TwoFactorSetup";
 import {
   Area,
   AreaChart,
@@ -94,8 +89,6 @@ function ExtratoPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("todas");
   const [search, setSearch] = useState("");
-  const [cpf, setCpf] = useState<string | null>(null);
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
 
   useEffect(() => {
     if (!supabase || !user) return;
@@ -109,16 +102,6 @@ function ExtratoPage() {
       if (!prof) {
         setLoading(false);
         return;
-      }
-
-      setCpf(prof.cpf ?? null);
-
-      const { data: session } = await supabase.auth.getSession();
-      const accessToken = session.session?.access_token;
-      if (accessToken) {
-        getTwoFactorStatus({ data: { accessToken } })
-          .then((status) => setTwoFactorEnabled(status.enabled))
-          .catch(() => {});
       }
 
       const [{ data: walletRows }, { data: bonusRows }, { data: cycle }] = await Promise.all([
@@ -353,7 +336,6 @@ function ExtratoPage() {
         </div>
 
         <aside className="space-y-4">
-          <WithdrawalRequestCard balance={stats.balance} cpf={cpf} twoFactorEnabled={twoFactorEnabled} />
           <DistributionCard categories={stats.categories} total={stats.categoryTotal} />
           <BestDayCard tx={tx} />
           <InsightsCard stats={stats} tx={tx} />
@@ -466,84 +448,6 @@ function SummaryCard({ category, sub = "Total acumulado" }: { category: Category
           <p className="text-xs text-muted-foreground">{sub}</p>
         </div>
       </div>
-    </Card>
-  );
-}
-
-function WithdrawalRequestCard({ balance, cpf, twoFactorEnabled }: { balance: number; cpf: string | null; twoFactorEnabled: boolean }) {
-  const { supabase } = useAuth();
-  const [amount, setAmount] = useState("");
-  const [pixKey, setPixKey] = useState("");
-  const [documentCpf, setDocumentCpf] = useState("");
-  const [totpCode, setTotpCode] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-
-  async function submit() {
-    if (!supabase) return;
-    const amountUsd = Number(amount);
-    if (!amountUsd || amountUsd <= 0) return toast.error("Informe um valor valido");
-    if (!pixKey.trim()) return toast.error("Informe a chave PIX");
-    if (!documentCpf.trim()) return toast.error("Informe o CPF cadastrado na conta");
-    if (!/^\d{6}$/.test(totpCode)) return toast.error("Informe o código de 6 dígitos do Google Authenticator");
-
-    setSubmitting(true);
-    try {
-      const { data: session } = await supabase.auth.getSession();
-      const accessToken = session.session?.access_token;
-      if (!accessToken) throw new Error("Sessao expirada");
-
-      await requestWithdrawal({
-        data: {
-          accessToken,
-          amountUsd,
-          method: "pix",
-          destinationKey: pixKey.trim(),
-          destinationDocument: documentCpf.trim(),
-          totpCode,
-        },
-      });
-
-      toast.success("Solicitacao de saque enviada para analise");
-      setAmount("");
-      setPixKey("");
-      setDocumentCpf("");
-      setTotpCode("");
-    } catch (error: any) {
-      toast.error(error.message ?? "Erro ao solicitar saque");
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  return (
-    <Card className="border-primary/15 bg-card/50 p-5 space-y-3">
-      <div>
-        <h3 className="font-semibold">Solicitar saque</h3>
-        <p className="text-xs text-muted-foreground">Saldo disponivel: {formatMoney(balance)}</p>
-      </div>
-
-      {!twoFactorEnabled && <TwoFactorReminderBanner to="/app/seguranca" />}
-
-      <div>
-        <Label>Valor (US$)</Label>
-        <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="50" />
-      </div>
-      <div>
-        <Label>Chave PIX</Label>
-        <Input value={pixKey} onChange={(e) => setPixKey(e.target.value)} placeholder="CPF, e-mail, telefone ou chave aleatoria" />
-      </div>
-      <div>
-        <Label>CPF cadastrado na conta</Label>
-        <Input value={documentCpf} onChange={(e) => setDocumentCpf(e.target.value)} placeholder={cpf ?? "Informe o CPF da sua conta"} />
-        <p className="mt-1 text-xs text-muted-foreground">O saque so pode ser feito para o CPF cadastrado nesta conta.</p>
-      </div>
-      <div>
-        <Label>Codigo do Google Authenticator</Label>
-        <Input value={totpCode} onChange={(e) => setTotpCode(e.target.value)} placeholder="000000" maxLength={6} />
-      </div>
-      <Button onClick={submit} disabled={submitting} className="w-full bg-gold-gradient text-primary-foreground">
-        Solicitar saque
-      </Button>
     </Card>
   );
 }

@@ -100,10 +100,10 @@ export const Route = createFileRoute("/api/public/cakto/webhook")({
           amount: Number(order.amount_usd),
         };
 
-        if (webhookSecret && process.env.APP_URL) {
+        if (webhookSecret && (process.env.APP_URL ?? process.env.APP_PUBLIC_URL)) {
           const rawPayload = JSON.stringify(payload);
           const signature = createHmac("sha256", webhookSecret).update(rawPayload).digest("hex");
-          const response = await fetch(`${process.env.APP_URL}/api/public/payments-webhook`, {
+          const response = await fetch(`${process.env.APP_URL ?? process.env.APP_PUBLIC_URL}/api/public/payments-webhook`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

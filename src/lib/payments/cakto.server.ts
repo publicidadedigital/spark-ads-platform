@@ -116,9 +116,9 @@ export async function createCaktoCheckout(input: CaktoCheckoutInput): Promise<Ca
       course_fee_usd: input.package.courseFeeUsd,
       bonusable_amount_usd: input.package.bonusableAmountUsd,
     },
-    success_url: process.env.CAKTO_SUCCESS_URL ?? `${process.env.APP_URL ?? ""}/app`,
-    cancel_url: process.env.CAKTO_CANCEL_URL ?? `${process.env.APP_URL ?? ""}/app/checkout`,
-    webhook_url: process.env.CAKTO_WEBHOOK_URL ?? `${process.env.APP_URL ?? ""}/api/public/cakto/webhook`,
+    success_url: process.env.CAKTO_SUCCESS_URL ?? `${process.env.APP_URL ?? process.env.APP_PUBLIC_URL ?? ""}/app`,
+    cancel_url: process.env.CAKTO_CANCEL_URL ?? `${process.env.APP_URL ?? process.env.APP_PUBLIC_URL ?? ""}/app/checkout`,
+    webhook_url: process.env.CAKTO_WEBHOOK_URL ?? `${process.env.APP_URL ?? process.env.APP_PUBLIC_URL ?? ""}/api/public/cakto/webhook`,
   };
 
   if (endpoint && apiToken) {

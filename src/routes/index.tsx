@@ -10,7 +10,17 @@ import teamImg from "@/assets/creators-team.jpg";
 import phoneImg from "@/assets/phone-dashboard.jpg";
 
 
-export const Route = createFileRoute("/")({ component: Landing });
+export const Route = createFileRoute("/")({
+  component: Landing,
+  head: () => ({
+    meta: [
+      { property: "og:url", content: "https://www.viralhub.social/" },
+    ],
+    links: [
+      { rel: "canonical", href: "https://www.viralhub.social/" },
+    ],
+  }),
+});
 
 function Landing() {
   return (

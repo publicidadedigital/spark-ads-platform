@@ -14,6 +14,7 @@ type Participant = {
   id: string;
   shared_link: string;
   status: string;
+  motivo_rejeicao: string | null;
   created_at: string;
   social_handle: string | null;
   instagram_usado: string | null;
@@ -38,7 +39,7 @@ function CampaignParticipants() {
           .maybeSingle(),
         supabase
           .from("campaign_shares")
-          .select("id,shared_link,status,created_at,social_handle,instagram_usado,profile:user_id(nome,instagram,avatar_url,seguidores_instagram)")
+          .select("id,shared_link,status,motivo_rejeicao,created_at,social_handle,instagram_usado,profile:user_id(nome,instagram,avatar_url,seguidores_instagram)")
           .eq("advertiser_campaign_id", campaignId)
           .order("created_at", { ascending: false }),
       ]);
@@ -117,7 +118,12 @@ function CampaignParticipants() {
                     </a>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{formatDate(p.created_at)}</td>
-                  <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
+                  <td className="px-4 py-3">
+                    <StatusBadge status={p.status} />
+                    {(p.status === "rejeitada" || p.status === "removida") && p.motivo_rejeicao && (
+                      <div className="mt-1 max-w-[180px] text-xs text-destructive">{p.motivo_rejeicao}</div>
+                    )}
+                  </td>
                   <td className="px-4 py-3">
                     <a href={p.shared_link} target="_blank" rel="noreferrer">
                       <Button size="sm" variant="outline">Abrir publicação</Button>
@@ -141,9 +147,11 @@ function StatusBadge({ status }: { status: string }) {
     case "aprovada":
       return <Badge className="border-success/30 bg-success/15 text-success hover:bg-success/15"><ShieldCheck className="mr-1 h-3 w-3" /> Validado</Badge>;
     case "rejeitada":
-      return <Badge className="border-destructive/30 bg-destructive/15 text-destructive hover:bg-destructive/15"><XCircle className="mr-1 h-3 w-3" /> Rejeitado</Badge>;
+      return <Badge className="border-destructive/30 bg-destructive/15 text-destructive hover:bg-destructive/15"><XCircle className="mr-1 h-3 w-3" /> Recusado</Badge>;
+    case "removida":
+      return <Badge className="border-destructive/30 bg-destructive/15 text-destructive hover:bg-destructive/15"><XCircle className="mr-1 h-3 w-3" /> Removido (fraude)</Badge>;
     default:
-      return <Badge className="border-primary/30 bg-primary/15 text-primary hover:bg-primary/15"><Clock className="mr-1 h-3 w-3" /> Em analise</Badge>;
+      return <Badge className="border-primary/30 bg-primary/15 text-primary hover:bg-primary/15"><Clock className="mr-1 h-3 w-3" /> Pendente</Badge>;
   }
 }
 

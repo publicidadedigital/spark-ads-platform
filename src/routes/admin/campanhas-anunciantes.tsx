@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/supabase/auth";
 import { Card } from "@/components/ui/card";
@@ -100,6 +100,9 @@ function AdminCampanhasAnunciantes() {
                   <Button size="sm" className="flex-1 bg-gold-gradient text-primary-foreground" onClick={() => approve(c.id)}>Aprovar e ativar</Button>
                   <Button size="sm" variant="destructive" className="flex-1" onClick={() => reject(c.id)}>Reprovar</Button>
                 </div>
+                <Link to="/admin/provas" search={{ campaignId: c.id }}>
+                  <Button size="sm" variant="outline" className="w-full">Validar compartilhamentos</Button>
+                </Link>
               </div>
             </div>
           </Card>
@@ -136,9 +139,14 @@ function AdminCampanhasAnunciantes() {
                       <td className="px-4 py-3">{c.order?.package?.name ?? "-"}</td>
                       <td className="px-4 py-3"><StatusBadge status={c.status} /></td>
                       <td className="px-4 py-3">
-                        {c.status === "ativa" && (
-                          <Button size="sm" variant="outline" onClick={() => finish(c.id)}>Finalizar</Button>
-                        )}
+                        <div className="flex gap-2">
+                          {c.status === "ativa" && (
+                            <Button size="sm" variant="outline" onClick={() => finish(c.id)}>Finalizar</Button>
+                          )}
+                          <Link to="/admin/provas" search={{ campaignId: c.id }}>
+                            <Button size="sm" variant="outline">Validar compartilhamentos</Button>
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   ))}

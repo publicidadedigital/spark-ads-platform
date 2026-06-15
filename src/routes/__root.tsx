@@ -59,6 +59,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "Viral Hub" },
       { property: "og:description", content: "Compartilhe campanhas, monetize sua influência e construa renda recorrente com a Viral Hub." },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "Viral Hub" },
+      { property: "og:url", content: "https://www.viralhub.social/" },
       { property: "og:image", content: viralHubLogo },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Viral Hub" },

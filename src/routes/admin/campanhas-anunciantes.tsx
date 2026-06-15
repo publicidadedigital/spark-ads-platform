@@ -5,8 +5,11 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { ExternalLink, Clock, ShieldCheck, XCircle, Rocket, CheckCircle2 } from "lucide-react";
+import { ExternalLink, Clock, ShieldCheck, XCircle, Rocket, CheckCircle2, PauseCircle, Pencil } from "lucide-react";
 
 export const Route = createFileRoute("/admin/campanhas-anunciantes")({ component: AdminCampanhasAnunciantes });
 
@@ -17,6 +20,7 @@ function AdminCampanhasAnunciantes() {
   const [items, setItems] = useState<any[]>([]);
   const [motivos, setMotivos] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<{ id: string; title: string; caption: string; destination_url: string } | null>(null);
 
   async function load() {
     if (!supabase) return;
@@ -57,6 +61,37 @@ function AdminCampanhasAnunciantes() {
     const { error } = await supabase.from("advertiser_campaigns").update({ status: "finalizada" }).eq("id", id);
     if (error) return toast.error(error.message);
     toast.success("Campanha finalizada");
+    load();
+  }
+
+  async function pause(id: string) {
+    if (!supabase) return;
+    const { error } = await supabase.from("advertiser_campaigns").update({ status: "pausada" }).eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Campanha pausada");
+    load();
+  }
+
+  async function resume(id: string) {
+    if (!supabase) return;
+    const { error } = await supabase.from("advertiser_campaigns").update({ status: "ativa" }).eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Campanha reativada");
+    load();
+  }
+
+  async function saveEdit() {
+    if (!supabase || !editing) return;
+    const { error } = await supabase.from("advertiser_campaigns")
+      .update({
+        title: editing.title?.trim(),
+        caption: editing.caption?.trim(),
+        destination_url: editing.destination_url?.trim(),
+      })
+      .eq("id", editing.id);
+    if (error) return toast.error(error.message);
+    toast.success("Campanha atualizada");
+    setEditing(null);
     load();
   }
 
@@ -139,10 +174,19 @@ function AdminCampanhasAnunciantes() {
                       <td className="px-4 py-3">{c.order?.package?.name ?? "-"}</td>
                       <td className="px-4 py-3"><StatusBadge status={c.status} /></td>
                       <td className="px-4 py-3">
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                           {c.status === "ativa" && (
-                            <Button size="sm" variant="outline" onClick={() => finish(c.id)}>Finalizar</Button>
+                            <>
+                              <Button size="sm" variant="outline" onClick={() => pause(c.id)}><PauseCircle className="mr-1 h-3 w-3" /> Pausar</Button>
+                              <Button size="sm" variant="outline" onClick={() => finish(c.id)}>Finalizar</Button>
+                            </>
                           )}
+                          {c.status === "pausada" && (
+                            <Button size="sm" variant="outline" onClick={() => resume(c.id)}><Rocket className="mr-1 h-3 w-3" /> Retomar</Button>
+                          )}
+                          <Button size="sm" variant="outline" onClick={() => setEditing({ id: c.id, title: c.title ?? "", caption: c.caption ?? "", destination_url: c.destination_url ?? "" })}>
+                            <Pencil className="mr-1 h-3 w-3" /> Editar
+                          </Button>
                           <Link to="/admin/provas" search={{ campaignId: c.id }}>
                             <Button size="sm" variant="outline">Validar compartilhamentos</Button>
                           </Link>
@@ -156,6 +200,34 @@ function AdminCampanhasAnunciantes() {
           </Card>
         )}
       </section>
+
+      <Dialog open={!!editing} onOpenChange={(open) => !open && setEditing(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Editar campanha</DialogTitle>
+          </DialogHeader>
+          {editing && (
+            <div className="space-y-4">
+              <div>
+                <Label>Titulo</Label>
+                <Input value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })} />
+              </div>
+              <div>
+                <Label>Descricao / texto de compartilhamento</Label>
+                <Textarea rows={5} value={editing.caption} onChange={(e) => setEditing({ ...editing, caption: e.target.value })} />
+              </div>
+              <div>
+                <Label>Link de destino</Label>
+                <Input value={editing.destination_url} onChange={(e) => setEditing({ ...editing, destination_url: e.target.value })} />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditing(null)}>Cancelar</Button>
+            <Button className="bg-gold-gradient text-primary-foreground" onClick={saveEdit}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -164,6 +236,8 @@ function StatusBadge({ status }: { status: string }) {
   switch (status) {
     case "ativa":
       return <Badge className="border-success/30 bg-success/15 text-success hover:bg-success/15"><Rocket className="mr-1 h-3 w-3" /> Ativa</Badge>;
+    case "pausada":
+      return <Badge className="border-amber-400/30 bg-amber-500/15 text-amber-300 hover:bg-amber-500/15"><PauseCircle className="mr-1 h-3 w-3" /> Pausada</Badge>;
     case "aprovada":
       return <Badge className="border-success/30 bg-success/15 text-success hover:bg-success/15"><CheckCircle2 className="mr-1 h-3 w-3" /> Aprovada</Badge>;
     case "reprovada":

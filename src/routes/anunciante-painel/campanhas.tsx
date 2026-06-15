@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/supabase/auth";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, ShieldCheck, XCircle, Rocket, CheckCircle2, PlusCircle } from "lucide-react";
+import { Clock, ShieldCheck, XCircle, Rocket, CheckCircle2, PlusCircle, PauseCircle } from "lucide-react";
 
 export const Route = createFileRoute("/anunciante-painel/campanhas")({ component: AdvertiserCampaigns });
 
@@ -142,6 +142,8 @@ function StatusBadge({ status }: { status: string }) {
   switch (status) {
     case "ativa":
       return <Badge className="border-success/30 bg-success/15 text-success hover:bg-success/15"><Rocket className="mr-1 h-3 w-3" /> Ativa</Badge>;
+    case "pausada":
+      return <Badge className="border-amber-400/30 bg-amber-500/15 text-amber-300 hover:bg-amber-500/15"><PauseCircle className="mr-1 h-3 w-3" /> Pausada</Badge>;
     case "aprovada":
       return <Badge className="border-success/30 bg-success/15 text-success hover:bg-success/15"><CheckCircle2 className="mr-1 h-3 w-3" /> Aprovada</Badge>;
     case "reprovada":

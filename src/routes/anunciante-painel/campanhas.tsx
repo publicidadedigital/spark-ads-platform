@@ -99,6 +99,7 @@ function AdvertiserCampaigns() {
                   <th className="px-4 py-3 text-left font-medium">Compartilhamentos</th>
                   <th className="px-4 py-3 text-left font-medium">Alcance estimado</th>
                   <th className="px-4 py-3 text-left font-medium">Investimento</th>
+                  <th className="px-4 py-3 text-left font-medium">Acoes</th>
                 </tr>
               </thead>
               <tbody>
@@ -121,6 +122,11 @@ function AdvertiserCampaigns() {
                     <td className="px-4 py-3">{shareCounts[c.id] ?? 0}</td>
                     <td className="px-4 py-3">{(c.order?.estimated_views ?? 0).toLocaleString("pt-BR")}</td>
                     <td className="px-4 py-3">{usd.format(Number(c.order?.price_usd ?? 0))}</td>
+                    <td className="px-4 py-3">
+                      <Link to="/anunciante-painel/campanhas/$campaignId" params={{ campaignId: c.id }}>
+                        <Button size="sm" variant="outline">Participantes</Button>
+                      </Link>
+                    </td>
                   </tr>
                 ))}
               </tbody>

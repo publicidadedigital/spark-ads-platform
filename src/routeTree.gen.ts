@@ -53,6 +53,7 @@ import { Route as AdminAdminsRouteImport } from './routes/admin/admins'
 import { Route as AppCheckoutPackageIdRouteImport } from './routes/app/checkout.$packageId'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments-webhook'
 import { Route as ApiPublicExchangeRateRouteImport } from './routes/api/public/exchange-rate'
+import { Route as AnunciantePainelCampanhasCampaignIdRouteImport } from './routes/anunciante-painel/campanhas.$campaignId'
 import { Route as ApiPublicEmailConfirmationSendRouteImport } from './routes/api/public/email-confirmation/send'
 import { Route as ApiPublicEmailConfirmationConfirmRouteImport } from './routes/api/public/email-confirmation/confirm'
 import { Route as ApiPublicCaktoWebhookRouteImport } from './routes/api/public/cakto/webhook'
@@ -282,6 +283,12 @@ const ApiPublicExchangeRateRoute = ApiPublicExchangeRateRouteImport.update({
   path: '/api/public/exchange-rate',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AnunciantePainelCampanhasCampaignIdRoute =
+  AnunciantePainelCampanhasCampaignIdRouteImport.update({
+    id: '/$campaignId',
+    path: '/$campaignId',
+    getParentRoute: () => AnunciantePainelCampanhasRoute,
+  } as any)
 const ApiPublicEmailConfirmationSendRoute =
   ApiPublicEmailConfirmationSendRouteImport.update({
     id: '/api/public/email-confirmation/send',
@@ -329,7 +336,7 @@ export interface FileRoutesByFullPath {
   '/admin/renovacao': typeof AdminRenovacaoRoute
   '/admin/saques': typeof AdminSaquesRoute
   '/admin/seguranca': typeof AdminSegurancaRoute
-  '/anunciante-painel/campanhas': typeof AnunciantePainelCampanhasRoute
+  '/anunciante-painel/campanhas': typeof AnunciantePainelCampanhasRouteWithChildren
   '/anunciante-painel/nova-campanha': typeof AnunciantePainelNovaCampanhaRoute
   '/api/config': typeof ApiConfigRoute
   '/app/campanhas': typeof AppCampanhasRoute
@@ -348,6 +355,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/anunciante-painel/': typeof AnunciantePainelIndexRoute
   '/app/': typeof AppIndexRoute
+  '/anunciante-painel/campanhas/$campaignId': typeof AnunciantePainelCampanhasCampaignIdRoute
   '/api/public/exchange-rate': typeof ApiPublicExchangeRateRoute
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
   '/app/checkout/$packageId': typeof AppCheckoutPackageIdRoute
@@ -376,7 +384,7 @@ export interface FileRoutesByTo {
   '/admin/renovacao': typeof AdminRenovacaoRoute
   '/admin/saques': typeof AdminSaquesRoute
   '/admin/seguranca': typeof AdminSegurancaRoute
-  '/anunciante-painel/campanhas': typeof AnunciantePainelCampanhasRoute
+  '/anunciante-painel/campanhas': typeof AnunciantePainelCampanhasRouteWithChildren
   '/anunciante-painel/nova-campanha': typeof AnunciantePainelNovaCampanhaRoute
   '/api/config': typeof ApiConfigRoute
   '/app/campanhas': typeof AppCampanhasRoute
@@ -395,6 +403,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/anunciante-painel': typeof AnunciantePainelIndexRoute
   '/app': typeof AppIndexRoute
+  '/anunciante-painel/campanhas/$campaignId': typeof AnunciantePainelCampanhasCampaignIdRoute
   '/api/public/exchange-rate': typeof ApiPublicExchangeRateRoute
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
   '/app/checkout/$packageId': typeof AppCheckoutPackageIdRoute
@@ -427,7 +436,7 @@ export interface FileRoutesById {
   '/admin/renovacao': typeof AdminRenovacaoRoute
   '/admin/saques': typeof AdminSaquesRoute
   '/admin/seguranca': typeof AdminSegurancaRoute
-  '/anunciante-painel/campanhas': typeof AnunciantePainelCampanhasRoute
+  '/anunciante-painel/campanhas': typeof AnunciantePainelCampanhasRouteWithChildren
   '/anunciante-painel/nova-campanha': typeof AnunciantePainelNovaCampanhaRoute
   '/api/config': typeof ApiConfigRoute
   '/app/campanhas': typeof AppCampanhasRoute
@@ -446,6 +455,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/anunciante-painel/': typeof AnunciantePainelIndexRoute
   '/app/': typeof AppIndexRoute
+  '/anunciante-painel/campanhas/$campaignId': typeof AnunciantePainelCampanhasCampaignIdRoute
   '/api/public/exchange-rate': typeof ApiPublicExchangeRateRoute
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
   '/app/checkout/$packageId': typeof AppCheckoutPackageIdRoute
@@ -498,6 +508,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/anunciante-painel/'
     | '/app/'
+    | '/anunciante-painel/campanhas/$campaignId'
     | '/api/public/exchange-rate'
     | '/api/public/payments-webhook'
     | '/app/checkout/$packageId'
@@ -545,6 +556,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/anunciante-painel'
     | '/app'
+    | '/anunciante-painel/campanhas/$campaignId'
     | '/api/public/exchange-rate'
     | '/api/public/payments-webhook'
     | '/app/checkout/$packageId'
@@ -595,6 +607,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/anunciante-painel/'
     | '/app/'
+    | '/anunciante-painel/campanhas/$campaignId'
     | '/api/public/exchange-rate'
     | '/api/public/payments-webhook'
     | '/app/checkout/$packageId'
@@ -934,6 +947,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicExchangeRateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/anunciante-painel/campanhas/$campaignId': {
+      id: '/anunciante-painel/campanhas/$campaignId'
+      path: '/$campaignId'
+      fullPath: '/anunciante-painel/campanhas/$campaignId'
+      preLoaderRoute: typeof AnunciantePainelCampanhasCampaignIdRouteImport
+      parentRoute: typeof AnunciantePainelCampanhasRoute
+    }
     '/api/public/email-confirmation/send': {
       id: '/api/public/email-confirmation/send'
       path: '/api/public/email-confirmation/send'
@@ -999,14 +1019,29 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface AnunciantePainelCampanhasRouteChildren {
+  AnunciantePainelCampanhasCampaignIdRoute: typeof AnunciantePainelCampanhasCampaignIdRoute
+}
+
+const AnunciantePainelCampanhasRouteChildren: AnunciantePainelCampanhasRouteChildren =
+  {
+    AnunciantePainelCampanhasCampaignIdRoute:
+      AnunciantePainelCampanhasCampaignIdRoute,
+  }
+
+const AnunciantePainelCampanhasRouteWithChildren =
+  AnunciantePainelCampanhasRoute._addFileChildren(
+    AnunciantePainelCampanhasRouteChildren,
+  )
+
 interface AnunciantePainelRouteChildren {
-  AnunciantePainelCampanhasRoute: typeof AnunciantePainelCampanhasRoute
+  AnunciantePainelCampanhasRoute: typeof AnunciantePainelCampanhasRouteWithChildren
   AnunciantePainelNovaCampanhaRoute: typeof AnunciantePainelNovaCampanhaRoute
   AnunciantePainelIndexRoute: typeof AnunciantePainelIndexRoute
 }
 
 const AnunciantePainelRouteChildren: AnunciantePainelRouteChildren = {
-  AnunciantePainelCampanhasRoute: AnunciantePainelCampanhasRoute,
+  AnunciantePainelCampanhasRoute: AnunciantePainelCampanhasRouteWithChildren,
   AnunciantePainelNovaCampanhaRoute: AnunciantePainelNovaCampanhaRoute,
   AnunciantePainelIndexRoute: AnunciantePainelIndexRoute,
 }

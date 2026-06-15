@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/supabase/auth";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard, Megaphone, Receipt, Users, RefreshCw,
-  Shield, LogOut, Menu,
+  LogOut, Menu,
 } from "lucide-react";
 import {
   Sheet, SheetContent, SheetTrigger,
@@ -23,7 +23,7 @@ const nav = [
 ];
 
 function AppLayout() {
-  const { session, loading, isAdmin, signOut } = useAuth();
+  const { session, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -68,7 +68,7 @@ function AppLayout() {
                 <Button variant="ghost" size="icon" className="app-mobile-menu md:hidden"><Menu /></Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-72">
-                <SidebarContent isAdmin={isAdmin} pathname={location.pathname} />
+                <SidebarContent pathname={location.pathname} />
               </SheetContent>
             </Sheet>
             <Link to="/app" className="flex items-center">
@@ -87,7 +87,7 @@ function AppLayout() {
 
       <div className="container app-container mx-auto px-4 py-6 grid md:grid-cols-[240px_1fr] gap-6 app-shell-grid">
         <aside className="hidden md:block app-sidebar">
-          <SidebarContent isAdmin={isAdmin} pathname={location.pathname} />
+          <SidebarContent pathname={location.pathname} />
         </aside>
         <main className="min-w-0"><Outlet /></main>
       </div>
@@ -95,7 +95,7 @@ function AppLayout() {
   );
 }
 
-function SidebarContent({ isAdmin, pathname }: { isAdmin: boolean; pathname: string }) {
+function SidebarContent({ pathname }: { pathname: string }) {
   return (
     <nav className="space-y-1 pt-4">
       {nav.map(({ to, label, icon: Icon, exact }) => {
@@ -108,16 +108,6 @@ function SidebarContent({ isAdmin, pathname }: { isAdmin: boolean; pathname: str
           </Link>
         );
       })}
-      {isAdmin && (
-        <>
-          <div className="pt-4 pb-1 px-3 text-xs uppercase tracking-wider text-muted-foreground">Admin</div>
-          <Link to="/admin" className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition ${
-            pathname.startsWith("/admin") ? "bg-gold/10 text-gold border border-gold/30" : "text-muted-foreground hover:bg-card hover:text-foreground"
-          }`}>
-            <Shield className="h-4 w-4" /> Painel Admin
-          </Link>
-        </>
-      )}
     </nav>
   );
 }

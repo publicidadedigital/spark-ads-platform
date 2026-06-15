@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { buildPackageAccounting } from "@/lib/business/rules";
 import { toast } from "sonner";
-import { Trash2 } from "lucide-react";
+import { Pencil, Trash2, X, Check } from "lucide-react";
 
 export const Route = createFileRoute("/admin/pacotes")({ component: AdminPacotes });
 
@@ -18,6 +18,8 @@ function AdminPacotes() {
   const { supabase } = useAuth();
   const [items, setItems] = useState<any[]>([]);
   const [form, setForm] = useState({ nome: "", packageValue: "", descricao: "" });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({ nome: "", packageValue: "", descricao: "" });
 
   const preview = useMemo(() => buildPackageAccounting(Number(form.packageValue || 0)), [form.packageValue]);
 
@@ -63,6 +65,52 @@ function AdminPacotes() {
     load();
   }
 
+  function startEdit(p: any) {
+    setEditingId(p.id);
+    setEditForm({
+      nome: p.nome ?? "",
+      packageValue: String(p.package_value ?? p.valor ?? ""),
+      descricao: p.descricao ?? "",
+    });
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+  }
+
+  async function saveEdit(id: string) {
+    if (!supabase) return;
+    const accounting = buildPackageAccounting(Number(editForm.packageValue));
+
+    const fullPayload = {
+      nome: editForm.nome,
+      valor: accounting.total_paid,
+      descricao: editForm.descricao,
+      package_value: accounting.package_value,
+      course_fee: accounting.course_fee,
+      total_paid: accounting.total_paid,
+      bonusable_amount: accounting.bonusable_amount,
+      cycle_limit_200: accounting.cycle_limit_200,
+      amount_counted_for_rewards: accounting.amount_counted_for_rewards,
+      daily_bonus: accounting.daily_bonus,
+    };
+
+    let result = await supabase.from("packages").update(fullPayload).eq("id", id);
+
+    if (result.error && /column|schema|cache/i.test(result.error.message)) {
+      result = await supabase.from("packages").update({
+        nome: editForm.nome,
+        valor: accounting.total_paid,
+        descricao: editForm.descricao,
+      }).eq("id", id);
+    }
+
+    if (result.error) return toast.error(result.error.message);
+    toast.success("Pacote atualizado");
+    setEditingId(null);
+    load();
+  }
+
   async function remove(id: string) {
     if (!supabase) return;
     if (!window.confirm("Excluir este pacote? Essa acao nao pode ser desfeita.")) return;
@@ -101,6 +149,29 @@ function AdminPacotes() {
       <div className="grid gap-3 md:grid-cols-3">
         {items.map((p) => {
           const accounting = buildPackageAccounting(Number(p.package_value ?? p.valor));
+
+          if (editingId === p.id) {
+            const editPreview = buildPackageAccounting(Number(editForm.packageValue || 0));
+            return (
+              <Card key={p.id} className="p-5 bg-card/50 border-border/50">
+                <div className="space-y-2">
+                  <div><Label>Nome</Label><Input value={editForm.nome} onChange={(e) => setEditForm({ ...editForm, nome: e.target.value })} /></div>
+                  <div><Label>Valor bonificavel (US$)</Label><Input type="number" value={editForm.packageValue} onChange={(e) => setEditForm({ ...editForm, packageValue: e.target.value })} /></div>
+                  <div><Label>Descricao</Label><Textarea value={editForm.descricao} onChange={(e) => setEditForm({ ...editForm, descricao: e.target.value })} /></div>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2 rounded-lg border border-border/60 p-3 text-xs text-muted-foreground">
+                  <span>Total pago</span><strong className="text-foreground">{usd.format(editPreview.total_paid)}</strong>
+                  <span>Teto 200%</span><strong className="text-foreground">{usd.format(editPreview.cycle_limit_200)}</strong>
+                  <span>Bonus diario</span><strong className="text-foreground">{usd.format(editPreview.daily_bonus)}</strong>
+                </div>
+                <div className="mt-4 flex justify-end gap-2">
+                  <Button size="sm" variant="outline" onClick={cancelEdit}><X className="mr-2 h-4 w-4" /> Cancelar</Button>
+                  <Button size="sm" onClick={() => saveEdit(p.id)} className="bg-gold-gradient text-primary-foreground"><Check className="mr-2 h-4 w-4" /> Salvar</Button>
+                </div>
+              </Card>
+            );
+          }
+
           return (
             <Card key={p.id} className="p-5 bg-card/50 border-border/50">
               <div className="flex items-center justify-between">
@@ -115,7 +186,10 @@ function AdminPacotes() {
                 <span>Bonus diario</span><strong className="text-foreground">{usd.format(Number(p.daily_bonus ?? accounting.daily_bonus))}</strong>
               </div>
               <p className="text-xs text-muted-foreground mt-3 whitespace-pre-line">{p.descricao}</p>
-              <div className="mt-4 flex justify-end">
+              <div className="mt-4 flex justify-end gap-2">
+                <Button size="sm" variant="outline" onClick={() => startEdit(p)}>
+                  <Pencil className="mr-2 h-4 w-4" /> Editar
+                </Button>
                 <Button size="sm" variant="destructive" onClick={() => remove(p.id)}>
                   <Trash2 className="mr-2 h-4 w-4" /> Excluir
                 </Button>

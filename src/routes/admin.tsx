@@ -26,7 +26,7 @@ function AdminLayout() {
   const loc = useLocation();
 
   useEffect(() => {
-    if (!loading && !session) navigate({ to: "/login" });
+    if (!loading && !session) navigate({ to: "/admin/login" });
   }, [loading, session, navigate]);
 
   if (loading) {
@@ -48,7 +48,7 @@ function AdminLayout() {
           </p>
           <div className="flex gap-2 justify-center">
             <Button variant="outline" onClick={() => navigate({ to: "/app" })}>Ir para o app</Button>
-            <Button variant="ghost" onClick={() => { signOut(); navigate({ to: "/login" }); }}>
+            <Button variant="ghost" onClick={() => { signOut(); navigate({ to: "/admin/login" }); }}>
               <LogOut className="h-4 w-4 mr-2" /> Sair
             </Button>
           </div>
@@ -68,7 +68,7 @@ function AdminLayout() {
 
           <div className="flex items-center gap-3">
             <ExchangeRateTicker />
-            <Button variant="ghost" size="sm" onClick={() => { signOut(); navigate({ to: "/" }); }}>
+            <Button variant="ghost" size="sm" onClick={() => { signOut(); navigate({ to: "/admin/login" }); }}>
               <LogOut className="h-4 w-4 mr-2" /> Sair
             </Button>
           </div>

@@ -29,14 +29,18 @@ import { Route as AppRedeRouteImport } from './routes/app/rede'
 import { Route as AppExtratoRouteImport } from './routes/app/extrato'
 import { Route as AppCampanhasRouteImport } from './routes/app/campanhas'
 import { Route as ApiConfigRouteImport } from './routes/api/config'
+import { Route as AdminSegurancaRouteImport } from './routes/admin/seguranca'
 import { Route as AdminSaquesRouteImport } from './routes/admin/saques'
 import { Route as AdminProvasRouteImport } from './routes/admin/provas'
 import { Route as AdminPacotesRouteImport } from './routes/admin/pacotes'
 import { Route as AdminLogsRouteImport } from './routes/admin/logs'
+import { Route as AdminLoginRouteImport } from './routes/admin/login'
+import { Route as AdminFinanceiroRouteImport } from './routes/admin/financeiro'
 import { Route as AdminCampanhasRouteImport } from './routes/admin/campanhas'
 import { Route as AdminAdminsRouteImport } from './routes/admin/admins'
 import { Route as AppCheckoutPackageIdRouteImport } from './routes/app/checkout.$packageId'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments-webhook'
+import { Route as ApiPublicExchangeRateRouteImport } from './routes/api/public/exchange-rate'
 import { Route as ApiPublicEmailConfirmationSendRouteImport } from './routes/api/public/email-confirmation/send'
 import { Route as ApiPublicEmailConfirmationConfirmRouteImport } from './routes/api/public/email-confirmation/confirm'
 import { Route as ApiPublicCaktoWebhookRouteImport } from './routes/api/public/cakto/webhook'
@@ -142,6 +146,11 @@ const ApiConfigRoute = ApiConfigRouteImport.update({
   path: '/api/config',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminSegurancaRoute = AdminSegurancaRouteImport.update({
+  id: '/seguranca',
+  path: '/seguranca',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminSaquesRoute = AdminSaquesRouteImport.update({
   id: '/saques',
   path: '/saques',
@@ -160,6 +169,16 @@ const AdminPacotesRoute = AdminPacotesRouteImport.update({
 const AdminLogsRoute = AdminLogsRouteImport.update({
   id: '/logs',
   path: '/logs',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminFinanceiroRoute = AdminFinanceiroRouteImport.update({
+  id: '/financeiro',
+  path: '/financeiro',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminCampanhasRoute = AdminCampanhasRouteImport.update({
@@ -183,6 +202,11 @@ const ApiPublicPaymentsWebhookRoute =
     path: '/api/public/payments-webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicExchangeRateRoute = ApiPublicExchangeRateRouteImport.update({
+  id: '/api/public/exchange-rate',
+  path: '/api/public/exchange-rate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicEmailConfirmationSendRoute =
   ApiPublicEmailConfirmationSendRouteImport.update({
     id: '/api/public/email-confirmation/send',
@@ -218,10 +242,13 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/campanhas': typeof AdminCampanhasRoute
+  '/admin/financeiro': typeof AdminFinanceiroRoute
+  '/admin/login': typeof AdminLoginRoute
   '/admin/logs': typeof AdminLogsRoute
   '/admin/pacotes': typeof AdminPacotesRoute
   '/admin/provas': typeof AdminProvasRoute
   '/admin/saques': typeof AdminSaquesRoute
+  '/admin/seguranca': typeof AdminSegurancaRoute
   '/api/config': typeof ApiConfigRoute
   '/app/campanhas': typeof AppCampanhasRoute
   '/app/extrato': typeof AppExtratoRoute
@@ -234,6 +261,7 @@ export interface FileRoutesByFullPath {
   '/legal/termos': typeof LegalTermosRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
+  '/api/public/exchange-rate': typeof ApiPublicExchangeRateRoute
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
   '/app/checkout/$packageId': typeof AppCheckoutPackageIdRoute
   '/api/public/cakto/create-checkout': typeof ApiPublicCaktoCreateCheckoutRoute
@@ -250,10 +278,13 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/campanhas': typeof AdminCampanhasRoute
+  '/admin/financeiro': typeof AdminFinanceiroRoute
+  '/admin/login': typeof AdminLoginRoute
   '/admin/logs': typeof AdminLogsRoute
   '/admin/pacotes': typeof AdminPacotesRoute
   '/admin/provas': typeof AdminProvasRoute
   '/admin/saques': typeof AdminSaquesRoute
+  '/admin/seguranca': typeof AdminSegurancaRoute
   '/api/config': typeof ApiConfigRoute
   '/app/campanhas': typeof AppCampanhasRoute
   '/app/extrato': typeof AppExtratoRoute
@@ -266,6 +297,7 @@ export interface FileRoutesByTo {
   '/legal/termos': typeof LegalTermosRoute
   '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
+  '/api/public/exchange-rate': typeof ApiPublicExchangeRateRoute
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
   '/app/checkout/$packageId': typeof AppCheckoutPackageIdRoute
   '/api/public/cakto/create-checkout': typeof ApiPublicCaktoCreateCheckoutRoute
@@ -285,10 +317,13 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/campanhas': typeof AdminCampanhasRoute
+  '/admin/financeiro': typeof AdminFinanceiroRoute
+  '/admin/login': typeof AdminLoginRoute
   '/admin/logs': typeof AdminLogsRoute
   '/admin/pacotes': typeof AdminPacotesRoute
   '/admin/provas': typeof AdminProvasRoute
   '/admin/saques': typeof AdminSaquesRoute
+  '/admin/seguranca': typeof AdminSegurancaRoute
   '/api/config': typeof ApiConfigRoute
   '/app/campanhas': typeof AppCampanhasRoute
   '/app/extrato': typeof AppExtratoRoute
@@ -301,6 +336,7 @@ export interface FileRoutesById {
   '/legal/termos': typeof LegalTermosRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
+  '/api/public/exchange-rate': typeof ApiPublicExchangeRateRoute
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
   '/app/checkout/$packageId': typeof AppCheckoutPackageIdRoute
   '/api/public/cakto/create-checkout': typeof ApiPublicCaktoCreateCheckoutRoute
@@ -321,10 +357,13 @@ export interface FileRouteTypes {
     | '/login'
     | '/admin/admins'
     | '/admin/campanhas'
+    | '/admin/financeiro'
+    | '/admin/login'
     | '/admin/logs'
     | '/admin/pacotes'
     | '/admin/provas'
     | '/admin/saques'
+    | '/admin/seguranca'
     | '/api/config'
     | '/app/campanhas'
     | '/app/extrato'
@@ -337,6 +376,7 @@ export interface FileRouteTypes {
     | '/legal/termos'
     | '/admin/'
     | '/app/'
+    | '/api/public/exchange-rate'
     | '/api/public/payments-webhook'
     | '/app/checkout/$packageId'
     | '/api/public/cakto/create-checkout'
@@ -353,10 +393,13 @@ export interface FileRouteTypes {
     | '/login'
     | '/admin/admins'
     | '/admin/campanhas'
+    | '/admin/financeiro'
+    | '/admin/login'
     | '/admin/logs'
     | '/admin/pacotes'
     | '/admin/provas'
     | '/admin/saques'
+    | '/admin/seguranca'
     | '/api/config'
     | '/app/campanhas'
     | '/app/extrato'
@@ -369,6 +412,7 @@ export interface FileRouteTypes {
     | '/legal/termos'
     | '/admin'
     | '/app'
+    | '/api/public/exchange-rate'
     | '/api/public/payments-webhook'
     | '/app/checkout/$packageId'
     | '/api/public/cakto/create-checkout'
@@ -387,10 +431,13 @@ export interface FileRouteTypes {
     | '/login'
     | '/admin/admins'
     | '/admin/campanhas'
+    | '/admin/financeiro'
+    | '/admin/login'
     | '/admin/logs'
     | '/admin/pacotes'
     | '/admin/provas'
     | '/admin/saques'
+    | '/admin/seguranca'
     | '/api/config'
     | '/app/campanhas'
     | '/app/extrato'
@@ -403,6 +450,7 @@ export interface FileRouteTypes {
     | '/legal/termos'
     | '/admin/'
     | '/app/'
+    | '/api/public/exchange-rate'
     | '/api/public/payments-webhook'
     | '/app/checkout/$packageId'
     | '/api/public/cakto/create-checkout'
@@ -421,6 +469,7 @@ export interface RootRouteChildren {
   LegalRoute: typeof LegalRouteWithChildren
   LoginRoute: typeof LoginRoute
   ApiConfigRoute: typeof ApiConfigRoute
+  ApiPublicExchangeRateRoute: typeof ApiPublicExchangeRateRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiPublicCaktoCreateCheckoutRoute: typeof ApiPublicCaktoCreateCheckoutRoute
   ApiPublicCaktoWebhookRoute: typeof ApiPublicCaktoWebhookRoute
@@ -570,6 +619,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiConfigRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/seguranca': {
+      id: '/admin/seguranca'
+      path: '/seguranca'
+      fullPath: '/admin/seguranca'
+      preLoaderRoute: typeof AdminSegurancaRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/saques': {
       id: '/admin/saques'
       path: '/saques'
@@ -598,6 +654,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLogsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/login': {
+      id: '/admin/login'
+      path: '/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/financeiro': {
+      id: '/admin/financeiro'
+      path: '/financeiro'
+      fullPath: '/admin/financeiro'
+      preLoaderRoute: typeof AdminFinanceiroRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/campanhas': {
       id: '/admin/campanhas'
       path: '/campanhas'
@@ -624,6 +694,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/payments-webhook'
       fullPath: '/api/public/payments-webhook'
       preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/exchange-rate': {
+      id: '/api/public/exchange-rate'
+      path: '/api/public/exchange-rate'
+      fullPath: '/api/public/exchange-rate'
+      preLoaderRoute: typeof ApiPublicExchangeRateRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/email-confirmation/send': {
@@ -660,20 +737,26 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminAdminsRoute: typeof AdminAdminsRoute
   AdminCampanhasRoute: typeof AdminCampanhasRoute
+  AdminFinanceiroRoute: typeof AdminFinanceiroRoute
+  AdminLoginRoute: typeof AdminLoginRoute
   AdminLogsRoute: typeof AdminLogsRoute
   AdminPacotesRoute: typeof AdminPacotesRoute
   AdminProvasRoute: typeof AdminProvasRoute
   AdminSaquesRoute: typeof AdminSaquesRoute
+  AdminSegurancaRoute: typeof AdminSegurancaRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAdminsRoute: AdminAdminsRoute,
   AdminCampanhasRoute: AdminCampanhasRoute,
+  AdminFinanceiroRoute: AdminFinanceiroRoute,
+  AdminLoginRoute: AdminLoginRoute,
   AdminLogsRoute: AdminLogsRoute,
   AdminPacotesRoute: AdminPacotesRoute,
   AdminProvasRoute: AdminProvasRoute,
   AdminSaquesRoute: AdminSaquesRoute,
+  AdminSegurancaRoute: AdminSegurancaRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
@@ -727,6 +810,7 @@ const rootRouteChildren: RootRouteChildren = {
   LegalRoute: LegalRouteWithChildren,
   LoginRoute: LoginRoute,
   ApiConfigRoute: ApiConfigRoute,
+  ApiPublicExchangeRateRoute: ApiPublicExchangeRateRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiPublicCaktoCreateCheckoutRoute: ApiPublicCaktoCreateCheckoutRoute,
   ApiPublicCaktoWebhookRoute: ApiPublicCaktoWebhookRoute,

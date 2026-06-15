@@ -22,6 +22,14 @@ const personSchema = z.object({
   instagram: z.string().trim().min(2).max(60).regex(/^[a-zA-Z0-9._]+$/, "Instagram invalido"),
 });
 
+function countryCode(pais: string) {
+  const normalized = pais.trim().toLowerCase();
+  if (normalized === "brasil" || normalized === "brazil") return "BR";
+  if (normalized === "portugal") return "PT";
+  if (normalized.length === 2) return normalized.toUpperCase();
+  return "BR";
+}
+
 const advertiserSchema = z.object({
   ...commonSchema,
   razaoSocial: z.string().trim().min(2).max(160),
@@ -83,11 +91,15 @@ function CadastroPage() {
     const name = isAdvertiser ? form.responsavel.trim() : form.nome.trim();
     const metadata = isAdvertiser
       ? {
+          account_type: "advertiser",
           tipo_conta: "anunciante",
+          company_name: form.razaoSocial.trim(),
           razao_social: form.razaoSocial.trim(),
           cnpj: form.cnpj.replace(/\D/g, ""),
+          contact_name: name,
           responsavel: name,
           telefone: form.telefone.trim(),
+          country_code: countryCode(form.pais),
           pais: form.pais.trim(),
           cep: form.cep.trim(),
           estado: form.estado.trim(),

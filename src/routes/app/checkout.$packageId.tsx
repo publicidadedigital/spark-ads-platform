@@ -7,14 +7,13 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { buildPackageAccounting } from "@/lib/business/rules";
 import { toast } from "sonner";
-import { QrCode, ShieldCheck, Loader2, Bitcoin, Wallet, ExternalLink } from "lucide-react";
+import { QrCode, ShieldCheck, Loader2, CreditCard, Wallet, ExternalLink, AlertTriangle } from "lucide-react";
 import { createCheckout, PAYMENT_METHODS, type CheckoutResult, type PaymentMethod } from "@/lib/payments/provider";
 import { createCheckoutOrder } from "@/lib/payments/checkout.functions";
 
 export const Route = createFileRoute("/app/checkout/$packageId")({ component: CheckoutPage });
 
 const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
-const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
 function CheckoutPage() {
   const { packageId } = Route.useParams();
@@ -49,20 +48,28 @@ function CheckoutPage() {
       if (!accessToken) throw new Error("Sessao expirada");
       const order = await createCheckoutOrder({ data: { packageId: pkg.id, accessToken } });
 
-      const result = await createCheckout({
-        packageId: pkg.id,
-        packageNome: pkg.nome,
-        valor: order.valor,
-        method,
-        userId: profile.id,
-        userEmail: user.email ?? "",
-        cycleId: order.cycleId,
-        accessToken,
-      });
+      if (method === "internal_balance") {
+        const result = await createCheckout({
+          packageId: pkg.id,
+          packageNome: pkg.nome,
+          valor: order.valor,
+          method,
+          userId: profile.id,
+          userEmail: user.email ?? "",
+          cycleId: order.cycleId,
+          accessToken,
+        });
 
-      setCheckoutResult(result);
-      toast.success(method === "pix" ? "Checkout Pix criado com sucesso." : "Pagamento iniciado.", {
-        description: `ID: ${result.paymentId}`,
+        setCheckoutResult(result);
+        toast.success("Pagamento iniciado.", { description: `ID: ${result.paymentId}` });
+        return;
+      }
+
+      if (!pkg.cakto_checkout_url) throw new Error("Checkout indisponivel para este pacote. Entre em contato com o suporte.");
+
+      window.open(buildCaktoCheckoutUrl(pkg.cakto_checkout_url, profile, user), "_blank", "noopener,noreferrer");
+      toast.success("Checkout Cakto aberto em uma nova aba.", {
+        description: "Nao altere o e-mail preenchido: ele e usado para identificar e ativar seu pagamento automaticamente.",
       });
     } catch (e: any) {
       toast.error(e.message ?? "Erro ao iniciar pagamento");
@@ -75,7 +82,7 @@ function CheckoutPage() {
   if (!pkg) return <p className="text-muted-foreground">Pacote nao encontrado.</p>;
 
   const accounting = buildPackageAccounting(Number(pkg.package_value ?? pkg.valor));
-  const icons: Record<PaymentMethod, any> = { pix: QrCode, crypto: Bitcoin, internal_balance: Wallet };
+  const icons: Record<PaymentMethod, any> = { pix: QrCode, cartao: CreditCard, internal_balance: Wallet };
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -123,52 +130,27 @@ function CheckoutPage() {
         </RadioGroup>
       </Card>
 
-      {pkg.cakto_checkout_url && (
-        <Card className="p-6 bg-card/50 border-border/50 space-y-3">
-          <div>
-            <h3 className="font-semibold">Pagar via Cakto (cartão, boleto ou Pix)</h3>
-            <p className="text-sm text-muted-foreground">
-              Abra a página de pagamento da Cakto para este pacote. Use o mesmo e-mail da sua conta para a ativação ser identificada automaticamente.
-            </p>
-          </div>
-          <Button variant="outline" className="border-primary/40 bg-primary/10 text-primary" onClick={() => window.open(buildCaktoCheckoutUrl(pkg.cakto_checkout_url, profile, user), "_blank", "noopener,noreferrer")}>
-            <ExternalLink className="h-4 w-4 mr-2" /> Abrir pagamento Cakto
-          </Button>
+      {pkg.cakto_checkout_url && method !== "internal_balance" && (
+        <Card className="p-4 bg-amber-500/10 border-amber-400/35 flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 text-amber-300 shrink-0 mt-0.5" />
+          <p className="text-xs text-amber-200">
+            Ao abrir o checkout da Cakto, o campo de e-mail vira preenchido com o e-mail da sua conta.
+            <strong> Nao altere esse e-mail</strong>: ele e usado para identificar sua compra e ativar seu pacote automaticamente.
+          </p>
         </Card>
       )}
 
-      {checkoutResult?.redirectUrl && (
-        <Card className="space-y-4 p-6 bg-card/50 border-primary/30">
-          <div>
-            <h3 className="font-semibold">Checkout Cakto criado</h3>
-            <p className="text-sm text-muted-foreground">
-              Valor convertido de referencia: {checkoutResult.amountBrl ? brl.format(checkoutResult.amountBrl) : "-"} usando USDT/BRL {checkoutResult.quoteRate?.toFixed(4)} ({checkoutResult.quoteSource}).
-            </p>
-          </div>
-          <Button className="bg-gold-gradient text-primary-foreground" onClick={() => window.open(checkoutResult.redirectUrl, "_blank", "noopener,noreferrer")}>
-            <ExternalLink className="h-4 w-4 mr-2" /> Abrir checkout Cakto
-          </Button>
-        </Card>
-      )}
-
-      {checkoutResult?.pixCode && (
-        <Card className="space-y-4 p-6 bg-card/50 border-primary/30">
-          <div>
-            <h3 className="font-semibold">Pix Cakto gerado</h3>
-            <p className="text-sm text-muted-foreground">
-              Valor convertido: {checkoutResult.amountBrl ? brl.format(checkoutResult.amountBrl) : "-"} usando USDT/BRL {checkoutResult.quoteRate?.toFixed(4)} ({checkoutResult.quoteSource}).
-            </p>
-          </div>
-          {checkoutResult.pixQrBase64 && <img src={checkoutResult.pixQrBase64} alt="QR Code Pix" className="mx-auto h-56 w-56 rounded-lg bg-white p-2" />}
-          <div className="rounded-md border border-border/60 bg-background p-3 text-xs break-all text-muted-foreground">{checkoutResult.pixCode}</div>
-          <Button variant="outline" onClick={() => navigator.clipboard.writeText(checkoutResult.pixCode ?? "")}>Copiar Pix copia e cola</Button>
+      {checkoutResult?.status === "pending" && method === "internal_balance" && (
+        <Card className="space-y-2 p-6 bg-card/50 border-primary/30">
+          <h3 className="font-semibold">Pagamento iniciado</h3>
+          <p className="text-sm text-muted-foreground">ID: {checkoutResult.paymentId}</p>
         </Card>
       )}
 
       <Card className="p-4 bg-card/30 border-border/50 flex items-start gap-3">
         <ShieldCheck className="h-5 w-5 text-gold shrink-0 mt-0.5" />
         <p className="text-xs text-muted-foreground">
-          Pagamentos Pix usam Cakto. A ativacao ocorre pelo webhook apos confirmacao do pagamento.
+          Pagamentos Pix e Cartão usam Cakto. A ativacao ocorre automaticamente apos confirmacao do pagamento.
           Saques nunca sao automaticos: sempre passam por solicitacao, revisao administrativa e disparo manual individual ou em massa.
         </p>
       </Card>

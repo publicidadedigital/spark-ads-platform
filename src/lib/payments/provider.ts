@@ -1,4 +1,4 @@
-export type PaymentMethod = "pix" | "crypto" | "internal_balance";
+export type PaymentMethod = "pix" | "cartao" | "internal_balance";
 
 export type CheckoutInput = {
   packageId: string;
@@ -49,7 +49,7 @@ export async function createCheckout(input: CheckoutInput): Promise<CheckoutResu
 }
 
 export const PAYMENT_METHODS: { value: PaymentMethod; label: string; desc: string }[] = [
-  { value: "pix", label: "Pix", desc: "Brasil: checkout Pix via Cakto" },
-  { value: "crypto", label: "Criptomoeda", desc: "Estrutura preparada para gateway cripto" },
+  { value: "pix", label: "Pix", desc: "Checkout Pix via Cakto" },
+  { value: "cartao", label: "Cartão", desc: "Cartão de crédito ou débito via Cakto" },
   { value: "internal_balance", label: "Saldo interno", desc: "Somente saldo disponivel, sem limite" },
 ];

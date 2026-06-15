@@ -237,6 +237,14 @@ function WithdrawalRequestCard({
         </p>
       </div>
 
+      <div className="flex items-start gap-2 rounded-lg border border-sky-400/35 bg-sky-500/10 p-3 text-xs text-sky-200">
+        <Info className="mt-0.5 h-4 w-4 shrink-0" />
+        <p>
+          Voce pode solicitar o saque em qualquer dia, mas o pagamento so e processado nos <strong>dias 15 e 30 de cada mes</strong>,
+          apos revisao da nossa equipe. Solicitacoes feitas apos o dia 15 entram automaticamente no ciclo de pagamento do dia 30.
+        </p>
+      </div>
+
       <div>
         <Label>Valor (US$)</Label>
         <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder={`${MIN_WITHDRAWAL_USD}`} min={MIN_WITHDRAWAL_USD} max={MAX_WITHDRAWAL_USD} />

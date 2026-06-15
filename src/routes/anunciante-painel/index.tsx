@@ -125,7 +125,7 @@ function AdvertiserDashboard() {
         )}
 
         {/* Company info 2-col grid */}
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <InfoCard icon={Building2} label="CNPJ" value={cnpjFormatted} />
           <InfoCard icon={Mail} label="E-mail" value={profile.email} />
           <InfoCard icon={Phone} label="Telefone" value={profile.phone} />
@@ -147,7 +147,7 @@ function AdvertiserDashboard() {
         <p className="text-sm text-muted-foreground mb-4">
           Escolha o pacote ideal para impulsionar sua marca com compartilhamentos reais.
         </p>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3">
           {packages.map((pkg) => (
             <PackageCard key={pkg.id} pkg={pkg} canSelect={profile.status === "ativo"} />
           ))}
@@ -182,13 +182,13 @@ function AdvertiserDashboard() {
 
 function InfoCard({ icon: Icon, label, value }: { icon: typeof Building2; label: string; value: string | null | undefined }) {
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-border/50 bg-background/40 p-3">
+    <div className="flex items-center gap-3 rounded-lg border border-border/50 bg-background/40 p-3 min-w-0">
       <div className="rounded-full bg-primary/10 p-2 shrink-0">
         <Icon className="h-4 w-4 text-primary" />
       </div>
-      <div>
+      <div className="min-w-0 flex-1">
         <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="text-sm font-medium">{value || "-"}</p>
+        <p className="text-sm font-medium truncate" title={value ?? ""}>{value || "-"}</p>
       </div>
     </div>
   );
@@ -197,19 +197,20 @@ function InfoCard({ icon: Icon, label, value }: { icon: typeof Building2; label:
 function PackageCard({ pkg, canSelect }: { pkg: Pkg; canSelect: boolean }) {
   const features = ["Compartilhamentos reais", "Alcance orgânico", "Relatório de desempenho"];
   return (
-    <Card className="flex flex-col border-border/50 bg-card/60 p-5">
-      <div className="mb-3 flex items-center justify-center rounded-full bg-primary/10 w-12 h-12">
-        <Calendar className="h-6 w-6 text-primary" />
+    <Card className="flex flex-col border-border/50 bg-card/60 p-6 gap-0">
+      <div className="mb-4 flex items-center justify-center rounded-2xl bg-primary/10 w-14 h-14 shrink-0">
+        <Calendar className="h-7 w-7 text-primary" />
       </div>
-      <h3 className="font-semibold text-base mb-1">
-        {pkg.duration_days ? `${pkg.duration_days} Dias de compartilhamentos` : pkg.name}
+      <h3 className="font-semibold text-lg leading-snug mb-1">
+        {pkg.duration_days ? `${pkg.duration_days} Dias` : pkg.name}
       </h3>
-      <p className="text-2xl font-bold text-primary mb-3">{usd.format(Number(pkg.price_usd))}</p>
-      <ul className="space-y-2 mb-5 flex-1">
+      <p className="text-sm text-muted-foreground mb-3">de compartilhamentos</p>
+      <p className="text-3xl font-bold text-primary mb-4">{usd.format(Number(pkg.price_usd))}</p>
+      <ul className="space-y-2 mb-6 flex-1">
         {features.map((f) => (
           <li key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
             <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-            {f}
+            <span>{f}</span>
           </li>
         ))}
       </ul>

@@ -64,15 +64,12 @@ function AdvertiserLayout() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-6 grid md:grid-cols-[240px_1fr] gap-6">
-        <aside className="hidden md:block">
-          <SidebarContent pathname={location.pathname} />
-        </aside>
-        <main className="min-w-0"><Outlet /></main>
-      </div>
+      <main className="mx-auto w-full max-w-5xl px-4 py-6 pb-28">
+        <Outlet />
+      </main>
 
-      {/* Mobile bottom nav */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-border/50 bg-background/90 backdrop-blur-md md:hidden">
+      {/* Bottom nav — always visible */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-border/50 bg-background/90 backdrop-blur-md">
         <div className="flex items-center justify-around py-2">
           {nav.map(({ to, label, icon: Icon, exact }) => {
             const active = exact ? location.pathname === to : location.pathname.startsWith(to) && to !== "/anunciante-painel";

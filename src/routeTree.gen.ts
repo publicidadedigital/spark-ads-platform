@@ -29,6 +29,7 @@ import { Route as AppSegurancaRouteImport } from './routes/app/seguranca'
 import { Route as AppSaqueRouteImport } from './routes/app/saque'
 import { Route as AppRenovacaoRouteImport } from './routes/app/renovacao'
 import { Route as AppRedeRouteImport } from './routes/app/rede'
+import { Route as AppIndicacaoAnuncianteRouteImport } from './routes/app/indicacao-anunciante'
 import { Route as AppExtratoRouteImport } from './routes/app/extrato'
 import { Route as AppCampanhasRouteImport } from './routes/app/campanhas'
 import { Route as ApiConfigRouteImport } from './routes/api/config'
@@ -149,6 +150,11 @@ const AppRenovacaoRoute = AppRenovacaoRouteImport.update({
 const AppRedeRoute = AppRedeRouteImport.update({
   id: '/rede',
   path: '/rede',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppIndicacaoAnuncianteRoute = AppIndicacaoAnuncianteRouteImport.update({
+  id: '/indicacao-anunciante',
+  path: '/indicacao-anunciante',
   getParentRoute: () => AppRoute,
 } as any)
 const AppExtratoRoute = AppExtratoRouteImport.update({
@@ -285,6 +291,7 @@ export interface FileRoutesByFullPath {
   '/api/config': typeof ApiConfigRoute
   '/app/campanhas': typeof AppCampanhasRoute
   '/app/extrato': typeof AppExtratoRoute
+  '/app/indicacao-anunciante': typeof AppIndicacaoAnuncianteRoute
   '/app/rede': typeof AppRedeRoute
   '/app/renovacao': typeof AppRenovacaoRoute
   '/app/saque': typeof AppSaqueRoute
@@ -326,6 +333,7 @@ export interface FileRoutesByTo {
   '/api/config': typeof ApiConfigRoute
   '/app/campanhas': typeof AppCampanhasRoute
   '/app/extrato': typeof AppExtratoRoute
+  '/app/indicacao-anunciante': typeof AppIndicacaoAnuncianteRoute
   '/app/rede': typeof AppRedeRoute
   '/app/renovacao': typeof AppRenovacaoRoute
   '/app/saque': typeof AppSaqueRoute
@@ -370,6 +378,7 @@ export interface FileRoutesById {
   '/api/config': typeof ApiConfigRoute
   '/app/campanhas': typeof AppCampanhasRoute
   '/app/extrato': typeof AppExtratoRoute
+  '/app/indicacao-anunciante': typeof AppIndicacaoAnuncianteRoute
   '/app/rede': typeof AppRedeRoute
   '/app/renovacao': typeof AppRenovacaoRoute
   '/app/saque': typeof AppSaqueRoute
@@ -415,6 +424,7 @@ export interface FileRouteTypes {
     | '/api/config'
     | '/app/campanhas'
     | '/app/extrato'
+    | '/app/indicacao-anunciante'
     | '/app/rede'
     | '/app/renovacao'
     | '/app/saque'
@@ -456,6 +466,7 @@ export interface FileRouteTypes {
     | '/api/config'
     | '/app/campanhas'
     | '/app/extrato'
+    | '/app/indicacao-anunciante'
     | '/app/rede'
     | '/app/renovacao'
     | '/app/saque'
@@ -499,6 +510,7 @@ export interface FileRouteTypes {
     | '/api/config'
     | '/app/campanhas'
     | '/app/extrato'
+    | '/app/indicacao-anunciante'
     | '/app/rede'
     | '/app/renovacao'
     | '/app/saque'
@@ -678,6 +690,13 @@ declare module '@tanstack/react-router' {
       path: '/rede'
       fullPath: '/app/rede'
       preLoaderRoute: typeof AppRedeRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/indicacao-anunciante': {
+      id: '/app/indicacao-anunciante'
+      path: '/indicacao-anunciante'
+      fullPath: '/app/indicacao-anunciante'
+      preLoaderRoute: typeof AppIndicacaoAnuncianteRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/extrato': {
@@ -865,6 +884,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 interface AppRouteChildren {
   AppCampanhasRoute: typeof AppCampanhasRoute
   AppExtratoRoute: typeof AppExtratoRoute
+  AppIndicacaoAnuncianteRoute: typeof AppIndicacaoAnuncianteRoute
   AppRedeRoute: typeof AppRedeRoute
   AppRenovacaoRoute: typeof AppRenovacaoRoute
   AppSaqueRoute: typeof AppSaqueRoute
@@ -876,6 +896,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppCampanhasRoute: AppCampanhasRoute,
   AppExtratoRoute: AppExtratoRoute,
+  AppIndicacaoAnuncianteRoute: AppIndicacaoAnuncianteRoute,
   AppRedeRoute: AppRedeRoute,
   AppRenovacaoRoute: AppRenovacaoRoute,
   AppSaqueRoute: AppSaqueRoute,

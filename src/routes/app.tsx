@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/supabase/auth";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard, Megaphone, Receipt, Users, RefreshCw,
-  LogOut, Menu, ShieldCheck, Wallet,
+  LogOut, Menu, ShieldCheck, Wallet, Building2,
 } from "lucide-react";
 import {
   Sheet, SheetContent, SheetTrigger,
@@ -20,6 +20,7 @@ const nav = [
   { to: "/app/extrato", label: "Extrato", icon: Receipt },
   { to: "/app/saque", label: "Saque", icon: Wallet },
   { to: "/app/rede", label: "Minha Rede", icon: Users },
+  { to: "/app/indicacao-anunciante", label: "Indicação de Anunciante", icon: Building2 },
   { to: "/app/renovacao", label: "Renovação", icon: RefreshCw },
   { to: "/app/seguranca", label: "Segurança", icon: ShieldCheck },
 ];

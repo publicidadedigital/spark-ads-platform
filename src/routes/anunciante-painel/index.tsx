@@ -5,6 +5,15 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import {
   Building2, Mail, MapPin, Megaphone, Phone, PlusCircle,
   Share2, Eye, Wallet, Rocket, UserCircle, LogOut,
 } from "lucide-react";
@@ -45,6 +54,7 @@ function AdvertiserDashboard() {
     estimatedReach: 0,
     totalInvested: 0,
   });
+  const [sharesByDay, setSharesByDay] = useState<{ label: string; valor: number }[]>([]);
 
   useEffect(() => {
     if (!loading && !session) navigate({ to: "/login" });
@@ -74,11 +84,12 @@ function AdvertiserDashboard() {
 
       let totalShares = 0;
       if (ids.length > 0) {
-        const { count } = await supabase
+        const { count, data: events } = await supabase
           .from("advertiser_campaign_events")
-          .select("id", { count: "exact", head: true })
+          .select("created_at", { count: "exact" })
           .in("advertiser_campaign_id", ids);
         totalShares = count ?? 0;
+        setSharesByDay(buildSharesByDay(events ?? []));
       }
 
       const totalInvested = list.reduce((sum: number, c: any) => sum + Number(c.order?.price_usd ?? 0), 0);
@@ -158,6 +169,27 @@ function AdvertiserDashboard() {
       </div>
 
       <Card className="border-primary/15 bg-card/50 p-5">
+        <h3 className="mb-4 font-semibold">Compartilhamentos recebidos (últimos 14 dias)</h3>
+        <div className="h-56">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={sharesByDay} margin={{ left: -20, right: 8, top: 12, bottom: 0 }}>
+              <defs>
+                <linearGradient id="advertiserShares" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="5%" stopColor="#f5b51b" stopOpacity={0.42} />
+                  <stop offset="95%" stopColor="#f5b51b" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="4 4" vertical={false} opacity={0.45} />
+              <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
+              <YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
+              <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
+              <Area type="monotone" dataKey="valor" stroke="#f5b51b" strokeWidth={3} fill="url(#advertiserShares)" dot={{ r: 3 }} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </Card>
+
+      <Card className="border-primary/15 bg-card/50 p-5">
         <h2 className="mb-4 font-semibold">Dados da empresa</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           <InfoRow icon={Building2} label="CNPJ" value={cnpjFormatted} />
@@ -207,6 +239,23 @@ function InfoRow({ icon: Icon, label, value }: { icon: typeof Building2; label: 
       </div>
     </div>
   );
+}
+
+function buildSharesByDay(events: { created_at: string }[]) {
+  const days: { label: string; key: string; valor: number }[] = [];
+  const now = new Date();
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    days.push({ label: d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }), key: d.toISOString().slice(0, 10), valor: 0 });
+  }
+  const byKey = new Map(days.map((d) => [d.key, d]));
+  events.forEach((e) => {
+    const key = e.created_at.slice(0, 10);
+    const day = byKey.get(key);
+    if (day) day.valor += 1;
+  });
+  return days.map(({ label, valor }) => ({ label, valor }));
 }
 
 function formatCnpj(cnpj: string | null) {

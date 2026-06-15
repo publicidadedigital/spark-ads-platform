@@ -42,9 +42,19 @@ type Campaign = {
   instrucoes_obrigatorias: string | null;
 };
 
+type AdvertiserCampaign = {
+  id: string;
+  title: string;
+  media_url: string;
+  media_type: "imagem" | "video" | string;
+  caption: string;
+  destination_url: string;
+};
+
 type Share = {
   id: string;
-  campaign_id: string;
+  campaign_id?: string;
+  advertiser_campaign_id?: string | null;
   shared_link: string;
   status: "pendente" | "aprovada" | "rejeitada" | string;
   created_at: string;
@@ -67,6 +77,8 @@ const DAILY_GOAL = 5;
 function CampanhasPage() {
   const { supabase, user } = useAuth();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [advertiserCampaigns, setAdvertiserCampaigns] = useState<AdvertiserCampaign[]>([]);
+  const [advertiserShares, setAdvertiserShares] = useState<Share[]>([]);
   const [sharesToday, setSharesToday] = useState<Share[]>([]);
   const [monthBonuses, setMonthBonuses] = useState<Bonus[]>([]);
   const [profileId, setProfileId] = useState<string | null>(null);
@@ -102,7 +114,7 @@ function CampanhasPage() {
     const monthStart = new Date(today);
     monthStart.setDate(1);
 
-    const [{ data: cycle }, { data: cs }, { data: shares }, { data: bonuses }] = await Promise.all([
+    const [{ data: cycle }, { data: cs }, { data: shares }, { data: bonuses }, { data: advCampaigns }, { data: advShares }] = await Promise.all([
       supabase
         .from("user_cycles")
         .select("id,valor_pacote")
@@ -129,6 +141,16 @@ function CampanhasPage() {
         .eq("tipo", "diario")
         .eq("status", "liberado")
         .gte("created_at", monthStart.toISOString()),
+      supabase
+        .from("advertiser_campaigns")
+        .select("id,title,media_url,media_type,caption,destination_url")
+        .eq("status", "ativa")
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("campaign_shares")
+        .select("id,advertiser_campaign_id,shared_link,status,motivo_rejeicao,created_at")
+        .eq("user_id", prof.id)
+        .not("advertiser_campaign_id", "is", null),
     ]);
 
     const activeCycle = cycle as ActiveCycle | null;
@@ -137,6 +159,8 @@ function CampanhasPage() {
     setCampaigns((cs ?? []) as Campaign[]);
     setSharesToday((shares ?? []) as Share[]);
     setMonthBonuses((bonuses ?? []) as Bonus[]);
+    setAdvertiserCampaigns((advCampaigns ?? []) as AdvertiserCampaign[]);
+    setAdvertiserShares((advShares ?? []) as unknown as Share[]);
     setLoading(false);
   }
 
@@ -278,6 +302,28 @@ function CampanhasPage() {
               </table>
             </div>
           </Card>
+
+          {advertiserCampaigns.length > 0 && (
+            <section>
+              <div className="mb-3">
+                <h2 className="text-xl font-semibold">Campanhas de anunciantes</h2>
+                <p className="text-sm text-muted-foreground">Divulgue campanhas de anunciantes parceiros e envie o link para validacao.</p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                {advertiserCampaigns.map((campaign, index) => (
+                  <AdvertiserCampaignCard
+                    key={campaign.id}
+                    campaign={campaign}
+                    index={index + 1}
+                    alreadyShared={advertiserShares.some((s) => s.advertiser_campaign_id === campaign.id)}
+                    profileId={profileId}
+                    cycleId={cycleId}
+                    onSubmitted={refresh}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
         </div>
 
         <aside className="space-y-4">
@@ -330,6 +376,124 @@ function CampaignCard({ campaign, index, alreadyShared, profileId, cycleId, onSu
         )}
       </div>
     </Card>
+  );
+}
+
+function AdvertiserCampaignCard({ campaign, index, alreadyShared, profileId, cycleId, onSubmitted }: {
+  campaign: AdvertiserCampaign;
+  index: number;
+  alreadyShared: boolean;
+  profileId: string | null;
+  cycleId: string | null;
+  onSubmitted: () => void;
+}) {
+  const color = cardColor(index);
+  return (
+    <Card className="overflow-hidden border-primary/15 bg-card/50">
+      <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+        {campaign.media_type === "video" ? (
+          <video src={campaign.media_url} controls className="h-full w-full object-cover" />
+        ) : (
+          <img src={campaign.media_url} alt={campaign.title} className="h-full w-full object-cover transition duration-300 hover:scale-105" />
+        )}
+        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-background/95 to-transparent" />
+      </div>
+      <div className="space-y-3 p-3 text-center">
+        <div>
+          <h3 className="line-clamp-2 min-h-10 text-sm font-semibold">{campaign.title}</h3>
+          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{campaign.caption}</p>
+        </div>
+        {alreadyShared ? (
+          <Badge className="w-full justify-center border-success/30 bg-success/15 py-2 text-success hover:bg-success/15">
+            <ShieldCheck className="mr-1 h-3 w-3" /> Enviada
+          </Badge>
+        ) : (
+          <AdvertiserShareDialog campaign={campaign} profileId={profileId} cycleId={cycleId} onSubmitted={onSubmitted}>
+            <Button size="sm" variant="outline" className="w-full" style={{ borderColor: `${color}88`, color }}>
+              Compartilhar campanha
+            </Button>
+          </AdvertiserShareDialog>
+        )}
+      </div>
+    </Card>
+  );
+}
+
+function AdvertiserShareDialog({ campaign, profileId, cycleId, onSubmitted, children }: {
+  campaign: AdvertiserCampaign;
+  profileId: string | null;
+  cycleId: string | null;
+  onSubmitted: () => void;
+  children: React.ReactNode;
+}) {
+  const { supabase, user } = useAuth();
+  const [open, setOpen] = useState(false);
+  const [link, setLink] = useState("");
+  const [insta, setInsta] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function submit() {
+    if (!supabase || !user || !profileId) return;
+    if (!link.trim()) return toast.error("Informe o link do compartilhamento");
+    setBusy(true);
+    let proofUrl: string | null = null;
+    try {
+      if (file) {
+        const path = `${user.id}/${Date.now()}-${file.name}`;
+        const { error: upErr } = await supabase.storage.from("share-proofs").upload(path, file);
+        if (upErr) throw upErr;
+        proofUrl = path;
+      }
+      const { error } = await supabase.from("campaign_shares").insert({
+        user_id: profileId,
+        advertiser_campaign_id: campaign.id,
+        cycle_id: cycleId,
+        proof_url: proofUrl,
+        shared_link: link.trim(),
+        instagram_usado: insta.trim() || null,
+      });
+      if (error) throw error;
+      toast.success("Compartilhamento enviado para analise");
+      setOpen(false);
+      setLink("");
+      setInsta("");
+      setFile(null);
+      onSubmitted();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao enviar");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Enviar link: {campaign.title}</DialogTitle></DialogHeader>
+        <div className="space-y-3">
+          <div className="rounded-lg border border-primary/20 bg-primary/10 p-3 text-sm text-muted-foreground">
+            Publique no Instagram, mantenha o conteudo por pelo menos 24h e envie o link da publicacao.
+          </div>
+          <div>
+            <Label>Link do post compartilhado *</Label>
+            <Input value={link} onChange={(e) => setLink(e.target.value)} placeholder="https://instagram.com/p/..." />
+          </div>
+          <div>
+            <Label>Instagram usado</Label>
+            <Input value={insta} onChange={(e) => setInsta(e.target.value)} placeholder="@seuusuario" />
+          </div>
+          <div>
+            <Label>Print da publicacao (opcional)</Label>
+            <Input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+          </div>
+          <Button onClick={submit} disabled={busy} className="w-full bg-gold-gradient text-primary-foreground">
+            {busy ? "Enviando..." : "Enviar para analise"}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

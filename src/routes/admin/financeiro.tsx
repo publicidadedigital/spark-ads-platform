@@ -17,9 +17,25 @@ type Settings = {
   closing_day: number;
 };
 
+type Period = "diario" | "mensal" | "anual";
+
+function periodStart(period: Period) {
+  const now = new Date();
+  if (period === "diario") return new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+  if (period === "mensal") return new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  return new Date(now.getFullYear(), 0, 1).toISOString();
+}
+
+const periodLabels: Record<Period, string> = {
+  diario: "Diário",
+  mensal: "Mensal",
+  anual: "Anual",
+};
+
 function AdminFinanceiro() {
   const { supabase } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [period, setPeriod] = useState<Period>("mensal");
   const [entrada, setEntrada] = useState(0);
   const [saida, setSaida] = useState(0);
   const [afiliados, setAfiliados] = useState(0);
@@ -30,11 +46,13 @@ function AdminFinanceiro() {
     if (!supabase) return;
     setLoading(true);
 
+    const since = periodStart(period);
+
     const [orders, withdrawals, bonuses, expenses, accSettings] = await Promise.all([
-      supabase.from("package_orders").select("valor").eq("status", "pago"),
-      supabase.from("withdrawal_requests").select("amount_usd").eq("status", "pago"),
-      supabase.from("bonuses").select("valor").eq("status", "liberado"),
-      supabase.from("accounting_expenses").select("amount").eq("status", "pago"),
+      supabase.from("package_orders").select("valor").eq("status", "pago").gte("created_at", since),
+      supabase.from("withdrawal_requests").select("amount_usd").eq("status", "pago").gte("created_at", since),
+      supabase.from("bonuses").select("valor").eq("status", "liberado").gte("created_at", since),
+      supabase.from("accounting_expenses").select("amount").eq("status", "pago").gte("created_at", since),
       supabase.from("accounting_settings").select("profit_percent,tax_percent,min_margin_percent,closing_day").maybeSingle(),
     ]);
 
@@ -49,7 +67,7 @@ function AdminFinanceiro() {
     setLoading(false);
   }
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [supabase]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [supabase, period]);
 
   const lucroLiquido = entrada - saida - afiliados - custos;
   const margemAtual = entrada > 0 ? (lucroLiquido / entrada) * 100 : 0;
@@ -62,8 +80,30 @@ function AdminFinanceiro() {
           <h1 className="text-3xl font-bold">Visão geral</h1>
           <p className="text-sm text-muted-foreground">Resumo de entradas, saídas, comissões e lucro líquido da plataforma.</p>
         </div>
-        <Button variant="outline" onClick={load} disabled={loading}><RefreshCcw className="mr-2 h-4 w-4" />Atualizar</Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex rounded-md border border-border/60 p-1">
+            {(["diario", "mensal", "anual"] as Period[]).map((p) => (
+              <Button
+                key={p}
+                size="sm"
+                variant={period === p ? "default" : "ghost"}
+                onClick={() => setPeriod(p)}
+                className="px-3"
+              >
+                {periodLabels[p]}
+              </Button>
+            ))}
+          </div>
+          <Button variant="outline" onClick={load} disabled={loading}><RefreshCcw className="mr-2 h-4 w-4" />Atualizar</Button>
+        </div>
       </div>
+
+      <p className="text-xs text-muted-foreground">
+        Valores referentes ao período: <span className="text-foreground font-medium">{periodLabels[period]}</span>
+        {period === "diario" && " (hoje)"}
+        {period === "mensal" && " (mês atual)"}
+        {period === "anual" && " (ano atual)"}
+      </p>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         <Card>

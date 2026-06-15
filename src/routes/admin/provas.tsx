@@ -6,11 +6,19 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { Clock, ExternalLink } from "lucide-react";
 
 export const Route = createFileRoute("/admin/provas")({
   validateSearch: (s) => ({ campaignId: (s.campaignId as string) || "" }),
   component: AdminProvas,
 });
+
+function hoursAgo(createdAt: string) {
+  const h = Math.floor((Date.now() - new Date(createdAt).getTime()) / 3600000);
+  if (h < 24) return { label: `${h}h de publicação`, warn: true };
+  const d = Math.floor(h / 24);
+  return { label: `${d}d ${h % 24}h online`, warn: false };
+}
 
 function AdminProvas() {
   const { supabase, user } = useAuth();
@@ -33,6 +41,10 @@ function AdminProvas() {
 
   async function approve(item: any) {
     if (!supabase) return;
+    const { warn } = hoursAgo(item.created_at);
+    if (warn) {
+      toast.warning("Atenção: publicação com menos de 24h. Aprovando assim mesmo.");
+    }
     const { error } = await supabase.from("campaign_shares")
       .update({ status: "aprovada", reviewed_by: user?.id, reviewed_at: new Date().toISOString() })
       .eq("id", item.id);
@@ -81,37 +93,57 @@ function AdminProvas() {
       <h1 className="text-2xl font-bold">Provas pendentes</h1>
       {items.length === 0 ? (
         <Card className="p-8 bg-card/50 border-border/50 text-center text-muted-foreground">Sem provas pendentes.</Card>
-      ) : items.map((s) => (
-        <Card key={s.id} className="p-4 bg-card/50 border-border/50">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <div className="font-medium">{s.campaign?.titulo ?? s.advertiser_campaign?.title}</div>
-              {s.advertiser_campaign_id && <Badge variant="outline" className="mt-1">Campanha de anunciante</Badge>}
-              <div className="text-xs text-muted-foreground">por {s.profile?.nome} (@{s.profile?.instagram})</div>
-              <div className="text-xs text-muted-foreground mt-1 break-all">{s.shared_link}</div>
-              {s.instagram_usado && <div className="text-xs">Insta usado: @{s.instagram_usado}</div>}
-              <div className="mt-2 flex flex-wrap gap-2">
-                <Badge variant="outline">{s.status}</Badge>
-                {s.validation_status === "suspeito" && (
-                  <Badge className="border-destructive/30 bg-destructive/15 text-destructive hover:bg-destructive/15">
-                    Suspeito: {s.validation_reason}
-                  </Badge>
+      ) : items.map((s) => {
+        const timeInfo = hoursAgo(s.created_at);
+        return (
+          <Card key={s.id} className="p-4 bg-card/50 border-border/50">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="font-medium">{s.campaign?.titulo ?? s.advertiser_campaign?.title}</div>
+                {s.advertiser_campaign_id && <Badge variant="outline" className="mt-1">Campanha de anunciante</Badge>}
+                <div className="text-xs text-muted-foreground">por {s.profile?.nome} (@{s.profile?.instagram})</div>
+                {s.profile?.seguidores_instagram != null && (
+                  <div className="text-xs text-muted-foreground">{s.profile.seguidores_instagram.toLocaleString("pt-BR")} seguidores</div>
                 )}
+                <div className="text-xs text-muted-foreground mt-1 break-all">{s.shared_link}</div>
+                {s.instagram_usado && <div className="text-xs">Insta usado: @{s.instagram_usado}</div>}
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {timeInfo.warn ? (
+                    <Badge className="border-amber-400/30 bg-amber-500/15 text-amber-300">
+                      <Clock className="mr-1 h-3 w-3" /> ⏱ {timeInfo.label} — aguardando 24h
+                    </Badge>
+                  ) : (
+                    <Badge className="border-success/30 bg-success/15 text-success">
+                      ✓ {timeInfo.label}
+                    </Badge>
+                  )}
+                  <Badge variant="outline">{s.status}</Badge>
+                  {s.validation_status === "suspeito" && (
+                    <Badge className="border-destructive/30 bg-destructive/15 text-destructive hover:bg-destructive/15">
+                      Suspeito: {s.validation_reason}
+                    </Badge>
+                  )}
+                </div>
+                <a href={s.shared_link} target="_blank" rel="noreferrer">
+                  <Button size="sm" variant="outline" className="mt-2 gap-2">
+                    <ExternalLink className="h-3 w-3" /> Abrir publicação
+                  </Button>
+                </a>
+              </div>
+              <div className="flex flex-col gap-2 w-full md:w-72">
+                <Input placeholder="Motivo da rejeição / fraude" value={motivos[s.id] || ""} onChange={(e) => setMotivos({...motivos, [s.id]: e.target.value})} />
+                <div className="flex gap-2">
+                  <Button size="sm" className="flex-1 bg-gold-gradient text-primary-foreground" onClick={() => approve(s)}>Aprovar</Button>
+                  <Button size="sm" variant="destructive" className="flex-1" onClick={() => reject(s.id)}>Rejeitar</Button>
+                </div>
+                <Button size="sm" variant="outline" className="border-destructive/40 text-destructive hover:bg-destructive/10" onClick={() => removeFraud(s.id)}>
+                  Excluir envio fraudulento
+                </Button>
               </div>
             </div>
-            <div className="flex flex-col gap-2 w-full md:w-72">
-              <Input placeholder="Motivo da rejeição / fraude" value={motivos[s.id] || ""} onChange={(e) => setMotivos({...motivos, [s.id]: e.target.value})} />
-              <div className="flex gap-2">
-                <Button size="sm" className="flex-1 bg-gold-gradient text-primary-foreground" onClick={() => approve(s)}>Aprovar</Button>
-                <Button size="sm" variant="destructive" className="flex-1" onClick={() => reject(s.id)}>Rejeitar</Button>
-              </div>
-              <Button size="sm" variant="outline" className="border-destructive/40 text-destructive hover:bg-destructive/10" onClick={() => removeFraud(s.id)}>
-                Excluir envio fraudulento
-              </Button>
-            </div>
-          </div>
-        </Card>
-      ))}
+          </Card>
+        );
+      })}
     </div>
   );
 }

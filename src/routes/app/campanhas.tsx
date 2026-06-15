@@ -473,8 +473,9 @@ function AdvertiserShareDialog({ campaign, profileId, cycleId, onSubmitted, chil
       <DialogContent>
         <DialogHeader><DialogTitle>Enviar link: {campaign.title}</DialogTitle></DialogHeader>
         <div className="space-y-3">
-          <div className="rounded-lg border border-primary/20 bg-primary/10 p-3 text-sm text-muted-foreground">
-            Publique no Instagram, mantenha o conteudo por pelo menos 24h e envie o link da publicacao.
+          <div className="flex items-start gap-2 rounded-lg border border-amber-400/30 bg-amber-500/10 p-3 text-sm text-amber-200">
+            <Clock className="h-4 w-4 shrink-0 mt-0.5" />
+            <span>A publicação deve permanecer no ar por pelo menos <strong>24 horas</strong> após o envio. Remover antes pode resultar em rejeição e perda do bônus.</span>
           </div>
           <div>
             <Label>Link do post compartilhado *</Label>
@@ -602,8 +603,9 @@ function ShareDialog({ campaign, profileId, cycleId, onSubmitted, children }: {
       <DialogContent>
         <DialogHeader><DialogTitle>Enviar link: {campaign.titulo}</DialogTitle></DialogHeader>
         <div className="space-y-3">
-          <div className="rounded-lg border border-primary/20 bg-primary/10 p-3 text-sm text-muted-foreground">
-            Publique no Instagram, mantenha o conteudo por pelo menos 24h e envie o link da publicacao.
+          <div className="flex items-start gap-2 rounded-lg border border-amber-400/30 bg-amber-500/10 p-3 text-sm text-amber-200">
+            <Clock className="h-4 w-4 shrink-0 mt-0.5" />
+            <span>A publicação deve permanecer no ar por pelo menos <strong>24 horas</strong> após o envio. Remover antes pode resultar em rejeição e perda do bônus.</span>
           </div>
           <div>
             <Label>Link do post compartilhado *</Label>
@@ -694,7 +696,6 @@ function RulesPanel() {
     "5 publicacoes aprovadas por dia (obrigatorio)",
     "Conta do Instagram deve ser publica",
     "Nao e permitido editar a publicacao apos o envio do link",
-    "Conteudo deve permanecer publicado por no minimo 24h",
     "Bonus liberado somente apos validacao das 5 publicacoes",
   ];
   return (
@@ -706,6 +707,10 @@ function RulesPanel() {
             <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" /> {rule}
           </p>
         ))}
+        <div className="flex items-start gap-2 text-sm">
+          <Clock className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+          <span>A publicação deve ficar no ar por no mínimo <strong>24h</strong>. Remover antes invalida o compartilhamento.</span>
+        </div>
       </div>
       <Button variant="outline" className="mt-5 w-full border-primary/30 bg-primary/10 text-primary">
         Duvidas? Fale com nosso suporte!

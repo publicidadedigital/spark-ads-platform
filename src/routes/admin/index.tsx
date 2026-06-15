@@ -12,13 +12,22 @@ import { getUsersLastLogin } from "@/lib/admin/users.functions";
 
 export const Route = createFileRoute("/admin/")({ component: AdminUsers });
 
-type Tab = "clientes" | "anunciantes" | "saques";
+type Tab = "clientes" | "anunciantes" | "saques" | "depositos";
 
 type WithdrawalRow = {
   id: string;
   created_at: string;
   amount_usd: number | string;
   status: string;
+  users_profile?: { nome: string | null; email: string | null } | null;
+};
+
+type DepositRow = {
+  id: string;
+  created_at: string;
+  amount_usd: number | string;
+  status: string;
+  method: string;
   users_profile?: { nome: string | null; email: string | null } | null;
 };
 
@@ -34,12 +43,21 @@ const withdrawalStatusMeta: Record<string, { label: string; className: string }>
   cancelado: { label: "Falhou", className: "border-destructive/30 bg-destructive/15 text-destructive hover:bg-destructive/15" },
 };
 
+const depositStatusMeta: Record<string, { label: string; className: string }> = {
+  approved: { label: "Concluído", className: "border-success/30 bg-success/15 text-success hover:bg-success/15" },
+  pending: { label: "Pendente", className: "border-amber-400/30 bg-amber-500/15 text-amber-300 hover:bg-amber-500/15" },
+  failed: { label: "Falhou", className: "border-destructive/30 bg-destructive/15 text-destructive hover:bg-destructive/15" },
+  expired: { label: "Falhou", className: "border-destructive/30 bg-destructive/15 text-destructive hover:bg-destructive/15" },
+  cancelled: { label: "Falhou", className: "border-destructive/30 bg-destructive/15 text-destructive hover:bg-destructive/15" },
+};
+
 function AdminUsers() {
   const { supabase } = useAuth();
   const [tab, setTab] = useState<Tab>("clientes");
   const [users, setUsers] = useState<any[]>([]);
   const [advertisers, setAdvertisers] = useState<any[]>([]);
   const [withdrawals, setWithdrawals] = useState<WithdrawalRow[]>([]);
+  const [deposits, setDeposits] = useState<DepositRow[]>([]);
   const [lastLogins, setLastLogins] = useState<Record<string, string | null>>({});
   const [loading, setLoading] = useState(true);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
@@ -47,7 +65,7 @@ function AdminUsers() {
   async function load() {
     if (!supabase) return;
     setLoading(true);
-    const [{ data }, { data: adminRoles }, { data: legacyAdmins }, { data: adv }, { data: withdrawalRows }] = await Promise.all([
+    const [{ data }, { data: adminRoles }, { data: legacyAdmins }, { data: adv }, { data: withdrawalRows }, { data: depositRows }] = await Promise.all([
       supabase.from("users_profile").select("*").order("created_at", { ascending: false }).limit(200),
       supabase.from("admin_roles").select("auth_user_id").eq("status", "ativo"),
       supabase.from("user_roles").select("user_id").in("role", ["admin", "super_admin"]),
@@ -55,6 +73,11 @@ function AdminUsers() {
       supabase
         .from("withdrawal_requests")
         .select("id,created_at,amount_usd,status,users_profile:user_id(nome,email)")
+        .order("created_at", { ascending: false })
+        .limit(200),
+      supabase
+        .from("payment_orders")
+        .select("id,created_at,amount_usd,status,method,users_profile:user_id(nome,email)")
         .order("created_at", { ascending: false })
         .limit(200),
     ]);
@@ -65,6 +88,7 @@ function AdminUsers() {
     setUsers((data ?? []).filter((u: any) => !adminIds.has(u.auth_user_id)));
     setAdvertisers(adv ?? []);
     setWithdrawals((withdrawalRows ?? []) as unknown as WithdrawalRow[]);
+    setDeposits((depositRows ?? []) as unknown as DepositRow[]);
     setLoading(false);
 
     const { data: session } = await supabase.auth.getSession();
@@ -124,6 +148,9 @@ function AdminUsers() {
         <Button size="sm" variant={tab === "saques" ? "default" : "outline"} onClick={() => setTab("saques")}>
           Saques ({withdrawals.length})
         </Button>
+        <Button size="sm" variant={tab === "depositos" ? "default" : "outline"} onClick={() => setTab("depositos")}>
+          Depósitos ({deposits.length})
+        </Button>
       </div>
 
       {tab === "clientes" ? (
@@ -178,7 +205,7 @@ function AdminUsers() {
             </table>
           )}
         </Card>
-      ) : (
+      ) : tab === "saques" ? (
         <Card className="bg-card/50 border-border/50 overflow-hidden">
           {loading ? <p className="p-6 text-muted-foreground">Carregando...</p> : withdrawals.length === 0 ? (
             <p className="p-6 text-muted-foreground">Nenhuma solicitação de saque ainda.</p>
@@ -195,6 +222,34 @@ function AdminUsers() {
                     <tr key={w.id} className="border-b border-border/30">
                       <td className="p-3">{w.users_profile?.nome ?? "—"}</td>
                       <td className="p-3 font-semibold">{usd.format(Number(w.amount_usd ?? 0))}</td>
+                      <td className="p-3 text-muted-foreground">{date.toLocaleDateString("pt-BR")}</td>
+                      <td className="p-3 text-muted-foreground">{date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</td>
+                      <td className="p-3"><Badge className={meta.className}>{meta.label}</Badge></td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </Card>
+      ) : (
+        <Card className="bg-card/50 border-border/50 overflow-hidden">
+          {loading ? <p className="p-6 text-muted-foreground">Carregando...</p> : deposits.length === 0 ? (
+            <p className="p-6 text-muted-foreground">Nenhum depósito registrado ainda.</p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="border-b border-border/50 text-xs uppercase text-muted-foreground">
+                <tr><th className="text-left p-3">Usuário</th><th className="text-left p-3">Método</th><th className="text-left p-3">Valor</th><th className="text-left p-3">Data</th><th className="text-left p-3">Hora</th><th className="text-left p-3">Status</th></tr>
+              </thead>
+              <tbody>
+                {deposits.map((d) => {
+                  const date = new Date(d.created_at);
+                  const meta = depositStatusMeta[d.status] ?? { label: d.status, className: "" };
+                  return (
+                    <tr key={d.id} className="border-b border-border/30">
+                      <td className="p-3">{d.users_profile?.nome ?? "—"}</td>
+                      <td className="p-3 text-muted-foreground uppercase">{d.method}</td>
+                      <td className="p-3 font-semibold">{usd.format(Number(d.amount_usd ?? 0))}</td>
                       <td className="p-3 text-muted-foreground">{date.toLocaleDateString("pt-BR")}</td>
                       <td className="p-3 text-muted-foreground">{date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</td>
                       <td className="p-3"><Badge className={meta.className}>{meta.label}</Badge></td>

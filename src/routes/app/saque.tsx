@@ -176,7 +176,6 @@ function WithdrawalRequestCard({
 }) {
   const { supabase } = useAuth();
   const [amount, setAmount] = useState("");
-  const [pixKey, setPixKey] = useState("");
   const [documentCpf, setDocumentCpf] = useState("");
   const [totpCode, setTotpCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -188,7 +187,6 @@ function WithdrawalRequestCard({
     if (amountUsd < MIN_WITHDRAWAL_USD) return toast.error(`O valor minimo para saque e de ${formatMoney(MIN_WITHDRAWAL_USD)}`);
     if (amountUsd > MAX_WITHDRAWAL_USD) return toast.error(`O valor maximo para saque e de ${formatMoney(MAX_WITHDRAWAL_USD)}`);
     if (amountUsd > balance) return toast.error("Saldo insuficiente para este saque");
-    if (!pixKey.trim()) return toast.error("Informe a chave PIX");
     if (!documentCpf.trim()) return toast.error("Informe o CPF cadastrado na conta");
     if (!/^\d{6}$/.test(totpCode)) return toast.error("Informe o código de 6 dígitos do Google Authenticator");
 
@@ -203,7 +201,7 @@ function WithdrawalRequestCard({
           accessToken,
           amountUsd,
           method: "pix",
-          destinationKey: pixKey.trim(),
+          destinationKey: documentCpf.trim(),
           destinationDocument: documentCpf.trim(),
           totpCode,
         },
@@ -211,7 +209,6 @@ function WithdrawalRequestCard({
 
       toast.success("Solicitacao de saque enviada para analise");
       setAmount("");
-      setPixKey("");
       setDocumentCpf("");
       setTotpCode("");
       onSubmitted();
@@ -245,13 +242,9 @@ function WithdrawalRequestCard({
         <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder={`${MIN_WITHDRAWAL_USD}`} min={MIN_WITHDRAWAL_USD} max={MAX_WITHDRAWAL_USD} />
       </div>
       <div>
-        <Label>Chave PIX</Label>
-        <Input value={pixKey} onChange={(e) => setPixKey(e.target.value)} placeholder="CPF, e-mail, telefone ou chave aleatoria" />
-      </div>
-      <div>
-        <Label>CPF cadastrado na conta</Label>
+        <Label>CPF cadastrado na conta (chave PIX)</Label>
         <Input value={documentCpf} onChange={(e) => setDocumentCpf(e.target.value)} placeholder={cpf ?? "Informe o CPF da sua conta"} />
-        <p className="mt-1 text-xs text-muted-foreground">O saque so pode ser feito para o CPF cadastrado nesta conta.</p>
+        <p className="mt-1 text-xs text-muted-foreground">O saque so pode ser feito via PIX para o CPF cadastrado nesta conta.</p>
       </div>
       <div>
         <Label>Codigo do Google Authenticator</Label>

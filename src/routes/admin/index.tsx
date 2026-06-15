@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { getTwoFactorStatus } from "@/lib/security/totp.functions";
 import { TwoFactorReminderBanner } from "@/components/TwoFactorSetup";
 import { getUsersLastLogin } from "@/lib/admin/users.functions";
+import { activateDepositManually } from "@/lib/payments/admin-deposits.functions";
 
 export const Route = createFileRoute("/admin/")({ component: AdminUsers });
 
@@ -110,6 +111,21 @@ function AdminUsers() {
     if (error) return toast.error(error.message);
     toast.success("Status atualizado");
     load();
+  }
+
+  async function activateDeposit(id: string) {
+    if (!supabase) return;
+    if (!window.confirm("Ativar este depósito manualmente? O ciclo do usuário será ativado.")) return;
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const accessToken = session.session?.access_token;
+      if (!accessToken) throw new Error("Sessao expirada");
+      await activateDepositManually({ data: { accessToken, paymentOrderId: id } });
+      toast.success("Depósito ativado");
+      load();
+    } catch (error: any) {
+      toast.error(error.message ?? "Erro ao ativar depósito");
+    }
   }
 
   async function setAdvertiserStatus(id: string, status: string) {
@@ -239,7 +255,7 @@ function AdminUsers() {
           ) : (
             <table className="w-full text-sm">
               <thead className="border-b border-border/50 text-xs uppercase text-muted-foreground">
-                <tr><th className="text-left p-3">Usuário</th><th className="text-left p-3">Método</th><th className="text-left p-3">Valor</th><th className="text-left p-3">Data</th><th className="text-left p-3">Hora</th><th className="text-left p-3">Status</th></tr>
+                <tr><th className="text-left p-3">Usuário</th><th className="text-left p-3">Método</th><th className="text-left p-3">Valor</th><th className="text-left p-3">Data</th><th className="text-left p-3">Hora</th><th className="text-left p-3">Status</th><th className="text-right p-3">Ações</th></tr>
               </thead>
               <tbody>
                 {deposits.map((d) => {
@@ -253,6 +269,11 @@ function AdminUsers() {
                       <td className="p-3 text-muted-foreground">{date.toLocaleDateString("pt-BR")}</td>
                       <td className="p-3 text-muted-foreground">{date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</td>
                       <td className="p-3"><Badge className={meta.className}>{meta.label}</Badge></td>
+                      <td className="p-3 text-right">
+                        {d.status !== "approved" && (
+                          <Button size="sm" variant="outline" onClick={() => activateDeposit(d.id)}>Ativar manualmente</Button>
+                        )}
+                      </td>
                     </tr>
                   );
                 })}

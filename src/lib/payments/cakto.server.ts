@@ -37,6 +37,10 @@ export type CaktoWebhookEvent = {
   providerPaymentId: string | null;
   status: "approved" | "failed" | "pending" | "expired" | "cancelled";
   amount?: number | null;
+  customerEmail: string | null;
+  customerDocument: string | null;
+  productName: string | null;
+  productId: string | null;
   raw: unknown;
 };
 
@@ -214,6 +218,8 @@ export function verifyCaktoWebhook(rawBody: string, headers: Headers) {
 export function parseCaktoWebhook(body: any): CaktoWebhookEvent {
   const data = body?.data ?? body?.event ?? body?.order ?? body?.payment ?? body;
   const metadata = data?.metadata ?? body?.metadata ?? body?.data?.metadata ?? {};
+  const customer = data?.customer ?? body?.customer ?? {};
+  const product = data?.product ?? data?.offer ?? body?.product ?? {};
 
   return {
     externalId: pickString(
@@ -230,6 +236,10 @@ export function parseCaktoWebhook(body: any): CaktoWebhookEvent {
     providerPaymentId: pickString(data?.id, data?.payment_id, data?.transaction_id, data?.order_id, body?.id, body?.payment_id),
     status: normalizeStatus(data?.status ?? body?.status ?? body?.event_type ?? body?.type),
     amount: pickNumber(data?.amount, data?.amount_usd, data?.value, data?.total, body?.amount),
+    customerEmail: pickString(customer?.email, data?.customer_email, data?.email, body?.customer_email),
+    customerDocument: pickString(customer?.docNumber, customer?.document, customer?.cpf, data?.customer_document, data?.document, data?.cpf),
+    productName: pickString(product?.name, product?.title, data?.product_name, body?.product_name),
+    productId: pickString(product?.id, product?.short_id, product?.product_id, data?.product_id, body?.product_id),
     raw: body,
   };
 }

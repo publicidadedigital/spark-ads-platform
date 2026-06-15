@@ -23,7 +23,7 @@ function AdvertiserPage() {
           <Link to="/"><Logo className="h-9 w-auto max-w-[155px]" textClassName="text-xl" /></Link>
           <div className="flex items-center gap-2">
             <ExchangeRateTicker />
-            <Link to="/login"><Button variant="ghost">Entrar</Button></Link>
+            <Link to="/anunciante-login"><Button variant="ghost">Entrar</Button></Link>
             <Link to="/cadastro" search={{ tipo: "anunciante", ref: "" }}>
               <Button className="bg-gold-gradient text-primary-foreground">Criar conta PJ</Button>
             </Link>

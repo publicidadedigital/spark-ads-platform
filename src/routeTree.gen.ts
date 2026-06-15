@@ -16,6 +16,7 @@ import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as AnunciantePerfilRouteImport } from './routes/anunciante-perfil'
 import { Route as AnunciantePainelRouteImport } from './routes/anunciante-painel'
+import { Route as AnuncianteLoginRouteImport } from './routes/anunciante-login'
 import { Route as AnuncianteRouteImport } from './routes/anunciante'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
@@ -92,6 +93,11 @@ const AnunciantePerfilRoute = AnunciantePerfilRouteImport.update({
 const AnunciantePainelRoute = AnunciantePainelRouteImport.update({
   id: '/anunciante-painel',
   path: '/anunciante-painel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnuncianteLoginRoute = AnuncianteLoginRouteImport.update({
+  id: '/anunciante-login',
+  path: '/anunciante-login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnuncianteRoute = AnuncianteRouteImport.update({
@@ -317,6 +323,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/anunciante': typeof AnuncianteRoute
+  '/anunciante-login': typeof AnuncianteLoginRoute
   '/anunciante-painel': typeof AnunciantePainelRouteWithChildren
   '/anunciante-perfil': typeof AnunciantePerfilRoute
   '/app': typeof AppRouteWithChildren
@@ -367,6 +374,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/anunciante': typeof AnuncianteRoute
+  '/anunciante-login': typeof AnuncianteLoginRoute
   '/anunciante-perfil': typeof AnunciantePerfilRoute
   '/cadastro': typeof CadastroRoute
   '/cadastro-anunciante': typeof CadastroAnuncianteRoute
@@ -417,6 +425,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/anunciante': typeof AnuncianteRoute
+  '/anunciante-login': typeof AnuncianteLoginRoute
   '/anunciante-painel': typeof AnunciantePainelRouteWithChildren
   '/anunciante-perfil': typeof AnunciantePerfilRoute
   '/app': typeof AppRouteWithChildren
@@ -470,6 +479,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/anunciante'
+    | '/anunciante-login'
     | '/anunciante-painel'
     | '/anunciante-perfil'
     | '/app'
@@ -520,6 +530,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/anunciante'
+    | '/anunciante-login'
     | '/anunciante-perfil'
     | '/cadastro'
     | '/cadastro-anunciante'
@@ -569,6 +580,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/anunciante'
+    | '/anunciante-login'
     | '/anunciante-painel'
     | '/anunciante-perfil'
     | '/app'
@@ -621,6 +633,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
   AnuncianteRoute: typeof AnuncianteRoute
+  AnuncianteLoginRoute: typeof AnuncianteLoginRoute
   AnunciantePainelRoute: typeof AnunciantePainelRouteWithChildren
   AnunciantePerfilRoute: typeof AnunciantePerfilRoute
   AppRoute: typeof AppRouteWithChildren
@@ -686,6 +699,13 @@ declare module '@tanstack/react-router' {
       path: '/anunciante-painel'
       fullPath: '/anunciante-painel'
       preLoaderRoute: typeof AnunciantePainelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/anunciante-login': {
+      id: '/anunciante-login'
+      path: '/anunciante-login'
+      fullPath: '/anunciante-login'
+      preLoaderRoute: typeof AnuncianteLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/anunciante': {
@@ -1099,6 +1119,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   AnuncianteRoute: AnuncianteRoute,
+  AnuncianteLoginRoute: AnuncianteLoginRoute,
   AnunciantePainelRoute: AnunciantePainelRouteWithChildren,
   AnunciantePerfilRoute: AnunciantePerfilRoute,
   AppRoute: AppRouteWithChildren,

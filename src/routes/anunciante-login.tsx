@@ -1,6 +1,6 @@
 import { Logo } from "@/components/Logo";
-import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { useAuth } from "@/lib/supabase/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,36 +8,14 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/login")({
-  validateSearch: (s) => ({
-    email_confirmed: (s.email_confirmed as string) || "",
-    reason: (s.reason as string) || "",
-  }),
-  component: LoginPage,
-});
+export const Route = createFileRoute("/anunciante-login")({ component: AnuncianteLoginPage });
 
-function LoginPage() {
+function AnuncianteLoginPage() {
   const { supabase } = useAuth();
   const navigate = useNavigate();
-  const search = useSearch({ from: "/login" });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (search.email_confirmed === "1") {
-      toast.success("E-mail confirmado com sucesso. Voce ja pode entrar.");
-    }
-    if (search.email_confirmed === "0") {
-      const messageByReason: Record<string, string> = {
-        missing_token: "Link de confirmacao incompleto.",
-        invalid_token: "Link de confirmacao invalido.",
-        expired_token: "Link de confirmacao expirado. Solicite um novo envio.",
-        server_error: "Nao foi possivel confirmar o e-mail agora.",
-      };
-      toast.error(messageByReason[search.reason] || "Nao foi possivel confirmar o e-mail.");
-    }
-  }, [search.email_confirmed, search.reason]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -50,34 +28,21 @@ function LoginPage() {
     }
 
     const authUserId = data.user?.id;
-    const { data: profile } = await supabase
-      .from("users_profile")
-      .select("id")
-      .eq("auth_user_id", authUserId)
-      .maybeSingle();
-
-    if (profile) {
-      toast.success("Bem-vindo de volta!");
-      setLoading(false);
-      return navigate({ to: "/app" });
-    }
-
     const { data: advertiser } = await supabase
       .from("advertiser_profiles")
       .select("id")
       .eq("auth_user_id", authUserId)
       .maybeSingle();
 
-    setLoading(false);
-
     if (advertiser) {
-      await supabase.auth.signOut();
-      toast.error("Esta conta e de anunciante. Acesse o login de anunciantes.");
-      return;
+      setLoading(false);
+      toast.success("Bem-vindo de volta!");
+      return navigate({ to: "/anunciante-painel" });
     }
 
-    toast.success("Bem-vindo de volta!");
-    navigate({ to: "/app" });
+    await supabase.auth.signOut();
+    setLoading(false);
+    toast.error("Esta conta nao e de anunciante. Acesse o login de clientes.");
   }
 
   return (
@@ -87,8 +52,8 @@ function LoginPage() {
           <Logo className="h-10 w-auto max-w-[170px]" textClassName="text-lg" />
         </Link>
 
-        <h1 className="text-2xl font-bold text-center mb-2">Entrar</h1>
-        <p className="text-sm text-muted-foreground text-center mb-6">Acesse sua conta</p>
+        <h1 className="text-2xl font-bold text-center mb-2">Entrar como Anunciante</h1>
+        <p className="text-sm text-muted-foreground text-center mb-6">Acesse o painel da sua empresa</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="email">E-mail</Label>
@@ -103,10 +68,10 @@ function LoginPage() {
           </Button>
         </form>
         <p className="text-sm text-center text-muted-foreground mt-6">
-          Nao tem conta? <Link to="/cadastro" className="text-gold hover:underline">Cadastre-se</Link>
+          Nao tem conta? <Link to="/cadastro" search={{ tipo: "anunciante", ref: "" }} className="text-gold hover:underline">Crie sua conta PJ</Link>
         </p>
         <p className="text-sm text-center text-muted-foreground mt-2">
-          E anunciante? <Link to="/anunciante-login" className="text-gold hover:underline">Entrar como anunciante</Link>
+          E cliente da Viral Hub? <Link to="/login" className="text-gold hover:underline">Entrar como cliente</Link>
         </p>
       </Card>
     </div>

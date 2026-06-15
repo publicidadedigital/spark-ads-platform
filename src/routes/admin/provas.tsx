@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Clock, ExternalLink } from "lucide-react";
+import { Clock, ExternalLink, Zap } from "lucide-react";
 
 export const Route = createFileRoute("/admin/provas")({
   validateSearch: (s) => ({ campaignId: (s.campaignId as string) || "" }),
@@ -30,7 +30,7 @@ function AdminProvas() {
     if (!supabase) return;
     let query = supabase
       .from("campaign_shares")
-      .select("*, profile:user_id(nome, instagram, seguidores_instagram), campaign:campaign_id(titulo), advertiser_campaign:advertiser_campaign_id(title)")
+      .select("*, profile:user_id(nome, instagram, seguidores_instagram), campaign:campaign_id(titulo), advertiser_campaign:advertiser_campaign_id(title), auto_validate_status, auto_validate_checked_at, auto_validate_detail")
       .eq("status", "pendente")
       .order("created_at", { ascending: false });
     if (campaignId) query = query.eq("advertiser_campaign_id", campaignId);
@@ -124,11 +124,14 @@ function AdminProvas() {
                     </Badge>
                   )}
                 </div>
-                <a href={s.shared_link} target="_blank" rel="noreferrer">
-                  <Button size="sm" variant="outline" className="mt-2 gap-2">
-                    <ExternalLink className="h-3 w-3" /> Abrir publicação
-                  </Button>
-                </a>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <a href={s.shared_link} target="_blank" rel="noreferrer">
+                    <Button size="sm" variant="outline" className="gap-2">
+                      <ExternalLink className="h-3 w-3" /> Abrir publicação
+                    </Button>
+                  </a>
+                  <AutoValidateBadge status={s.auto_validate_status} detail={s.auto_validate_detail} checkedAt={s.auto_validate_checked_at} />
+                </div>
               </div>
               <div className="flex flex-col gap-2 w-full md:w-72">
                 <Input placeholder="Motivo da rejeição / fraude" value={motivos[s.id] || ""} onChange={(e) => setMotivos({...motivos, [s.id]: e.target.value})} />
@@ -145,5 +148,35 @@ function AdminProvas() {
         );
       })}
     </div>
+  );
+}
+
+function AutoValidateBadge({ status, detail, checkedAt }: { status?: string; detail?: string; checkedAt?: string }) {
+  if (!status || status === "pending") return null;
+  const ts = checkedAt ? new Date(checkedAt).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "";
+  if (status === "live") return (
+    <Badge className="border-success/30 bg-success/15 text-success hover:bg-success/15">
+      <Zap className="mr-1 h-3 w-3" /> Auto-verificado ✓ ativo {ts && `(${ts})`}
+    </Badge>
+  );
+  if (status === "removed") return (
+    <Badge className="border-destructive/30 bg-destructive/15 text-destructive hover:bg-destructive/15">
+      <Zap className="mr-1 h-3 w-3" /> Auto: post REMOVIDO {ts && `(${ts})`}
+    </Badge>
+  );
+  if (status === "story_manual") return (
+    <Badge className="border-amber-400/30 bg-amber-500/15 text-amber-300">
+      <Clock className="mr-1 h-3 w-3" /> Story — validação manual pelo print
+    </Badge>
+  );
+  if (status === "private") return (
+    <Badge className="border-primary/30 bg-primary/15 text-primary">
+      <Zap className="mr-1 h-3 w-3" /> Perfil privado — verifique manualmente
+    </Badge>
+  );
+  return (
+    <Badge variant="outline" className="text-muted-foreground">
+      Auto-check: {detail ?? status}
+    </Badge>
   );
 }

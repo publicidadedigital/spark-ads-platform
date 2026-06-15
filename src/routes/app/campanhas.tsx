@@ -148,7 +148,7 @@ function CampanhasPage() {
         .order("created_at", { ascending: false }),
       supabase
         .from("campaign_shares")
-        .select("id,advertiser_campaign_id,shared_link,status,motivo_rejeicao,created_at")
+        .select("id,advertiser_campaign_id,shared_link,status,motivo_rejeicao,created_at,auto_validate_status,auto_validate_at,auto_validate_checked_at")
         .eq("user_id", prof.id)
         .not("advertiser_campaign_id", "is", null),
     ]);
@@ -323,6 +323,25 @@ function CampanhasPage() {
                 ))}
               </div>
             </section>
+          )}
+
+          {advertiserShares.length > 0 && (
+            <Card className="border-primary/15 bg-card/50 p-5">
+              <h2 className="font-semibold mb-3">Minhas submissões — status de verificação</h2>
+              <div className="space-y-3">
+                {advertiserShares.map((s: any) => (
+                  <div key={s.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/50 bg-background/40 px-4 py-3">
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                      <a href={s.shared_link} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-sm text-primary truncate hover:underline max-w-xs">
+                        {s.shared_link} <ExternalLink className="h-3 w-3 shrink-0" />
+                      </a>
+                      <span className="text-xs text-muted-foreground">Enviado {new Date(s.created_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>
+                    </div>
+                    <ClientAutoValidateBadge status={s.auto_validate_status} validateAt={s.auto_validate_at} shareStatus={s.status} />
+                  </div>
+                ))}
+              </div>
+            </Card>
           )}
         </div>
 
@@ -769,4 +788,31 @@ function formatTime(value: string) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function ClientAutoValidateBadge({ status, validateAt, shareStatus }: { status?: string; validateAt?: string; shareStatus?: string }) {
+  if (shareStatus === "aprovada" && (!status || status === "pending")) {
+    return <Badge className="border-success/30 bg-success/15 text-success"><ShieldCheck className="mr-1 h-3 w-3" /> Aprovado</Badge>;
+  }
+  if (shareStatus === "rejeitada") {
+    return <Badge className="border-destructive/30 bg-destructive/15 text-destructive">Rejeitado</Badge>;
+  }
+  if (!status || status === "pending") {
+    if (!validateAt) return <Badge variant="outline" className="text-muted-foreground"><Clock className="mr-1 h-3 w-3" /> Aguardando análise</Badge>;
+    const msLeft = new Date(validateAt).getTime() - Date.now();
+    if (msLeft > 0) {
+      const h = Math.ceil(msLeft / 3600000);
+      return (
+        <Badge className="border-amber-400/30 bg-amber-500/15 text-amber-300">
+          <Clock className="mr-1 h-3 w-3" /> Verificação automática em {h}h
+        </Badge>
+      );
+    }
+    return <Badge className="border-primary/30 bg-primary/15 text-primary"><Sparkles className="mr-1 h-3 w-3" /> Verificando link...</Badge>;
+  }
+  if (status === "live") return <Badge className="border-success/30 bg-success/15 text-success"><ShieldCheck className="mr-1 h-3 w-3" /> ✓ Post verificado — ativo</Badge>;
+  if (status === "removed") return <Badge className="border-destructive/30 bg-destructive/15 text-destructive">⚠ Post removido detectado</Badge>;
+  if (status === "story_manual") return <Badge className="border-amber-400/30 bg-amber-500/15 text-amber-300"><Clock className="mr-1 h-3 w-3" /> Story: aguardando análise manual</Badge>;
+  if (status === "private") return <Badge className="border-primary/30 bg-primary/15 text-primary">Perfil privado — análise manual</Badge>;
+  return <Badge variant="outline" className="text-muted-foreground">Em análise</Badge>;
 }

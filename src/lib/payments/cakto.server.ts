@@ -182,15 +182,29 @@ export function verifyCaktoWebhook(rawBody: string, headers: Headers) {
   if (!secret) return true;
 
   const signature = headers.get("x-cakto-signature") ?? headers.get("x-webhook-signature") ?? headers.get("x-signature");
-  if (!signature) return false;
+  if (signature) {
+    const expected = createHmac("sha256", secret).update(rawBody).digest("hex");
+    const normalized = signature.replace(/^sha256=/i, "");
+    const a = Buffer.from(normalized);
+    const b = Buffer.from(expected);
+    if (a.length === b.length) {
+      try {
+        if (timingSafeEqual(a, b)) return true;
+      } catch {
+        // fall through to body secret check
+      }
+    }
+  }
 
-  const expected = createHmac("sha256", secret).update(rawBody).digest("hex");
-  const normalized = signature.replace(/^sha256=/i, "");
-  const a = Buffer.from(normalized);
-  const b = Buffer.from(expected);
-  if (a.length !== b.length) return false;
-
+  // Cakto sends the configured webhook secret inside the JSON body (`secret` field)
+  // instead of a request header, so fall back to comparing it directly.
   try {
+    const body = JSON.parse(rawBody);
+    const receivedSecret = body?.secret ?? body?.data?.secret;
+    if (typeof receivedSecret !== "string") return false;
+    const a = Buffer.from(receivedSecret);
+    const b = Buffer.from(secret);
+    if (a.length !== b.length) return false;
     return timingSafeEqual(a, b);
   } catch {
     return false;

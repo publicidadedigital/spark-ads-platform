@@ -14,6 +14,7 @@ import { Route as LegalRouteImport } from './routes/legal'
 import { Route as CadastroAnuncianteRouteImport } from './routes/cadastro-anunciante'
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as AppRouteImport } from './routes/app'
+import { Route as AnunciantePainelRouteImport } from './routes/anunciante-painel'
 import { Route as AnuncianteRouteImport } from './routes/anunciante'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
@@ -72,6 +73,11 @@ const CadastroRoute = CadastroRouteImport.update({
 const AppRoute = AppRouteImport.update({
   id: '/app',
   path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnunciantePainelRoute = AnunciantePainelRouteImport.update({
+  id: '/anunciante-painel',
+  path: '/anunciante-painel',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnuncianteRoute = AnuncianteRouteImport.update({
@@ -253,6 +259,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/anunciante': typeof AnuncianteRoute
+  '/anunciante-painel': typeof AnunciantePainelRoute
   '/app': typeof AppRouteWithChildren
   '/cadastro': typeof CadastroRoute
   '/cadastro-anunciante': typeof CadastroAnuncianteRoute
@@ -293,6 +300,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/anunciante': typeof AnuncianteRoute
+  '/anunciante-painel': typeof AnunciantePainelRoute
   '/cadastro': typeof CadastroRoute
   '/cadastro-anunciante': typeof CadastroAnuncianteRoute
   '/legal': typeof LegalRouteWithChildren
@@ -334,6 +342,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/anunciante': typeof AnuncianteRoute
+  '/anunciante-painel': typeof AnunciantePainelRoute
   '/app': typeof AppRouteWithChildren
   '/cadastro': typeof CadastroRoute
   '/cadastro-anunciante': typeof CadastroAnuncianteRoute
@@ -377,6 +386,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/anunciante'
+    | '/anunciante-painel'
     | '/app'
     | '/cadastro'
     | '/cadastro-anunciante'
@@ -417,6 +427,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/anunciante'
+    | '/anunciante-painel'
     | '/cadastro'
     | '/cadastro-anunciante'
     | '/legal'
@@ -457,6 +468,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/anunciante'
+    | '/anunciante-painel'
     | '/app'
     | '/cadastro'
     | '/cadastro-anunciante'
@@ -499,6 +511,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
   AnuncianteRoute: typeof AnuncianteRoute
+  AnunciantePainelRoute: typeof AnunciantePainelRoute
   AppRoute: typeof AppRouteWithChildren
   CadastroRoute: typeof CadastroRoute
   CadastroAnuncianteRoute: typeof CadastroAnuncianteRoute
@@ -548,6 +561,13 @@ declare module '@tanstack/react-router' {
       path: '/app'
       fullPath: '/app'
       preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/anunciante-painel': {
+      id: '/anunciante-painel'
+      path: '/anunciante-painel'
+      fullPath: '/anunciante-painel'
+      preLoaderRoute: typeof AnunciantePainelRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/anunciante': {
@@ -867,6 +887,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   AnuncianteRoute: AnuncianteRoute,
+  AnunciantePainelRoute: AnunciantePainelRoute,
   AppRoute: AppRouteWithChildren,
   CadastroRoute: CadastroRoute,
   CadastroAnuncianteRoute: CadastroAnuncianteRoute,

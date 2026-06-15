@@ -43,10 +43,27 @@ function LoginPage() {
     e.preventDefault();
     if (!supabase) return;
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) return toast.error(error.message);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      setLoading(false);
+      return toast.error(error.message);
+    }
+
     toast.success("Bem-vindo de volta!");
+
+    const authUserId = data.user?.id;
+    if (authUserId) {
+      const { data: advertiser } = await supabase
+        .from("advertiser_profiles")
+        .select("id")
+        .eq("auth_user_id", authUserId)
+        .maybeSingle();
+
+      setLoading(false);
+      if (advertiser) return navigate({ to: "/anunciante-painel" });
+    }
+
+    setLoading(false);
     navigate({ to: "/app" });
   }
 

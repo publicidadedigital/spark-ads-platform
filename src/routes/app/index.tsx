@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/supabase/auth";
 import { Card } from "@/components/ui/card";
@@ -73,6 +73,7 @@ const DAILY_GOAL = 5;
 
 function Dashboard() {
   const { supabase, user } = useAuth();
+  const navigate = useNavigate();
   const [s, setS] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
@@ -95,6 +96,17 @@ function Dashboard() {
         .maybeSingle();
 
       if (!profile) {
+        const { data: advertiser } = await supabase
+          .from("advertiser_profiles")
+          .select("id")
+          .eq("auth_user_id", user.id)
+          .maybeSingle();
+
+        if (advertiser) {
+          navigate({ to: "/anunciante-painel" });
+          return;
+        }
+
         setLoading(false);
         return;
       }

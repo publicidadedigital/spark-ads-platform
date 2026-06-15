@@ -8,6 +8,7 @@ import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-r
 import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { fetchAddressByCep, isValidBrazilianPhone, isValidCNPJ, isValidCPF } from "@/lib/validators/br-documents";
 
 const commonSchema = {
   email: z.string().trim().email().max(255),
@@ -18,8 +19,14 @@ const commonSchema = {
 const personSchema = z.object({
   ...commonSchema,
   nome: z.string().trim().min(2).max(120),
-  cpf: z.string().trim().regex(/^\d{11}$/, "CPF deve ter 11 digitos"),
+  cpf: z.string().trim().regex(/^\d{11}$/, "CPF deve ter 11 digitos").refine(isValidCPF, "CPF invalido"),
   instagram: z.string().trim().min(2).max(60).regex(/^[a-zA-Z0-9._]+$/, "Instagram invalido"),
+  cep: z.string().trim().regex(/^\d{8}$/, "CEP deve ter 8 digitos"),
+  estado: z.string().trim().min(2).max(80),
+  cidade: z.string().trim().min(2).max(120),
+}).refine((data) => isValidBrazilianPhone(data.telefone), {
+  message: "Telefone invalido. Informe DDD + numero (10 ou 11 digitos)",
+  path: ["telefone"],
 });
 
 function countryCode(pais: string) {
@@ -33,12 +40,15 @@ function countryCode(pais: string) {
 const advertiserSchema = z.object({
   ...commonSchema,
   razaoSocial: z.string().trim().min(2).max(160),
-  cnpj: z.string().trim().regex(/^\d{14}$/, "CNPJ deve ter 14 digitos"),
+  cnpj: z.string().trim().regex(/^\d{14}$/, "CNPJ deve ter 14 digitos").refine(isValidCNPJ, "CNPJ invalido"),
   responsavel: z.string().trim().min(2).max(120),
   pais: z.string().trim().min(2).max(80),
   cep: z.string().trim().min(4).max(12),
   estado: z.string().trim().min(2).max(80),
   cidade: z.string().trim().min(2).max(120),
+}).refine((data) => countryCode(data.pais) !== "BR" || isValidBrazilianPhone(data.telefone), {
+  message: "Telefone invalido. Informe DDD + numero (10 ou 11 digitos)",
+  path: ["telefone"],
 });
 
 export const Route = createFileRoute("/cadastro")({
@@ -59,9 +69,24 @@ function CadastroPage() {
     razaoSocial: "", cnpj: "", responsavel: "", pais: "Brasil", cep: "", estado: "", cidade: "",
   });
   const [loading, setLoading] = useState(false);
+  const [cepLoading, setCepLoading] = useState(false);
 
   function set(key: keyof typeof form, value: string) {
     setForm((current) => ({ ...current, [key]: value }));
+  }
+
+  async function handleCepBlur() {
+    const isBrazil = isAdvertiser ? countryCode(form.pais) === "BR" : true;
+    if (!isBrazil) return;
+    const digits = form.cep.replace(/\D/g, "");
+    if (digits.length !== 8) return;
+
+    setCepLoading(true);
+    const address = await fetchAddressByCep(digits);
+    setCepLoading(false);
+
+    if (!address) return toast.error("CEP nao encontrado");
+    setForm((current) => ({ ...current, estado: address.estado, cidade: address.cidade }));
   }
 
   async function requestEmailConfirmation(userId: string, email: string, name: string) {
@@ -88,6 +113,31 @@ function CadastroPage() {
     if (!parsed.success) return toast.error(parsed.error.issues[0].message);
 
     setLoading(true);
+
+    const { data: availability, error: availabilityError } = await supabase.rpc("check_cadastro_availability", {
+      p_email: form.email.trim(),
+      p_cpf: isAdvertiser ? null : form.cpf.replace(/\D/g, ""),
+      p_cnpj: isAdvertiser ? form.cnpj.replace(/\D/g, "") : null,
+    });
+
+    if (availabilityError) {
+      setLoading(false);
+      return toast.error(availabilityError.message);
+    }
+
+    if (availability?.email_taken) {
+      setLoading(false);
+      return toast.error("E-mail ja cadastrado");
+    }
+    if (availability?.cpf_taken) {
+      setLoading(false);
+      return toast.error("CPF ja cadastrado");
+    }
+    if (availability?.cnpj_taken) {
+      setLoading(false);
+      return toast.error("CNPJ ja cadastrado");
+    }
+
     const name = isAdvertiser ? form.responsavel.trim() : form.nome.trim();
     const metadata = isAdvertiser
       ? {
@@ -112,6 +162,10 @@ function CadastroPage() {
           cpf: form.cpf.replace(/\D/g, ""),
           telefone: form.telefone.trim(),
           instagram: form.instagram.replace(/^@/, ""),
+          cep: form.cep.replace(/\D/g, ""),
+          estado: form.estado.trim(),
+          cidade: form.cidade.trim(),
+          country_code: "BR",
           indicador_id: ref || null,
         };
 
@@ -119,13 +173,16 @@ function CadastroPage() {
       email: form.email.trim(),
       password: form.password,
       options: {
-        emailRedirectTo: `${window.location.origin}${isAdvertiser ? "/anunciante" : "/app"}`,
+        emailRedirectTo: `${window.location.origin}${isAdvertiser ? "/anunciante-painel" : "/app"}`,
         data: metadata,
       },
     });
 
     if (error) {
       setLoading(false);
+      if (/already registered|already exists|already been registered/i.test(error.message)) {
+        return toast.error("E-mail ja cadastrado");
+      }
       return toast.error(error.message);
     }
 
@@ -199,16 +256,43 @@ function CadastroPage() {
             {field("Telefone", "telefone", { placeholder: "(11) 99999-9999" })}
           </div>
 
-          {isAdvertiser && (
+          {isAdvertiser ? (
             <>
               <div className="grid sm:grid-cols-2 gap-3">
                 {field("Pais", "pais")}
-                {field("CEP / Codigo postal", "cep")}
+                <div>
+                  <Label>CEP / Codigo postal</Label>
+                  <Input
+                    value={form.cep}
+                    onChange={(event) => set("cep", event.target.value)}
+                    onBlur={handleCepBlur}
+                    placeholder={cepLoading ? "Buscando endereco..." : "00000-000"}
+                    required
+                  />
+                </div>
               </div>
               <div className="grid sm:grid-cols-2 gap-3">
                 {field("Estado / Regiao", "estado")}
                 {field("Cidade", "cidade")}
               </div>
+            </>
+          ) : (
+            <>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div>
+                  <Label>CEP</Label>
+                  <Input
+                    value={form.cep}
+                    onChange={(event) => set("cep", event.target.value)}
+                    onBlur={handleCepBlur}
+                    placeholder={cepLoading ? "Buscando endereco..." : "00000-000"}
+                    inputMode="numeric"
+                    required
+                  />
+                </div>
+                {field("Estado", "estado")}
+              </div>
+              {field("Cidade", "cidade")}
             </>
           )}
 

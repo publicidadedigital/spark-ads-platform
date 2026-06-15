@@ -16,8 +16,16 @@ function AdminUsers() {
   async function load() {
     if (!supabase) return;
     setLoading(true);
-    const { data } = await supabase.from("users_profile").select("*").order("created_at", { ascending: false }).limit(200);
-    setUsers(data ?? []);
+    const [{ data }, { data: adminRoles }, { data: legacyAdmins }] = await Promise.all([
+      supabase.from("users_profile").select("*").order("created_at", { ascending: false }).limit(200),
+      supabase.from("admin_roles").select("auth_user_id").eq("status", "ativo"),
+      supabase.from("user_roles").select("user_id").in("role", ["admin", "super_admin"]),
+    ]);
+    const adminIds = new Set([
+      ...((adminRoles ?? []).map((r: any) => r.auth_user_id)),
+      ...((legacyAdmins ?? []).map((r: any) => r.user_id)),
+    ]);
+    setUsers((data ?? []).filter((u: any) => !adminIds.has(u.auth_user_id)));
     setLoading(false);
   }
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [supabase]);

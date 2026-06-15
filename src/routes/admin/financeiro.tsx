@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/supabase/auth";
 import { createFileRoute } from "@tanstack/react-router";
-import { RefreshCcw, TrendingUp, TrendingDown, Users, Receipt, PiggyBank } from "lucide-react";
+import { RefreshCcw, TrendingUp, TrendingDown, Users, Receipt, PiggyBank, Megaphone } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/admin/financeiro")({ component: AdminFinanceiro });
@@ -39,6 +39,7 @@ function AdminFinanceiro() {
   const [entrada, setEntrada] = useState(0);
   const [saida, setSaida] = useState(0);
   const [afiliados, setAfiliados] = useState(0);
+  const [comissaoAnunciantes, setComissaoAnunciantes] = useState(0);
   const [custos, setCustos] = useState(0);
   const [settings, setSettings] = useState<Settings | null>(null);
 
@@ -48,10 +49,11 @@ function AdminFinanceiro() {
 
     const since = periodStart(period);
 
-    const [orders, withdrawals, bonuses, expenses, accSettings] = await Promise.all([
+    const [orders, withdrawals, bonuses, advertiserBonuses, expenses, accSettings] = await Promise.all([
       supabase.from("package_orders").select("valor").eq("status", "pago").gte("created_at", since),
       supabase.from("withdrawal_requests").select("amount_usd").eq("status", "pago").gte("created_at", since),
       supabase.from("bonuses").select("valor").eq("status", "liberado").gte("created_at", since),
+      supabase.from("advertiser_bonus_events").select("referrer_bonus").eq("status", "liberado").gte("created_at", since),
       supabase.from("accounting_expenses").select("amount").eq("status", "pago").gte("created_at", since),
       supabase.from("accounting_settings").select("profit_percent,tax_percent,min_margin_percent,closing_day").maybeSingle(),
     ]);
@@ -62,6 +64,7 @@ function AdminFinanceiro() {
     setEntrada(sum(orders.data, "valor"));
     setSaida(sum(withdrawals.data, "amount_usd"));
     setAfiliados(sum(bonuses.data, "valor"));
+    setComissaoAnunciantes(sum(advertiserBonuses.data, "referrer_bonus"));
     setCustos(sum(expenses.data, "amount"));
     setSettings((accSettings.data as Settings) ?? null);
     setLoading(false);
@@ -69,7 +72,7 @@ function AdminFinanceiro() {
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [supabase, period]);
 
-  const lucroLiquido = entrada - saida - afiliados - custos;
+  const lucroLiquido = entrada - saida - afiliados - comissaoAnunciantes - custos;
   const margemAtual = entrada > 0 ? (lucroLiquido / entrada) * 100 : 0;
 
   return (
@@ -105,7 +108,7 @@ function AdminFinanceiro() {
         {period === "anual" && " (ano atual)"}
       </p>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <Card>
           <CardHeader className="pb-2 flex flex-row items-center justify-between">
             <CardTitle className="text-sm text-muted-foreground">Entradas</CardTitle>
@@ -126,6 +129,13 @@ function AdminFinanceiro() {
             <Users className="h-4 w-4 text-gold" />
           </CardHeader>
           <CardContent className="text-2xl font-bold">{usd.format(afiliados)}</CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between">
+            <CardTitle className="text-sm text-muted-foreground">Comissão indicação anunciantes (50%)</CardTitle>
+            <Megaphone className="h-4 w-4 text-sky-400" />
+          </CardHeader>
+          <CardContent className="text-2xl font-bold">{usd.format(comissaoAnunciantes)}</CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2 flex flex-row items-center justify-between">

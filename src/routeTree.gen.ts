@@ -36,6 +36,7 @@ import { Route as AdminSegurancaRouteImport } from './routes/admin/seguranca'
 import { Route as AdminSaquesRouteImport } from './routes/admin/saques'
 import { Route as AdminRenovacaoRouteImport } from './routes/admin/renovacao'
 import { Route as AdminProvasRouteImport } from './routes/admin/provas'
+import { Route as AdminPontuacaoRouteImport } from './routes/admin/pontuacao'
 import { Route as AdminPacotesRouteImport } from './routes/admin/pacotes'
 import { Route as AdminLogsRouteImport } from './routes/admin/logs'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
@@ -185,6 +186,11 @@ const AdminProvasRoute = AdminProvasRouteImport.update({
   path: '/provas',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminPontuacaoRoute = AdminPontuacaoRouteImport.update({
+  id: '/pontuacao',
+  path: '/pontuacao',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminPacotesRoute = AdminPacotesRouteImport.update({
   id: '/pacotes',
   path: '/pacotes',
@@ -271,6 +277,7 @@ export interface FileRoutesByFullPath {
   '/admin/login': typeof AdminLoginRoute
   '/admin/logs': typeof AdminLogsRoute
   '/admin/pacotes': typeof AdminPacotesRoute
+  '/admin/pontuacao': typeof AdminPontuacaoRoute
   '/admin/provas': typeof AdminProvasRoute
   '/admin/renovacao': typeof AdminRenovacaoRoute
   '/admin/saques': typeof AdminSaquesRoute
@@ -311,6 +318,7 @@ export interface FileRoutesByTo {
   '/admin/login': typeof AdminLoginRoute
   '/admin/logs': typeof AdminLogsRoute
   '/admin/pacotes': typeof AdminPacotesRoute
+  '/admin/pontuacao': typeof AdminPontuacaoRoute
   '/admin/provas': typeof AdminProvasRoute
   '/admin/renovacao': typeof AdminRenovacaoRoute
   '/admin/saques': typeof AdminSaquesRoute
@@ -354,6 +362,7 @@ export interface FileRoutesById {
   '/admin/login': typeof AdminLoginRoute
   '/admin/logs': typeof AdminLogsRoute
   '/admin/pacotes': typeof AdminPacotesRoute
+  '/admin/pontuacao': typeof AdminPontuacaoRoute
   '/admin/provas': typeof AdminProvasRoute
   '/admin/renovacao': typeof AdminRenovacaoRoute
   '/admin/saques': typeof AdminSaquesRoute
@@ -398,6 +407,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/admin/logs'
     | '/admin/pacotes'
+    | '/admin/pontuacao'
     | '/admin/provas'
     | '/admin/renovacao'
     | '/admin/saques'
@@ -438,6 +448,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/admin/logs'
     | '/admin/pacotes'
+    | '/admin/pontuacao'
     | '/admin/provas'
     | '/admin/renovacao'
     | '/admin/saques'
@@ -480,6 +491,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/admin/logs'
     | '/admin/pacotes'
+    | '/admin/pontuacao'
     | '/admin/provas'
     | '/admin/renovacao'
     | '/admin/saques'
@@ -717,6 +729,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminProvasRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/pontuacao': {
+      id: '/admin/pontuacao'
+      path: '/pontuacao'
+      fullPath: '/admin/pontuacao'
+      preLoaderRoute: typeof AdminPontuacaoRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/pacotes': {
       id: '/admin/pacotes'
       path: '/pacotes'
@@ -818,6 +837,7 @@ interface AdminRouteChildren {
   AdminLoginRoute: typeof AdminLoginRoute
   AdminLogsRoute: typeof AdminLogsRoute
   AdminPacotesRoute: typeof AdminPacotesRoute
+  AdminPontuacaoRoute: typeof AdminPontuacaoRoute
   AdminProvasRoute: typeof AdminProvasRoute
   AdminRenovacaoRoute: typeof AdminRenovacaoRoute
   AdminSaquesRoute: typeof AdminSaquesRoute
@@ -832,6 +852,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminLoginRoute: AdminLoginRoute,
   AdminLogsRoute: AdminLogsRoute,
   AdminPacotesRoute: AdminPacotesRoute,
+  AdminPontuacaoRoute: AdminPontuacaoRoute,
   AdminProvasRoute: AdminProvasRoute,
   AdminRenovacaoRoute: AdminRenovacaoRoute,
   AdminSaquesRoute: AdminSaquesRoute,

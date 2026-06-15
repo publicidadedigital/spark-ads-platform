@@ -22,6 +22,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createHmac, timingSafeEqual } from "crypto";
 import { z } from "zod";
 import { recordSystemErrorLog } from "@/lib/business/audit.server";
+import { awardPackagePoints } from "@/lib/business/points.server";
 import { buildPackageAccounting } from "@/lib/business/rules";
 import { getAdminClient } from "@/lib/supabase/admin.server";
 
@@ -278,6 +279,13 @@ export const Route = createFileRoute("/api/public/payments-webhook")({
           });
           return json({ error: txResult.error.message }, 500);
         }
+
+        await awardPackagePoints(admin, {
+          userId: cycle.user_id,
+          bonusableAmount: accounting.bonusable_amount,
+          sourceEvent: cycle.status === "aguardando_renovacao" ? "renovacao_pacote" : "compra_pacote",
+          metadata: { cycle_id: cycle.id, payment_id: parsed.payment_id ?? null },
+        });
 
         return json({
           ok: true,

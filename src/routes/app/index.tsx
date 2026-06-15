@@ -115,7 +115,7 @@ function Dashboard() {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      const [{ data: cycle }, { count: sharesHoje }, { data: bonuses }, { data: recentShares }] = await Promise.all([
+      const [{ data: cycle }, { count: sharesHoje }, { data: bonuses }, { data: recentShares }, { data: pointEvents }] = await Promise.all([
         supabase
           .from("user_cycles")
           .select("percentual_atual, saldo_bonificacoes, status")
@@ -139,6 +139,11 @@ function Dashboard() {
           .eq("user_id", profileId)
           .order("created_at", { ascending: false })
           .limit(6),
+        supabase
+          .from("point_events")
+          .select("points")
+          .eq("user_id", profileId)
+          .eq("status", "valid"),
       ]);
 
       const releasedBonuses = (bonuses ?? []).filter((bonus: Bonus) => bonus.status === "liberado");
@@ -160,7 +165,7 @@ function Dashboard() {
         ganhosIndicacao: sumBy("indicacao"),
         ganhosEquipe: sumBy("equipe"),
         totalBonus,
-        points: Math.round((totalBonus + saldo) * 10 + (sharesHoje ?? 0) * 25),
+        points: Math.round((pointEvents ?? []).reduce((total, row) => total + moneyValue(row.points), 0)),
         recentShares: (recentShares ?? []) as Share[],
         bonuses: releasedBonuses as Bonus[],
       });
@@ -314,7 +319,7 @@ function JourneyCard({ points, nextPrize }: { points: number; nextPrize: ReturnT
       </div>
 
       <div className="mt-5 grid gap-3 md:grid-cols-2">
-        <PrizeCard title="iPhone 15" points="10.000 pontos" available />
+        <PrizeCard title="iPhone" points="10.000 pontos" available />
         <PrizeCard title="Viagem dos sonhos" points="30.000 pontos" />
       </div>
     </Card>

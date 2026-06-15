@@ -4,7 +4,7 @@ import { createFileRoute, Outlet, Link, useNavigate, useLocation } from "@tansta
 import { useEffect } from "react";
 import { useAuth } from "@/lib/supabase/auth";
 import { Button } from "@/components/ui/button";
-import { LogOut, Users, Megaphone, CheckSquare, Package, ShieldAlert, ShieldCheck, Bug, Send, DollarSign, Lock, RefreshCw } from "lucide-react";
+import { LogOut, Users, Megaphone, CheckSquare, Package, ShieldAlert, ShieldCheck, Bug, Send, DollarSign, Lock, RefreshCw, Trophy } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({ component: AdminLayout });
 
@@ -15,6 +15,7 @@ const nav = [
   { to: "/admin/provas", label: "Provas", icon: CheckSquare },
   { to: "/admin/pacotes", label: "Pacotes", icon: Package },
   { to: "/admin/renovacao", label: "Renovação", icon: RefreshCw },
+  { to: "/admin/pontuacao", label: "Pontuação", icon: Trophy },
   { to: "/admin/saques", label: "Saques", icon: Send },
   { to: "/admin/financeiro", label: "Financeiro", icon: DollarSign },
   { to: "/admin/seguranca", label: "Segurança", icon: Lock },

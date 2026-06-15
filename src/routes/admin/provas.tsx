@@ -73,7 +73,14 @@ function AdminProvas() {
               <div className="text-xs text-muted-foreground">por {s.profile?.nome} (@{s.profile?.instagram})</div>
               <div className="text-xs text-muted-foreground mt-1 break-all">{s.shared_link}</div>
               {s.instagram_usado && <div className="text-xs">Insta usado: @{s.instagram_usado}</div>}
-              <Badge variant="outline" className="mt-2">{s.status}</Badge>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <Badge variant="outline">{s.status}</Badge>
+                {s.validation_status === "suspeito" && (
+                  <Badge className="border-destructive/30 bg-destructive/15 text-destructive hover:bg-destructive/15">
+                    Suspeito: {s.validation_reason}
+                  </Badge>
+                )}
+              </div>
             </div>
             <div className="flex flex-col gap-2 w-full md:w-72">
               <Input placeholder="Motivo da rejeição" value={motivos[s.id] || ""} onChange={(e) => setMotivos({...motivos, [s.id]: e.target.value})} />

@@ -2,10 +2,8 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const STORY_RE = /instagram\.com\/(stories|s)\//i;
-const FEED_RE  = /instagram\.com\/(p|reel|tv)\//i;
 
 function isStoryLink(url: string): boolean { return STORY_RE.test(url); }
-function isFeedLink(url: string): boolean  { return FEED_RE.test(url); }
 
 async function checkLink(url: string): Promise<{ status: string; detail: string }> {
   try {
@@ -60,19 +58,13 @@ Deno.serve(async (_req: Request) => {
     if (!url) {
       validateStatus = "check_failed";
       detail = "Sem URL";
-    } else if (isStoryLink(url)) {
-      // Stories expire naturally in 24h — require manual proof review
-      validateStatus = "story_manual";
-      detail = "Story: validação manual pelo print obrigatória";
-    } else if (isFeedLink(url)) {
-      const r = await checkLink(url);
-      validateStatus = r.status;
-      detail = r.detail;
     } else {
-      // Other platforms (Twitter/X, TikTok etc.) — attempt HTTP check
+      // Feed, Reels, Stories (checked at 23h — still within 24h window),
+      // and other platforms: all verified via HTTP GET.
+      // Stories at 23h are still live if user kept them; 404 = removed early.
       const r = await checkLink(url);
       validateStatus = r.status;
-      detail = r.detail;
+      detail = r.detail + (isStoryLink(url) ? " (story)" : "");
     }
 
     const checkedAt = new Date().toISOString();

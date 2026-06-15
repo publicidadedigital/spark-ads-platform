@@ -24,6 +24,7 @@ import { Route as LegalRenovacaoRouteImport } from './routes/legal/renovacao'
 import { Route as LegalPrivacidadeRouteImport } from './routes/legal/privacidade'
 import { Route as LegalBonificacaoRouteImport } from './routes/legal/bonificacao'
 import { Route as LegalAntifraudeRouteImport } from './routes/legal/antifraude'
+import { Route as AppSegurancaRouteImport } from './routes/app/seguranca'
 import { Route as AppRenovacaoRouteImport } from './routes/app/renovacao'
 import { Route as AppRedeRouteImport } from './routes/app/rede'
 import { Route as AppExtratoRouteImport } from './routes/app/extrato'
@@ -121,6 +122,11 @@ const LegalAntifraudeRoute = LegalAntifraudeRouteImport.update({
   id: '/antifraude',
   path: '/antifraude',
   getParentRoute: () => LegalRoute,
+} as any)
+const AppSegurancaRoute = AppSegurancaRouteImport.update({
+  id: '/seguranca',
+  path: '/seguranca',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppRenovacaoRoute = AppRenovacaoRouteImport.update({
   id: '/renovacao',
@@ -261,6 +267,7 @@ export interface FileRoutesByFullPath {
   '/app/extrato': typeof AppExtratoRoute
   '/app/rede': typeof AppRedeRoute
   '/app/renovacao': typeof AppRenovacaoRoute
+  '/app/seguranca': typeof AppSegurancaRoute
   '/legal/antifraude': typeof LegalAntifraudeRoute
   '/legal/bonificacao': typeof LegalBonificacaoRoute
   '/legal/privacidade': typeof LegalPrivacidadeRoute
@@ -298,6 +305,7 @@ export interface FileRoutesByTo {
   '/app/extrato': typeof AppExtratoRoute
   '/app/rede': typeof AppRedeRoute
   '/app/renovacao': typeof AppRenovacaoRoute
+  '/app/seguranca': typeof AppSegurancaRoute
   '/legal/antifraude': typeof LegalAntifraudeRoute
   '/legal/bonificacao': typeof LegalBonificacaoRoute
   '/legal/privacidade': typeof LegalPrivacidadeRoute
@@ -338,6 +346,7 @@ export interface FileRoutesById {
   '/app/extrato': typeof AppExtratoRoute
   '/app/rede': typeof AppRedeRoute
   '/app/renovacao': typeof AppRenovacaoRoute
+  '/app/seguranca': typeof AppSegurancaRoute
   '/legal/antifraude': typeof LegalAntifraudeRoute
   '/legal/bonificacao': typeof LegalBonificacaoRoute
   '/legal/privacidade': typeof LegalPrivacidadeRoute
@@ -379,6 +388,7 @@ export interface FileRouteTypes {
     | '/app/extrato'
     | '/app/rede'
     | '/app/renovacao'
+    | '/app/seguranca'
     | '/legal/antifraude'
     | '/legal/bonificacao'
     | '/legal/privacidade'
@@ -416,6 +426,7 @@ export interface FileRouteTypes {
     | '/app/extrato'
     | '/app/rede'
     | '/app/renovacao'
+    | '/app/seguranca'
     | '/legal/antifraude'
     | '/legal/bonificacao'
     | '/legal/privacidade'
@@ -455,6 +466,7 @@ export interface FileRouteTypes {
     | '/app/extrato'
     | '/app/rede'
     | '/app/renovacao'
+    | '/app/seguranca'
     | '/legal/antifraude'
     | '/legal/bonificacao'
     | '/legal/privacidade'
@@ -595,6 +607,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/legal/antifraude'
       preLoaderRoute: typeof LegalAntifraudeRouteImport
       parentRoute: typeof LegalRoute
+    }
+    '/app/seguranca': {
+      id: '/app/seguranca'
+      path: '/seguranca'
+      fullPath: '/app/seguranca'
+      preLoaderRoute: typeof AppSegurancaRouteImport
+      parentRoute: typeof AppRoute
     }
     '/app/renovacao': {
       id: '/app/renovacao'
@@ -788,6 +807,7 @@ interface AppRouteChildren {
   AppExtratoRoute: typeof AppExtratoRoute
   AppRedeRoute: typeof AppRedeRoute
   AppRenovacaoRoute: typeof AppRenovacaoRoute
+  AppSegurancaRoute: typeof AppSegurancaRoute
   AppIndexRoute: typeof AppIndexRoute
   AppCheckoutPackageIdRoute: typeof AppCheckoutPackageIdRoute
 }
@@ -797,6 +817,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppExtratoRoute: AppExtratoRoute,
   AppRedeRoute: AppRedeRoute,
   AppRenovacaoRoute: AppRenovacaoRoute,
+  AppSegurancaRoute: AppSegurancaRoute,
   AppIndexRoute: AppIndexRoute,
   AppCheckoutPackageIdRoute: AppCheckoutPackageIdRoute,
 }

@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { TwoFactorSetup } from "@/components/TwoFactorSetup";
 import { useAuth } from "@/lib/supabase/auth";
 import { createFileRoute } from "@tanstack/react-router";
 import { RefreshCcw, ShieldAlert, KeyRound, Flag } from "lucide-react";
@@ -74,6 +75,8 @@ function AdminSeguranca() {
         </div>
         <Button variant="outline" onClick={load} disabled={loading}><RefreshCcw className="mr-2 h-4 w-4" />Atualizar</Button>
       </div>
+
+      <TwoFactorSetup />
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>

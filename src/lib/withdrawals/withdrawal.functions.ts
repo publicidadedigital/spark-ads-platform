@@ -2,8 +2,13 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { MAX_WITHDRAWAL_USD, MIN_WITHDRAWAL_USD, isWithdrawalAmountAllowed, isWithdrawalProcessingDay } from "@/lib/business/rules";
 import { getAdminClient } from "@/lib/supabase/admin.server";
+import { verifyTwoFactorCode } from "@/lib/security/totp.server";
 
 const MethodSchema = z.enum(["pix", "crypto"]);
+
+function onlyDigits(value: string) {
+  return value.replace(/\D/g, "");
+}
 
 async function requireProfile(accessToken: string) {
   const admin = getAdminClient();
@@ -12,14 +17,14 @@ async function requireProfile(accessToken: string) {
 
   const { data: profile, error } = await admin
     .from("users_profile")
-    .select("id, auth_user_id")
+    .select("id, auth_user_id, cpf")
     .eq("auth_user_id", userRes.user.id)
     .maybeSingle();
 
   if (error) throw new Error(error.message);
   if (!profile) throw new Error("Perfil nao encontrado");
 
-  return { authUserId: userRes.user.id, profileId: profile.id };
+  return { authUserId: userRes.user.id, profileId: profile.id, document: profile.cpf as string | null };
 }
 
 async function requireAdmin(accessToken: string) {
@@ -27,15 +32,14 @@ async function requireAdmin(accessToken: string) {
   const { data: userRes, error: userErr } = await admin.auth.getUser(accessToken);
   if (userErr || !userRes?.user) throw new Error("Sessao invalida");
 
-  const { data: role, error } = await admin
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", userRes.user.id)
-    .eq("role", "admin")
-    .maybeSingle();
+  const [{ data: legacyRole, error: legacyErr }, { data: modernRole, error: modernErr }] = await Promise.all([
+    admin.from("user_roles").select("role").eq("user_id", userRes.user.id).in("role", ["admin", "super_admin"]).maybeSingle(),
+    admin.from("admin_roles").select("status").eq("auth_user_id", userRes.user.id).eq("status", "ativo").maybeSingle(),
+  ]);
 
-  if (error) throw new Error(error.message);
-  if (!role) throw new Error("Acesso administrativo necessario");
+  if (legacyErr) throw new Error(legacyErr.message);
+  if (modernErr) throw new Error(modernErr.message);
+  if (!legacyRole && !modernRole) throw new Error("Acesso administrativo necessario");
 
   return userRes.user.id;
 }
@@ -63,11 +67,19 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
       method: MethodSchema,
       destinationKey: z.string().min(3),
       destinationHolder: z.string().optional(),
+      destinationDocument: z.string().min(3),
+      totpCode: z.string().min(6).max(6),
     }).parse(input),
   )
   .handler(async ({ data }) => {
     const admin = getAdminClient();
-    const { profileId } = await requireProfile(data.accessToken);
+    const { authUserId, profileId, document } = await requireProfile(data.accessToken);
+
+    await verifyTwoFactorCode(authUserId, data.totpCode);
+
+    if (!document || onlyDigits(document) !== onlyDigits(data.destinationDocument)) {
+      throw new Error("O saque só pode ser realizado para o CPF cadastrado na sua conta.");
+    }
 
     if (!isWithdrawalAmountAllowed(data.amountUsd)) {
       throw new Error(`Saque permitido somente entre US$ ${MIN_WITHDRAWAL_USD} e US$ ${MAX_WITHDRAWAL_USD}.`);
@@ -89,6 +101,7 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
         method: data.method,
         destination_key: data.destinationKey,
         destination_holder: data.destinationHolder ?? null,
+        destination_document: data.destinationDocument,
         status: "solicitado",
         requested_processing_day: requestedProcessingDay,
       })
@@ -115,11 +128,13 @@ export const reviewWithdrawal = createServerFn({ method: "POST" })
       withdrawalId: z.string().uuid(),
       action: z.enum(["approve", "reject"]),
       notes: z.string().optional(),
+      totpCode: z.string().min(6).max(6),
     }).parse(input),
   )
   .handler(async ({ data }) => {
     const admin = getAdminClient();
     const adminUserId = await requireAdmin(data.accessToken);
+    await verifyTwoFactorCode(adminUserId, data.totpCode);
     const status = data.action === "approve" ? "aprovado" : "recusado";
 
     const { error } = await admin
@@ -145,11 +160,13 @@ export const markWithdrawalPaid = createServerFn({ method: "POST" })
       providerReference: z.string().optional(),
       notes: z.string().optional(),
       forceOutsideProcessingDay: z.boolean().optional(),
+      totpCode: z.string().min(6).max(6),
     }).parse(input),
   )
   .handler(async ({ data }) => {
     const admin = getAdminClient();
     const adminUserId = await requireAdmin(data.accessToken);
+    await verifyTwoFactorCode(adminUserId, data.totpCode);
 
     if (!data.forceOutsideProcessingDay && !isWithdrawalProcessingDay()) {
       throw new Error("Saques so podem ser disparados nos dias 15 e 30, salvo liberacao administrativa forçada.");
@@ -196,11 +213,13 @@ export const markApprovedWithdrawalsPaidBatch = createServerFn({ method: "POST" 
       accessToken: z.string().min(10),
       forceOutsideProcessingDay: z.boolean().optional(),
       notes: z.string().optional(),
+      totpCode: z.string().min(6).max(6),
     }).parse(input),
   )
   .handler(async ({ data }) => {
     const admin = getAdminClient();
     const adminUserId = await requireAdmin(data.accessToken);
+    await verifyTwoFactorCode(adminUserId, data.totpCode);
 
     if (!data.forceOutsideProcessingDay && !isWithdrawalProcessingDay()) {
       throw new Error("Disparo em massa permitido somente nos dias 15 e 30, salvo liberacao administrativa forçada.");

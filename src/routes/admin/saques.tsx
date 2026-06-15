@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { MAX_WITHDRAWAL_USD, MIN_WITHDRAWAL_USD, isWithdrawalProcessingDay } from "@/lib/business/rules";
 import { useAuth } from "@/lib/supabase/auth";
 import { markApprovedWithdrawalsPaidBatch, markWithdrawalPaid, reviewWithdrawal } from "@/lib/withdrawals/withdrawal.functions";
-import { getTwoFactorStatus } from "@/lib/security/totp.server";
+import { getTwoFactorStatus } from "@/lib/security/totp.functions";
 import { TwoFactorReminderBanner } from "@/components/TwoFactorSetup";
 import { createFileRoute } from "@tanstack/react-router";
 import { CheckCircle2, RefreshCcw, Send, XCircle } from "lucide-react";

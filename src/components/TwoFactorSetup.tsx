@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { confirmTwoFactor, disableTwoFactor, getTwoFactorStatus, setupTwoFactor } from "@/lib/security/totp.server";
+import { confirmTwoFactor, disableTwoFactor, getTwoFactorStatus, setupTwoFactor } from "@/lib/security/totp.functions";
 import { toast } from "sonner";
 import { ShieldCheck, ShieldOff } from "lucide-react";
 

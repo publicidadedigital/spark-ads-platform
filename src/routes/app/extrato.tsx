@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { requestWithdrawal } from "@/lib/withdrawals/withdrawal.functions";
-import { getTwoFactorStatus } from "@/lib/security/totp.server";
+import { getTwoFactorStatus } from "@/lib/security/totp.functions";
 import { TwoFactorReminderBanner } from "@/components/TwoFactorSetup";
 import {
   Area,

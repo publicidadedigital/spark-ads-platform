@@ -123,6 +123,20 @@ function CheckoutPage() {
         </RadioGroup>
       </Card>
 
+      {pkg.cakto_checkout_url && (
+        <Card className="p-6 bg-card/50 border-border/50 space-y-3">
+          <div>
+            <h3 className="font-semibold">Pagar via Cakto (cartão, boleto ou Pix)</h3>
+            <p className="text-sm text-muted-foreground">
+              Abra a página de pagamento da Cakto para este pacote. Após a confirmação, sua equipe receberá o pagamento e seu ciclo será ativado.
+            </p>
+          </div>
+          <Button variant="outline" className="border-primary/40 bg-primary/10 text-primary" onClick={() => window.open(pkg.cakto_checkout_url, "_blank", "noopener,noreferrer")}>
+            <ExternalLink className="h-4 w-4 mr-2" /> Abrir pagamento Cakto
+          </Button>
+        </Card>
+      )}
+
       {checkoutResult?.redirectUrl && (
         <Card className="space-y-4 p-6 bg-card/50 border-primary/30">
           <div>

@@ -33,6 +33,8 @@ import { Route as AdminCampanhasRouteImport } from './routes/admin/campanhas'
 import { Route as AdminAdminsRouteImport } from './routes/admin/admins'
 import { Route as AppCheckoutPackageIdRouteImport } from './routes/app/checkout.$packageId'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments-webhook'
+import { Route as ApiPublicEmailConfirmationSendRouteImport } from './routes/api/public/email-confirmation/send'
+import { Route as ApiPublicEmailConfirmationConfirmRouteImport } from './routes/api/public/email-confirmation/confirm'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -155,6 +157,18 @@ const ApiPublicPaymentsWebhookRoute =
     path: '/api/public/payments-webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicEmailConfirmationSendRoute =
+  ApiPublicEmailConfirmationSendRouteImport.update({
+    id: '/api/public/email-confirmation/send',
+    path: '/api/public/email-confirmation/send',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicEmailConfirmationConfirmRoute =
+  ApiPublicEmailConfirmationConfirmRouteImport.update({
+    id: '/api/public/email-confirmation/confirm',
+    path: '/api/public/email-confirmation/confirm',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -181,6 +195,8 @@ export interface FileRoutesByFullPath {
   '/app/': typeof AppIndexRoute
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
   '/app/checkout/$packageId': typeof AppCheckoutPackageIdRoute
+  '/api/public/email-confirmation/confirm': typeof ApiPublicEmailConfirmationConfirmRoute
+  '/api/public/email-confirmation/send': typeof ApiPublicEmailConfirmationSendRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -205,6 +221,8 @@ export interface FileRoutesByTo {
   '/app': typeof AppIndexRoute
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
   '/app/checkout/$packageId': typeof AppCheckoutPackageIdRoute
+  '/api/public/email-confirmation/confirm': typeof ApiPublicEmailConfirmationConfirmRoute
+  '/api/public/email-confirmation/send': typeof ApiPublicEmailConfirmationSendRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -232,6 +250,8 @@ export interface FileRoutesById {
   '/app/': typeof AppIndexRoute
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
   '/app/checkout/$packageId': typeof AppCheckoutPackageIdRoute
+  '/api/public/email-confirmation/confirm': typeof ApiPublicEmailConfirmationConfirmRoute
+  '/api/public/email-confirmation/send': typeof ApiPublicEmailConfirmationSendRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -260,6 +280,8 @@ export interface FileRouteTypes {
     | '/app/'
     | '/api/public/payments-webhook'
     | '/app/checkout/$packageId'
+    | '/api/public/email-confirmation/confirm'
+    | '/api/public/email-confirmation/send'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -284,6 +306,8 @@ export interface FileRouteTypes {
     | '/app'
     | '/api/public/payments-webhook'
     | '/app/checkout/$packageId'
+    | '/api/public/email-confirmation/confirm'
+    | '/api/public/email-confirmation/send'
   id:
     | '__root__'
     | '/'
@@ -310,6 +334,8 @@ export interface FileRouteTypes {
     | '/app/'
     | '/api/public/payments-webhook'
     | '/app/checkout/$packageId'
+    | '/api/public/email-confirmation/confirm'
+    | '/api/public/email-confirmation/send'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -321,6 +347,8 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ApiConfigRoute: typeof ApiConfigRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
+  ApiPublicEmailConfirmationConfirmRoute: typeof ApiPublicEmailConfirmationConfirmRoute
+  ApiPublicEmailConfirmationSendRoute: typeof ApiPublicEmailConfirmationSendRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -493,6 +521,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/email-confirmation/send': {
+      id: '/api/public/email-confirmation/send'
+      path: '/api/public/email-confirmation/send'
+      fullPath: '/api/public/email-confirmation/send'
+      preLoaderRoute: typeof ApiPublicEmailConfirmationSendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/email-confirmation/confirm': {
+      id: '/api/public/email-confirmation/confirm'
+      path: '/api/public/email-confirmation/confirm'
+      fullPath: '/api/public/email-confirmation/confirm'
+      preLoaderRoute: typeof ApiPublicEmailConfirmationConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -561,7 +603,20 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ApiConfigRoute: ApiConfigRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
+  ApiPublicEmailConfirmationConfirmRoute:
+    ApiPublicEmailConfirmationConfirmRoute,
+  ApiPublicEmailConfirmationSendRoute: ApiPublicEmailConfirmationSendRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

@@ -9,11 +9,20 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { fetchAddressByCep, isValidBrazilianPhone, isValidCNPJ, isValidCPF } from "@/lib/validators/br-documents";
+import { translateAuthError } from "@/lib/supabase/auth-errors";
+
+export const PASSWORD_HINT = "Minimo 8 caracteres, com letra maiuscula, letra minuscula, numero e um caractere especial (ex: ! @ # $ % & *).";
 
 const commonSchema = {
   email: z.string().trim().email().max(255),
   telefone: z.string().trim().min(10).max(20),
-  password: z.string().min(8, "Minimo 8 caracteres").max(72),
+  password: z.string()
+    .min(8, "A senha precisa ter no minimo 8 caracteres.")
+    .max(72)
+    .regex(/[A-Z]/, PASSWORD_HINT)
+    .regex(/[a-z]/, PASSWORD_HINT)
+    .regex(/[0-9]/, PASSWORD_HINT)
+    .regex(/[^A-Za-z0-9]/, PASSWORD_HINT),
 };
 
 const personSchema = z.object({
@@ -183,7 +192,7 @@ function CadastroPage() {
       if (/already registered|already exists|already been registered/i.test(error.message)) {
         return toast.error("E-mail ja cadastrado");
       }
-      return toast.error(error.message);
+      return toast.error(translateAuthError(error.message));
     }
 
     try {
@@ -207,6 +216,9 @@ function CadastroPage() {
     <div>
       <Label>{label}</Label>
       <Input value={form[key]} onChange={(event) => set(key, event.target.value)} required {...props} />
+      {key === "password" && (
+        <p className="mt-1 text-xs text-muted-foreground">{PASSWORD_HINT}</p>
+      )}
     </div>
   );
 

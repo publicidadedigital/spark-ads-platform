@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
+import { translateAuthError } from "@/lib/supabase/auth-errors";
 
 export const Route = createFileRoute("/login")({
   validateSearch: (s) => ({
@@ -46,7 +47,7 @@ function LoginPage() {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setLoading(false);
-      return toast.error(error.message);
+      return toast.error(translateAuthError(error.message));
     }
 
     const authUserId = data.user?.id;

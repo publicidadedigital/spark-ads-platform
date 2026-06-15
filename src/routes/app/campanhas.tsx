@@ -479,6 +479,9 @@ function AdvertiserShareDialog({ campaign, profileId, cycleId, onSubmitted, chil
           <div>
             <Label>Link do post compartilhado *</Label>
             <Input value={link} onChange={(e) => setLink(e.target.value)} placeholder="https://instagram.com/p/..." />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Link deve ser do Instagram ou X/Twitter e ainda nao pode ter sido usado em outro envio.
+            </p>
           </div>
           <div>
             <Label>Instagram usado</Label>
@@ -605,6 +608,9 @@ function ShareDialog({ campaign, profileId, cycleId, onSubmitted, children }: {
           <div>
             <Label>Link do post compartilhado *</Label>
             <Input value={link} onChange={(e) => setLink(e.target.value)} placeholder="https://instagram.com/p/..." />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Link deve ser do Instagram ou X/Twitter e ainda nao pode ter sido usado em outro envio.
+            </p>
           </div>
           <div>
             <Label>Instagram usado</Label>

@@ -248,7 +248,7 @@ function ExtratoPage() {
                   </defs>
                   <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="4 4" vertical={false} opacity={0.45} />
                   <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
-                  <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => `R$ ${Number(value) / 1000}k`} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
+                  <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => `$ ${Number(value) / 1000}k`} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
                   <Tooltip
                     contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
                     formatter={(value: any) => formatMoney(Number(value))}
@@ -597,7 +597,7 @@ function moneyValue(value: number | string | null | undefined) {
 }
 
 function formatMoney(value: number) {
-  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  return value.toLocaleString("en-US", { style: "currency", currency: "USD" });
 }
 
 function formatDateTime(value: string) {

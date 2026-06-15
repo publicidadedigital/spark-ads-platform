@@ -255,10 +255,10 @@ function Testimonials() {
 
 function Plans() {
   const items = [
-    { n: "Start", v: "R$ 300", diario: "R$ 0,78", desc: "Comece a divulgar e ganhar." },
-    { n: "Plus", v: "R$ 600", diario: "R$ 1,56", desc: "Mais bonificação por ciclo." },
-    { n: "Pro", v: "R$ 1.200", diario: "R$ 3,12", desc: "Retorno acelerado por compartilhamento." },
-    { n: "Elite", v: "R$ 5.000", diario: "R$ 13,00", desc: "Máximo potencial de ganhos." },
+    { n: "Start", v: "$ 300", diario: "$ 0.78", desc: "Comece a divulgar e ganhar." },
+    { n: "Plus", v: "$ 600", diario: "$ 1.56", desc: "Mais bonificação por ciclo." },
+    { n: "Pro", v: "$ 1,200", diario: "$ 3.12", desc: "Retorno acelerado por compartilhamento." },
+    { n: "Elite", v: "$ 5,000", diario: "$ 13.00", desc: "Máximo potencial de ganhos." },
   ];
   return (
     <section id="planos" className="container mx-auto px-4 py-20">

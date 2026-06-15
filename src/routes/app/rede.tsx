@@ -196,7 +196,7 @@ function RedePage() {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <MetricCard icon={Users} label="Equipe total" value={totalCount.toString()} sub="pessoas" />
-        <MetricCard icon={Sparkles} label="Bônus gerado" value={`R$ ${bonusTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} sub="total liberado" />
+        <MetricCard icon={Sparkles} label="Bônus gerado" value={`$ ${bonusTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}`} sub="total liberado" />
         <MetricCard icon={User} label="Diretos" value={directCount.toString()} sub="pessoas" />
         <MetricCard icon={Star} label="Maior nível alcançado" value={highestLevel ? `Nível ${highestLevel}` : "Nível 0"} sub="na sua rede" />
         <MetricCard icon={TrendingUp} label="Crescimento semanal" value={`+${countRecent(members, 7)}`} sub="novos membros" />

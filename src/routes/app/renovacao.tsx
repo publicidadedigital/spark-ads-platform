@@ -51,11 +51,18 @@ function RenovacaoPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [cycle, setCycle] = useState<Cycle | null>(null);
   const [packages, setPackages] = useState<PackageRow[]>([]);
+  const [cycleSettings, setCycleSettings] = useState({ cycle_duration_days: 90, cycle_goal_percent: 200 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!supabase || !user) return;
     (async () => {
+      const { data: rs } = await supabase
+        .from("renewal_settings")
+        .select("cycle_duration_days,cycle_goal_percent")
+        .maybeSingle();
+      if (rs) setCycleSettings(rs);
+
       const { data: prof } = await supabase
         .from("users_profile")
         .select("id,nome,status,pacote_ativo_id")
@@ -95,17 +102,19 @@ function RenovacaoPage() {
 
   if (loading) return <p className="text-muted-foreground">Carregando renovação...</p>;
 
+  const cycleGoalPercent = Number(cycleSettings.cycle_goal_percent) || 200;
+  const cycleDurationDays = Number(cycleSettings.cycle_duration_days) || 90;
   const cyclePercentRaw = Number(cycle?.percentual_atual ?? 0);
-  const cycleProgress = Math.min(100, Math.max(0, Math.round(cyclePercentRaw / 2)));
+  const cycleProgress = Math.min(100, Math.max(0, Math.round((cyclePercentRaw / cycleGoalPercent) * 100)));
   const currentValue = moneyValue(currentPackage?.valor);
-  const cycleGoal = currentValue * 2;
+  const cycleGoal = currentValue * (cycleGoalPercent / 100);
   const cycleTotal = Number(cycle?.saldo_bonificacoes ?? 0);
   const missingValue = Math.max(0, cycleGoal - cycleTotal);
   const startedAt = cycle?.started_at ? new Date(cycle.started_at) : null;
-  const validUntil = addDays(startedAt ?? new Date(), 90);
+  const validUntil = addDays(startedAt ?? new Date(), cycleDurationDays);
   const daysLeft = Math.max(1, Math.ceil((validUntil.getTime() - Date.now()) / 86400000));
   const dailyAverage = daysLeft ? missingValue / daysLeft : 0;
-  const canRenew = !cycle || cyclePercentRaw >= 200 || cycle.status === "concluido";
+  const canRenew = !cycle || cyclePercentRaw >= cycleGoalPercent || cycle.status === "concluido";
   const upgradePackage = packages.find((pkg) => moneyValue(pkg.valor) > currentValue) ?? packages[packages.length - 1] ?? currentPackage;
 
   return (
@@ -169,7 +178,7 @@ function RenovacaoPage() {
                 </div>
                 <div className="mt-4 flex justify-between text-sm">
                   <span>0%</span>
-                  <span>200%</span>
+                  <span>{cycleGoalPercent}%</span>
                 </div>
               </div>
 
@@ -243,6 +252,7 @@ function RenovacaoPage() {
                   pkg={pkg}
                   index={index}
                   current={pkg.id === currentPackage?.id}
+                  goalPercent={cycleGoalPercent}
                   onChoose={() => escolher(pkg)}
                 />
               ))}
@@ -252,7 +262,7 @@ function RenovacaoPage() {
 
         <aside className="space-y-4">
           <BenefitsCard />
-          <HistoryCard currentPackage={currentPackage} cycle={cycle} progress={cycleProgress} />
+          <HistoryCard currentPackage={currentPackage} cycle={cycle} progress={cycleProgress} cycleDurationDays={cycleDurationDays} />
           <HelpCard />
         </aside>
       </div>
@@ -328,7 +338,7 @@ function ActionCard({
   );
 }
 
-function PackageCard({ pkg, index, current, onChoose }: { pkg: PackageRow; index: number; current: boolean; onChoose: () => void }) {
+function PackageCard({ pkg, index, current, goalPercent, onChoose }: { pkg: PackageRow; index: number; current: boolean; goalPercent: number; onChoose: () => void }) {
   const value = moneyValue(pkg.valor);
   const tones = ["gray", "blue", "violet", "gold"] as const;
   return (
@@ -341,8 +351,8 @@ function PackageCard({ pkg, index, current, onChoose }: { pkg: PackageRow; index
             {current && <Badge className="bg-primary/20 text-primary hover:bg-primary/20">Atual</Badge>}
           </div>
           <p className="mt-1 text-xl font-bold">{formatMoney(value)}</p>
-          <p className="mt-2 text-sm text-muted-foreground">Retorno máximo: {formatMoney(value * 2)}</p>
-          <p className="text-sm text-muted-foreground">200% de meta</p>
+          <p className="mt-2 text-sm text-muted-foreground">Retorno máximo: {formatMoney(value * (goalPercent / 100))}</p>
+          <p className="text-sm text-muted-foreground">{goalPercent}% de meta</p>
         </div>
       </div>
       <div className="mt-4 border-t border-border/45 pt-3 text-sm text-muted-foreground">
@@ -382,9 +392,9 @@ function BenefitsCard() {
   );
 }
 
-function HistoryCard({ currentPackage, cycle, progress }: { currentPackage: PackageRow | null; cycle: Cycle | null; progress: number }) {
+function HistoryCard({ currentPackage, cycle, progress, cycleDurationDays }: { currentPackage: PackageRow | null; cycle: Cycle | null; progress: number; cycleDurationDays: number }) {
   const rows = [
-    { name: currentPackage?.nome ?? "Starter Plus", date: cycle?.started_at ? `${formatDate(new Date(cycle.started_at))} a ${formatDate(addDays(new Date(cycle.started_at), 90))}` : "Ciclo atual", progress },
+    { name: currentPackage?.nome ?? "Starter Plus", date: cycle?.started_at ? `${formatDate(new Date(cycle.started_at))} a ${formatDate(addDays(new Date(cycle.started_at), cycleDurationDays))}` : "Ciclo atual", progress },
     { name: "Starter Plus", date: "22/12/2023 a 22/03/2024", progress: 200 },
     { name: "Starter", date: "22/09/2023 a 22/12/2023", progress: 200 },
     { name: "Starter", date: "22/06/2023 a 22/09/2023", progress: 200 },

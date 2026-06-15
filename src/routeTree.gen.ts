@@ -31,6 +31,7 @@ import { Route as AppCampanhasRouteImport } from './routes/app/campanhas'
 import { Route as ApiConfigRouteImport } from './routes/api/config'
 import { Route as AdminSegurancaRouteImport } from './routes/admin/seguranca'
 import { Route as AdminSaquesRouteImport } from './routes/admin/saques'
+import { Route as AdminRenovacaoRouteImport } from './routes/admin/renovacao'
 import { Route as AdminProvasRouteImport } from './routes/admin/provas'
 import { Route as AdminPacotesRouteImport } from './routes/admin/pacotes'
 import { Route as AdminLogsRouteImport } from './routes/admin/logs'
@@ -156,6 +157,11 @@ const AdminSaquesRoute = AdminSaquesRouteImport.update({
   path: '/saques',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminRenovacaoRoute = AdminRenovacaoRouteImport.update({
+  id: '/renovacao',
+  path: '/renovacao',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminProvasRoute = AdminProvasRouteImport.update({
   id: '/provas',
   path: '/provas',
@@ -247,6 +253,7 @@ export interface FileRoutesByFullPath {
   '/admin/logs': typeof AdminLogsRoute
   '/admin/pacotes': typeof AdminPacotesRoute
   '/admin/provas': typeof AdminProvasRoute
+  '/admin/renovacao': typeof AdminRenovacaoRoute
   '/admin/saques': typeof AdminSaquesRoute
   '/admin/seguranca': typeof AdminSegurancaRoute
   '/api/config': typeof ApiConfigRoute
@@ -283,6 +290,7 @@ export interface FileRoutesByTo {
   '/admin/logs': typeof AdminLogsRoute
   '/admin/pacotes': typeof AdminPacotesRoute
   '/admin/provas': typeof AdminProvasRoute
+  '/admin/renovacao': typeof AdminRenovacaoRoute
   '/admin/saques': typeof AdminSaquesRoute
   '/admin/seguranca': typeof AdminSegurancaRoute
   '/api/config': typeof ApiConfigRoute
@@ -322,6 +330,7 @@ export interface FileRoutesById {
   '/admin/logs': typeof AdminLogsRoute
   '/admin/pacotes': typeof AdminPacotesRoute
   '/admin/provas': typeof AdminProvasRoute
+  '/admin/renovacao': typeof AdminRenovacaoRoute
   '/admin/saques': typeof AdminSaquesRoute
   '/admin/seguranca': typeof AdminSegurancaRoute
   '/api/config': typeof ApiConfigRoute
@@ -362,6 +371,7 @@ export interface FileRouteTypes {
     | '/admin/logs'
     | '/admin/pacotes'
     | '/admin/provas'
+    | '/admin/renovacao'
     | '/admin/saques'
     | '/admin/seguranca'
     | '/api/config'
@@ -398,6 +408,7 @@ export interface FileRouteTypes {
     | '/admin/logs'
     | '/admin/pacotes'
     | '/admin/provas'
+    | '/admin/renovacao'
     | '/admin/saques'
     | '/admin/seguranca'
     | '/api/config'
@@ -436,6 +447,7 @@ export interface FileRouteTypes {
     | '/admin/logs'
     | '/admin/pacotes'
     | '/admin/provas'
+    | '/admin/renovacao'
     | '/admin/saques'
     | '/admin/seguranca'
     | '/api/config'
@@ -633,6 +645,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSaquesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/renovacao': {
+      id: '/admin/renovacao'
+      path: '/renovacao'
+      fullPath: '/admin/renovacao'
+      preLoaderRoute: typeof AdminRenovacaoRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/provas': {
       id: '/admin/provas'
       path: '/provas'
@@ -742,6 +761,7 @@ interface AdminRouteChildren {
   AdminLogsRoute: typeof AdminLogsRoute
   AdminPacotesRoute: typeof AdminPacotesRoute
   AdminProvasRoute: typeof AdminProvasRoute
+  AdminRenovacaoRoute: typeof AdminRenovacaoRoute
   AdminSaquesRoute: typeof AdminSaquesRoute
   AdminSegurancaRoute: typeof AdminSegurancaRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -755,6 +775,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminLogsRoute: AdminLogsRoute,
   AdminPacotesRoute: AdminPacotesRoute,
   AdminProvasRoute: AdminProvasRoute,
+  AdminRenovacaoRoute: AdminRenovacaoRoute,
   AdminSaquesRoute: AdminSaquesRoute,
   AdminSegurancaRoute: AdminSegurancaRoute,
   AdminIndexRoute: AdminIndexRoute,

@@ -1,4 +1,5 @@
 import { Logo } from "@/components/Logo";
+import { ExchangeRateTicker } from "@/components/ExchangeRateTicker";
 import { createFileRoute, Outlet, Link, useNavigate, useLocation } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useAuth } from "@/lib/supabase/auth";
@@ -63,9 +64,12 @@ function AdminLayout() {
             <span className="text-primary text-xs font-bold tracking-wider">ADMIN</span>
           </Link>
 
-          <Button variant="ghost" size="sm" onClick={() => { signOut(); navigate({ to: "/" }); }}>
-            <LogOut className="h-4 w-4 mr-2" /> Sair
-          </Button>
+          <div className="flex items-center gap-3">
+            <ExchangeRateTicker />
+            <Button variant="ghost" size="sm" onClick={() => { signOut(); navigate({ to: "/" }); }}>
+              <LogOut className="h-4 w-4 mr-2" /> Sair
+            </Button>
+          </div>
         </div>
       </header>
       <div className="container mx-auto px-4 py-6 grid md:grid-cols-[220px_1fr] gap-6">

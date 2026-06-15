@@ -1,4 +1,5 @@
 import { Logo } from "@/components/Logo";
+import { ExchangeRateTicker } from "@/components/ExchangeRateTicker";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -20,7 +21,8 @@ function AdvertiserPage() {
       <header className="border-b border-border/50 bg-background/80 backdrop-blur-md">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/"><Logo className="h-9 w-auto max-w-[155px]" textClassName="text-xl" /></Link>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            <ExchangeRateTicker />
             <Link to="/login"><Button variant="ghost">Entrar</Button></Link>
             <Link to="/cadastro" search={{ tipo: "anunciante", ref: "" }}>
               <Button className="bg-gold-gradient text-primary-foreground">Criar conta PJ</Button>

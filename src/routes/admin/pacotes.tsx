@@ -22,7 +22,7 @@ function AdminPacotes() {
 
   async function load() {
     if (!supabase) return;
-    const { data } = await supabase.from("packages").select("*").order("valor");
+    const { data } = await supabase.from("packages").select("*").eq("status", "ativo").order("valor");
     setItems(data ?? []);
   }
 

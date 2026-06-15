@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { buildPackageAccounting } from "@/lib/business/rules";
 import { toast } from "sonner";
+import { Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/pacotes")({ component: AdminPacotes });
 
@@ -62,6 +63,16 @@ function AdminPacotes() {
     load();
   }
 
+  async function remove(id: string) {
+    if (!supabase) return;
+    if (!window.confirm("Excluir este pacote? Essa acao nao pode ser desfeita.")) return;
+
+    const { error } = await supabase.from("packages").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Pacote excluido");
+    load();
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -92,7 +103,10 @@ function AdminPacotes() {
           const accounting = buildPackageAccounting(Number(p.package_value ?? p.valor));
           return (
             <Card key={p.id} className="p-5 bg-card/50 border-border/50">
-              <div className="text-sm text-muted-foreground">{p.nome}</div>
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">{p.nome}</div>
+                <span className={`text-xs rounded px-2 py-0.5 ${p.status === "ativo" ? "bg-emerald-500/15 text-emerald-400" : "bg-muted text-muted-foreground"}`}>{p.status}</span>
+              </div>
               <div className="text-2xl font-bold gold-text-gradient mt-1">{usd.format(Number(p.total_paid ?? accounting.total_paid))}</div>
               <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
                 <span>Bonificavel</span><strong className="text-foreground">{usd.format(Number(p.bonusable_amount ?? accounting.bonusable_amount))}</strong>
@@ -101,6 +115,11 @@ function AdminPacotes() {
                 <span>Bonus diario</span><strong className="text-foreground">{usd.format(Number(p.daily_bonus ?? accounting.daily_bonus))}</strong>
               </div>
               <p className="text-xs text-muted-foreground mt-3 whitespace-pre-line">{p.descricao}</p>
+              <div className="mt-4 flex justify-end">
+                <Button size="sm" variant="destructive" onClick={() => remove(p.id)}>
+                  <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                </Button>
+              </div>
             </Card>
           );
         })}

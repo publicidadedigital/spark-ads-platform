@@ -82,7 +82,7 @@ set
   amount_counted_for_rewards = coalesce(amount_counted_for_rewards, package_value),
   total_paid = coalesce(total_paid, package_value + course_fee),
   cycle_limit_200 = coalesce(cycle_limit_200, package_value * 2),
-  status_normalized = coalesce(status_normalized, status)
+  status_normalized = coalesce(status_normalized, status::text)
 where package_value is not null;
 
 alter table public.wallet_transactions add column if not exists bonusable_amount numeric(12,2);

@@ -75,16 +75,3 @@ create index if not exists withdrawal_batches_status_idx on public.withdrawal_ba
 
 alter table public.wallet_transactions add column if not exists withdrawal_request_id uuid null;
 alter table public.wallet_transactions add column if not exists payment_order_id uuid null;
-
--- Package correction: Start is US$60 package + US$10 course = US$70 total.
-update public.packages
-set
-  package_value = 60,
-  course_fee = 10,
-  total_paid = 70,
-  bonusable_amount = 60,
-  amount_counted_for_rewards = 60,
-  cycle_limit_200 = 120,
-  daily_bonus = round(60 * 0.0026, 2),
-  valor = 70
-where lower(nome) like '%start%' or valor in (50, 60);

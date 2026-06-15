@@ -27,8 +27,10 @@ function AdminLayout() {
   const loc = useLocation();
 
   useEffect(() => {
-    if (!loading && !session) navigate({ to: "/admin/login" });
-  }, [loading, session, navigate]);
+    if (!loading && !session && loc.pathname !== "/admin/login") navigate({ to: "/admin/login" });
+  }, [loading, session, navigate, loc.pathname]);
+
+  if (loc.pathname === "/admin/login") return <Outlet />;
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Verificando permissoes...</div>;

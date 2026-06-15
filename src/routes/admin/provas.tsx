@@ -7,23 +7,29 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/admin/provas")({ component: AdminProvas });
+export const Route = createFileRoute("/admin/provas")({
+  validateSearch: (s) => ({ campaignId: (s.campaignId as string) || "" }),
+  component: AdminProvas,
+});
 
 function AdminProvas() {
   const { supabase, user } = useAuth();
+  const { campaignId } = Route.useSearch();
   const [items, setItems] = useState<any[]>([]);
   const [motivos, setMotivos] = useState<Record<string,string>>({});
 
   async function load() {
     if (!supabase) return;
-    const { data } = await supabase
+    let query = supabase
       .from("campaign_shares")
       .select("*, profile:user_id(nome, instagram, seguidores_instagram), campaign:campaign_id(titulo), advertiser_campaign:advertiser_campaign_id(title)")
       .eq("status", "pendente")
       .order("created_at", { ascending: false });
+    if (campaignId) query = query.eq("advertiser_campaign_id", campaignId);
+    const { data } = await query;
     setItems(data ?? []);
   }
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [supabase]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [supabase, campaignId]);
 
   async function approve(item: any) {
     if (!supabase) return;
@@ -59,6 +65,17 @@ function AdminProvas() {
     load();
   }
 
+  async function removeFraud(id: string) {
+    if (!supabase) return;
+    const motivo = motivos[id] || "Envio fraudulento";
+    const { error } = await supabase.from("campaign_shares")
+      .update({ status: "removida", motivo_rejeicao: motivo, removed_at: new Date().toISOString(), reviewed_by: user?.id, reviewed_at: new Date().toISOString() })
+      .eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Envio removido por fraude");
+    load();
+  }
+
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">Provas pendentes</h1>
@@ -83,11 +100,14 @@ function AdminProvas() {
               </div>
             </div>
             <div className="flex flex-col gap-2 w-full md:w-72">
-              <Input placeholder="Motivo da rejeição" value={motivos[s.id] || ""} onChange={(e) => setMotivos({...motivos, [s.id]: e.target.value})} />
+              <Input placeholder="Motivo da rejeição / fraude" value={motivos[s.id] || ""} onChange={(e) => setMotivos({...motivos, [s.id]: e.target.value})} />
               <div className="flex gap-2">
                 <Button size="sm" className="flex-1 bg-gold-gradient text-primary-foreground" onClick={() => approve(s)}>Aprovar</Button>
                 <Button size="sm" variant="destructive" className="flex-1" onClick={() => reject(s.id)}>Rejeitar</Button>
               </div>
+              <Button size="sm" variant="outline" className="border-destructive/40 text-destructive hover:bg-destructive/10" onClick={() => removeFraud(s.id)}>
+                Excluir envio fraudulento
+              </Button>
             </div>
           </div>
         </Card>

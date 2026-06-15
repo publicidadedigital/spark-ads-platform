@@ -149,7 +149,7 @@ function RenovacaoPage() {
                 <PackageIcon tone="blue" size="large" />
                 <div>
                   <p className="text-sm text-muted-foreground">Seu pacote atual</p>
-                  <h2 className="text-3xl font-bold text-primary">{currentPackage?.nome ?? "Starter Plus"}</h2>
+                  <h2 className="text-3xl font-bold text-primary">{currentPackage?.nome ?? "Sem pacote ativo"}</h2>
                   <p className="mt-2 text-sm text-muted-foreground">
                     Adquirido em {formatDate(startedAt)}
                   </p>
@@ -201,7 +201,7 @@ function RenovacaoPage() {
 
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             <CycleMetric label="Ganho total do ciclo" value={formatMoney(cycleTotal)} sub={`${cycleProgress}% do objetivo`} />
-            <CycleMetric label="Ganhos diários (média)" value={formatMoney(dailyAverage)} sub="+12% vs ciclo anterior" positive />
+            <CycleMetric label="Ganhos diários (média)" value={formatMoney(dailyAverage)} sub="Media do ciclo atual" />
             <CycleMetric label="Dias restantes" value={`${daysLeft} dias`} sub="Para atingir 200%" />
             <CycleMetric label="Previsão de conclusão" value={formatDate(addDays(new Date(), Math.ceil(missingValue / Math.max(1, dailyAverage))))} sub="Se mantiver o ritmo atual" />
           </div>
@@ -393,12 +393,17 @@ function BenefitsCard() {
 }
 
 function HistoryCard({ currentPackage, cycle, progress, cycleDurationDays }: { currentPackage: PackageRow | null; cycle: Cycle | null; progress: number; cycleDurationDays: number }) {
-  const rows = [
-    { name: currentPackage?.nome ?? "Starter Plus", date: cycle?.started_at ? `${formatDate(new Date(cycle.started_at))} a ${formatDate(addDays(new Date(cycle.started_at), cycleDurationDays))}` : "Ciclo atual", progress },
-    { name: "Starter Plus", date: "22/12/2023 a 22/03/2024", progress: 200 },
-    { name: "Starter", date: "22/09/2023 a 22/12/2023", progress: 200 },
-    { name: "Starter", date: "22/06/2023 a 22/09/2023", progress: 200 },
-  ];
+  const rows = cycle
+    ? [
+        {
+          name: currentPackage?.nome ?? "Ciclo atual",
+          date: cycle.started_at
+            ? `${formatDate(new Date(cycle.started_at))} a ${formatDate(addDays(new Date(cycle.started_at), cycleDurationDays))}`
+            : "Ciclo atual",
+          progress,
+        },
+      ]
+    : [];
   return (
     <Card className="border-primary/15 bg-card/50 p-5">
       <div className="mb-4 flex items-center justify-between gap-3">
@@ -406,6 +411,7 @@ function HistoryCard({ currentPackage, cycle, progress, cycleDurationDays }: { c
         <Button size="sm" variant="outline">Ver todos</Button>
       </div>
       <div className="space-y-3">
+        {rows.length === 0 && <p className="text-sm text-muted-foreground">Nenhum ciclo encontrado ainda.</p>}
         {rows.map((row, index) => (
           <div key={`${row.name}-${index}`} className="flex items-center gap-3 rounded-lg border-b border-border/35 pb-3 last:border-b-0 last:pb-0">
             <PackageIcon tone={index === 0 ? "blue" : "gray"} />

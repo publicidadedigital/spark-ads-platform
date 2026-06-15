@@ -5,6 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { getTwoFactorStatus } from "@/lib/security/totp.functions";
+import { TwoFactorReminderBanner } from "@/components/TwoFactorSetup";
 import {
   Area,
   AreaChart,
@@ -73,10 +75,19 @@ function Dashboard() {
   const { supabase, user } = useAuth();
   const [s, setS] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
 
   useEffect(() => {
     if (!supabase || !user) return;
     (async () => {
+      const { data: session } = await supabase.auth.getSession();
+      const accessToken = session.session?.access_token;
+      if (accessToken) {
+        getTwoFactorStatus({ data: { accessToken } })
+          .then((status) => setTwoFactorEnabled(status.enabled))
+          .catch(() => {});
+      }
+
       const { data: profile } = await supabase
         .from("users_profile")
         .select("id, nome, status, pacote_ativo_id, packages:pacote_ativo_id(nome,valor)")
@@ -126,7 +137,7 @@ function Dashboard() {
       const saldo = Number(cycle?.saldo_bonificacoes ?? 0);
 
       setS({
-        nome: profile.nome || user.email?.split("@")[0] || "Alexandre",
+        nome: profile.nome || user.email?.split("@")[0] || "Membro",
         saldo,
         pacote: profile.packages as any,
         cycle: cycle ? { percentual: Number(cycle.percentual_atual), status: cycle.status } : null,
@@ -155,6 +166,7 @@ function Dashboard() {
 
   return (
     <div className="dashboard-page space-y-4">
+      {!twoFactorEnabled && <TwoFactorReminderBanner to="/app/seguranca" />}
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_290px]">
         <div className="space-y-4">
           <Card className="overflow-hidden border-primary/15 bg-card/50 p-4 md:p-5">
@@ -169,7 +181,6 @@ function Dashboard() {
                 <StatusBadge status={s.status} />
                 <button className="relative flex h-11 w-11 items-center justify-center rounded-full border border-primary/20 bg-background/60 text-muted-foreground">
                   <Bell className="h-5 w-5" />
-                  <span className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">3</span>
                 </button>
               </div>
             </div>
@@ -185,9 +196,9 @@ function Dashboard() {
           <JourneyCard points={s.points} nextPrize={nextPrize} />
 
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <GainCard icon={TrendingUp} label="Ganhos diários" value={s.ganhosDiarios} change="+12% vs ontem" tone="success" />
-            <GainCard icon={Users} label="Ganhos por indicação" value={s.ganhosIndicacao} change="+8% vs ontem" tone="primary" />
-            <GainCard icon={Crown} label="Ganhos de equipe" value={s.ganhosEquipe} change="+15% vs ontem" tone="warning" />
+            <GainCard icon={TrendingUp} label="Ganhos diários" value={s.ganhosDiarios} tone="success" />
+            <GainCard icon={Users} label="Ganhos por indicação" value={s.ganhosIndicacao} tone="primary" />
+            <GainCard icon={Crown} label="Ganhos de equipe" value={s.ganhosEquipe} tone="warning" />
             <GainCard icon={Wallet} label="Bônus do ciclo" value={s.saldo} change={`${cyclePercent}% do ciclo concluído`} tone="success" />
           </div>
 
@@ -330,7 +341,7 @@ function GainCard({ icon: Icon, label, value, change, tone }: any) {
         <div>
           <p className="text-xs text-muted-foreground">{label}</p>
           <p className="text-xl font-bold">{formatMoney(value)}</p>
-          <p className="text-xs text-success">{change}</p>
+          {change && <p className="text-xs text-success">{change}</p>}
         </div>
       </div>
     </Card>
@@ -449,22 +460,13 @@ function ScoreCard({ points }: { points: number }) {
         </div>
       </div>
       <div className="mt-5 space-y-3 border-t border-border/35 pt-4 text-sm">
-        <ScoreRow label="Ranking geral" value="Top 18%" positive />
-        <ScoreRow label="Posição no mês" value="124º" />
-        <ScoreRow label="Pontos este mês" value={`${formatNumber(points)} +24%`} positive />
+        <ScoreRow label="Pontos acumulados" value={`${formatNumber(points)} pts`} positive={points > 0} />
       </div>
     </Card>
   );
 }
 
 function RankingCard({ points, name }: { points: number; name: string }) {
-  const ranking = [
-    { name: "João Silva", points: 28450 },
-    { name: "Maria Souza", points: 21300 },
-    { name: "Pedro Alves", points: 18760 },
-    { name, points, current: true },
-    { name: "Lucas Lima", points: 11230 },
-  ];
   return (
     <Card className="border-primary/15 bg-card/50 p-5">
       <div className="mb-4 flex items-center justify-between">
@@ -472,15 +474,12 @@ function RankingCard({ points, name }: { points: number; name: string }) {
         <Button size="sm" variant="outline">Ver ranking</Button>
       </div>
       <div className="space-y-2">
-        {ranking.map((item, index) => (
-          <div key={`${item.name}-${index}`} className={`flex items-center gap-3 rounded-lg p-2 ${item.current ? "border border-primary/40 bg-primary/10" : ""}`}>
-            <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-bold ${index < 3 ? "bg-amber-400 text-black" : "bg-muted text-muted-foreground"}`}>
-              {index + 1}
-            </span>
-            <span className="min-w-0 flex-1 truncate text-sm font-medium">{item.current ? "Você" : item.name}</span>
-            <span className="text-sm text-muted-foreground">{formatNumber(item.points)} pts</span>
-          </div>
-        ))}
+        <div className="flex items-center gap-3 rounded-lg border border-primary/40 bg-primary/10 p-2">
+          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-muted text-xs font-bold text-muted-foreground">1</span>
+          <span className="min-w-0 flex-1 truncate text-sm font-medium">Você</span>
+          <span className="text-sm text-muted-foreground">{formatNumber(points)} pts</span>
+        </div>
+        <p className="text-xs text-muted-foreground">O ranking geral sera exibido conforme novos membros entrarem na rede.</p>
       </div>
     </Card>
   );

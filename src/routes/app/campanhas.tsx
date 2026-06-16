@@ -468,12 +468,12 @@ function AdvertiserCampaignCard({ campaign, index, alreadyShared, profileId, cyc
           <Download className="h-3 w-3" /> Baixar {campaign.media_type === "video" ? "vídeo" : "imagem"}
         </Button>
         {alreadyShared ? (
-          <Badge className="w-full justify-center border-success/30 bg-success/15 py-1.5 text-xs text-success hover:bg-success/15">
+          <Badge className="h-7 w-full justify-center border-success/30 bg-success/15 text-[11px] text-success hover:bg-success/15">
             <ShieldCheck className="mr-1 h-3 w-3" /> Enviada
           </Badge>
         ) : (
           <AdvertiserShareDialog campaign={campaign} profileId={profileId} cycleId={cycleId} onSubmitted={onSubmitted}>
-            <Button size="sm" variant="outline" className="w-full text-xs" style={{ borderColor: `${color}88`, color }}>
+            <Button size="sm" variant="outline" className="h-7 w-full px-2 text-[11px]" style={{ borderColor: `${color}88`, color }}>
               Compartilhar campanha
             </Button>
           </AdvertiserShareDialog>

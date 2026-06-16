@@ -9,11 +9,53 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { ExternalLink, Clock, ShieldCheck, XCircle, Rocket, CheckCircle2, PauseCircle, Pencil } from "lucide-react";
+import { ExternalLink, Clock, ShieldCheck, XCircle, Rocket, CheckCircle2, PauseCircle, Pencil, Play, ImageIcon } from "lucide-react";
 
 export const Route = createFileRoute("/admin/campanhas-anunciantes")({ component: AdminCampanhasAnunciantes });
 
 const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+
+function MediaThumb({ url, type, onClick }: { url: string; type: string; onClick: () => void }) {
+  const isVid = type === "video";
+  return (
+    <button type="button" onClick={onClick} className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md border border-border/40 bg-muted group">
+      {isVid ? (
+        <video src={url} muted playsInline className="h-full w-full object-cover" />
+      ) : (
+        <img src={url} alt="" className="h-full w-full object-cover" />
+      )}
+      <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
+        {isVid ? <Play className="h-5 w-5 text-white" /> : <ImageIcon className="h-5 w-5 text-white" />}
+      </div>
+    </button>
+  );
+}
+
+function MediaPreviewDialog({ item, onClose }: { item: any; onClose: () => void }) {
+  const isVid = item?.media_type === "video";
+  return (
+    <Dialog open={!!item} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="truncate">{item?.title}</DialogTitle>
+        </DialogHeader>
+        <div className="rounded-lg overflow-hidden bg-black flex items-center justify-center max-h-[60vh]">
+          {isVid ? (
+            <video key={item?.media_url} src={item?.media_url} controls autoPlay playsInline className="max-h-[60vh] w-full object-contain" />
+          ) : (
+            <img src={item?.media_url} alt={item?.title} className="max-h-[60vh] w-full object-contain" />
+          )}
+        </div>
+        {item?.caption && <p className="text-sm text-muted-foreground mt-2 line-clamp-4">{item.caption}</p>}
+        {item?.destination_url && (
+          <a href={item.destination_url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs text-primary hover:underline mt-1">
+            {item.destination_url} <ExternalLink className="h-3 w-3" />
+          </a>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 function AdminCampanhasAnunciantes() {
   const { supabase, user } = useAuth();
@@ -21,6 +63,7 @@ function AdminCampanhasAnunciantes() {
   const [motivos, setMotivos] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<{ id: string; title: string; caption: string; destination_url: string } | null>(null);
+  const [previewing, setPreviewing] = useState<any>(null);
 
   async function load() {
     if (!supabase) return;
@@ -115,7 +158,7 @@ function AdminCampanhasAnunciantes() {
           <Card key={c.id} className="p-4 bg-card/50 border-border/50">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="flex flex-1 min-w-0 gap-3">
-                <img src={c.media_url} alt="" className="h-16 w-16 rounded-md object-cover shrink-0" />
+                <MediaThumb url={c.media_url} type={c.media_type} onClick={() => setPreviewing(c)} />
                 <div className="min-w-0 flex-1">
                   <div className="font-medium">{c.title}</div>
                   <div className="text-xs text-muted-foreground">{c.advertiser?.company_name} ({c.advertiser?.email})</div>
@@ -166,7 +209,13 @@ function AdminCampanhasAnunciantes() {
                     <tr key={c.id} className="border-b border-border/35 last:border-0">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <img src={c.media_url} alt="" className="h-8 w-8 rounded-md object-cover" />
+                          <button type="button" onClick={() => setPreviewing(c)} className="h-8 w-8 shrink-0 overflow-hidden rounded-md border border-border/40 bg-muted">
+                            {c.media_type === "video" ? (
+                              <video src={c.media_url} muted playsInline className="h-full w-full object-cover" />
+                            ) : (
+                              <img src={c.media_url} alt="" className="h-full w-full object-cover" />
+                            )}
+                          </button>
                           <span className="max-w-[220px] truncate font-medium">{c.title}</span>
                         </div>
                       </td>
@@ -228,6 +277,8 @@ function AdminCampanhasAnunciantes() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <MediaPreviewDialog item={previewing} onClose={() => setPreviewing(null)} />
     </div>
   );
 }

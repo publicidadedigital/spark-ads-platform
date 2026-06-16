@@ -4,7 +4,8 @@ import { useAuth } from "@/lib/supabase/auth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ShieldCheck, Zap, PackageOpen } from "lucide-react";
+import { ShieldCheck, Zap, PackageOpen, Pencil, Check, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { getTwoFactorStatus } from "@/lib/security/totp.functions";
 import { TwoFactorReminderBanner } from "@/components/TwoFactorSetup";
@@ -62,12 +63,15 @@ function AdminUsers() {
   const [lastLogins, setLastLogins] = useState<Record<string, string | null>>({});
   const [loading, setLoading] = useState(true);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
+  const [editingIndicador, setEditingIndicador] = useState<string | null>(null);
+  const [indicadorSearch, setIndicadorSearch] = useState("");
+  const [indicadorResults, setIndicadorResults] = useState<{ id: string; nome: string }[]>([]);
 
   async function load() {
     if (!supabase) return;
     setLoading(true);
     const [{ data }, { data: adminRoles }, { data: legacyAdmins }, { data: adv }, { data: withdrawalRows }, { data: depositRows }] = await Promise.all([
-      supabase.from("users_profile").select("*,package:pacote_ativo_id(nome,valor)").order("created_at", { ascending: false }).limit(200),
+      supabase.from("users_profile").select("*,package:pacote_ativo_id(nome,valor),indicador:indicador_id(id,nome)").order("created_at", { ascending: false }).limit(200),
       supabase.from("admin_roles").select("auth_user_id").eq("status", "ativo"),
       supabase.from("user_roles").select("user_id").in("role", ["admin", "super_admin"]),
       supabase.from("advertiser_profiles").select("*").order("created_at", { ascending: false }).limit(200),
@@ -128,6 +132,24 @@ function AdminUsers() {
     }
   }
 
+  async function searchIndicador(term: string) {
+    setIndicadorSearch(term);
+    if (!supabase || term.trim().length < 2) { setIndicadorResults([]); return; }
+    const { data } = await supabase.from("users_profile").select("id,nome").ilike("nome", `%${term.trim()}%`).limit(8);
+    setIndicadorResults((data ?? []) as { id: string; nome: string }[]);
+  }
+
+  async function saveIndicador(userId: string, indicadorId: string | null) {
+    if (!supabase) return;
+    const { error } = await supabase.from("users_profile").update({ indicador_id: indicadorId }).eq("id", userId);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Indicador atualizado");
+    setEditingIndicador(null);
+    setIndicadorSearch("");
+    setIndicadorResults([]);
+    load();
+  }
+
   async function setAdvertiserStatus(id: string, status: string) {
     if (!supabase) return;
     const { error } = await supabase.from("advertiser_profiles").update({ status }).eq("id", id);
@@ -174,7 +196,7 @@ function AdminUsers() {
           {loading ? <p className="p-6 text-muted-foreground">Carregando...</p> : (
             <table className="w-full text-sm">
               <thead className="border-b border-border/50 text-xs uppercase text-muted-foreground">
-                <tr><th className="text-left p-3">Nome</th><th className="text-left p-3">E-mail</th><th className="text-left p-3">Instagram</th><th className="text-left p-3">Plano</th><th className="text-left p-3">Status</th><th className="text-left p-3">Último login</th><th className="text-right p-3">Ações</th></tr>
+                <tr><th className="text-left p-3">Nome</th><th className="text-left p-3">E-mail</th><th className="text-left p-3">Instagram</th><th className="text-left p-3">Indicado por</th><th className="text-left p-3">Plano</th><th className="text-left p-3">Status</th><th className="text-left p-3">Último login</th><th className="text-right p-3">Ações</th></tr>
               </thead>
               <tbody>
                 {users.map((u) => {
@@ -184,6 +206,56 @@ function AdminUsers() {
                     <td className="p-3">{u.nome}</td>
                     <td className="p-3 text-muted-foreground">{u.email}</td>
                     <td className="p-3">@{u.instagram}</td>
+                    <td className="p-3 min-w-[180px]">
+                      {editingIndicador === u.id ? (
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-1">
+                            <Input
+                              autoFocus
+                              className="h-7 text-xs"
+                              placeholder="Buscar por nome..."
+                              value={indicadorSearch}
+                              onChange={(e) => searchIndicador(e.target.value)}
+                            />
+                            <button type="button" onClick={() => { setEditingIndicador(null); setIndicadorSearch(""); setIndicadorResults([]); }} className="text-muted-foreground hover:text-foreground">
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                          {indicadorResults.length > 0 && (
+                            <div className="rounded-md border border-border bg-background shadow-md z-10">
+                              {indicadorResults.map((r) => (
+                                <button
+                                  key={r.id}
+                                  type="button"
+                                  className="w-full px-3 py-1.5 text-left text-xs hover:bg-muted"
+                                  onClick={() => saveIndicador(u.id, r.id)}
+                                >
+                                  {r.nome}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                          <button
+                            type="button"
+                            className="text-left text-[11px] text-destructive hover:underline"
+                            onClick={() => saveIndicador(u.id, null)}
+                          >
+                            Remover indicador
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          className="group flex items-center gap-1 text-left"
+                          onClick={() => { setEditingIndicador(u.id); const ind = Array.isArray(u.indicador) ? u.indicador[0] : u.indicador; setIndicadorSearch(ind?.nome ?? ""); setIndicadorResults([]); }}
+                        >
+                          <span className="text-xs text-muted-foreground group-hover:text-foreground">
+                            {(() => { const ind = Array.isArray(u.indicador) ? u.indicador[0] : u.indicador; return ind?.nome ?? "—"; })()}
+                          </span>
+                          <Pencil className="h-3 w-3 shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100" />
+                        </button>
+                      )}
+                    </td>
                     <td className="p-3">
                       {pkg?.nome ? (
                         u.status === "ativo" ? (

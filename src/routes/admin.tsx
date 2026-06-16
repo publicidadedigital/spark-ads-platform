@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { useAuth } from "@/lib/supabase/auth";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { LogOut, Users, Megaphone, CheckSquare, Package, ShieldAlert, ShieldCheck, Bug, Send, DollarSign, Lock, RefreshCw, Trophy, Building2, CreditCard, Zap, Menu } from "lucide-react";
+import { LogOut, Users, Megaphone, CheckSquare, Package, ShieldAlert, ShieldCheck, Bug, Send, DollarSign, Lock, RefreshCw, Trophy, Building2, CreditCard, Zap, Menu, Network, Wallet } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({ component: AdminLayout });
 
@@ -20,6 +20,8 @@ const nav = [
   { to: "/admin/renovacao", label: "Renovação", icon: RefreshCw },
   { to: "/admin/pontuacao", label: "Pontuação", icon: Trophy },
   { to: "/admin/saques", label: "Saques", icon: Send },
+  { to: "/admin/rede", label: "Bônus de Rede", icon: Network },
+  { to: "/admin/carteiras", label: "Carteiras", icon: Wallet },
   { to: "/admin/financeiro", label: "Financeiro", icon: DollarSign },
   { to: "/admin/seguranca", label: "Segurança", icon: Lock },
   { to: "/admin/ativacao", label: "Ativação Manual", icon: Zap },

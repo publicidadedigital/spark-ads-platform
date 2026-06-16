@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { ImagePlus, Loader2, CheckCircle2, ArrowLeft, Send, Heart, MessageCircle, Share2 } from "lucide-react";
+import { ImagePlus, Video, Loader2, CheckCircle2, ArrowLeft, Send, Heart, MessageCircle, Share2 } from "lucide-react";
 import { z } from "zod";
 
 export const Route = createFileRoute("/anunciante-painel/nova-campanha")({
@@ -82,7 +82,14 @@ function NovaCampanha() {
 
   function handleFile(f: File | null) {
     setFile(f);
-    setPreview(f ? URL.createObjectURL(f) : null);
+    if (!f) { setPreview(null); return; }
+    if (f.type.startsWith("video/")) {
+      setPreview(URL.createObjectURL(f));
+    } else {
+      const reader = new FileReader();
+      reader.onload = (e) => setPreview(e.target?.result as string);
+      reader.readAsDataURL(f);
+    }
   }
 
   function onFileInput(e: React.ChangeEvent<HTMLInputElement>) {
@@ -204,11 +211,19 @@ function NovaCampanha() {
             </div>
           )}
 
-          {/* Image upload */}
+          {/* Media upload */}
           <div>
-            <Label className="mb-2 block">Imagem da campanha</Label>
+            <Label className="mb-2 block">Imagem ou vídeo da campanha</Label>
+            <div className="flex gap-2 mb-2">
+              <Button type="button" variant="outline" size="sm" className="flex-1 gap-1.5" onClick={() => { if (fileInputRef.current) { fileInputRef.current.accept = "image/*"; fileInputRef.current.click(); } }}>
+                <ImagePlus className="h-4 w-4" /> Escolher imagem
+              </Button>
+              <Button type="button" variant="outline" size="sm" className="flex-1 gap-1.5" onClick={() => { if (fileInputRef.current) { fileInputRef.current.accept = "video/*"; fileInputRef.current.click(); } }}>
+                <Video className="h-4 w-4" /> Escolher vídeo
+              </Button>
+            </div>
             <div
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => { if (fileInputRef.current) { fileInputRef.current.accept = "image/*,video/*"; fileInputRef.current.click(); } }}
               onDragOver={onDragOver}
               onDragLeave={onDragLeave}
               onDrop={onDrop}
@@ -217,15 +232,28 @@ function NovaCampanha() {
               } overflow-hidden`}
             >
               {preview ? (
-                <img src={preview} alt="preview" className="h-full w-full object-cover" />
+                file?.type.startsWith("video/") ? (
+                  <video src={preview} controls className="h-full w-full object-cover max-h-64" />
+                ) : (
+                  <img src={preview} alt="preview" className="h-full w-full object-cover" />
+                )
               ) : (
                 <div className="flex flex-col items-center gap-2 p-6 text-center text-muted-foreground">
-                  <ImagePlus className="h-10 w-10 opacity-60" />
-                  <p className="text-sm font-medium">Clique para enviar ou arraste a imagem aqui</p>
-                  <p className="text-xs opacity-70">PNG, JPG ou WEBP até 10MB</p>
+                  <div className="flex gap-3">
+                    <ImagePlus className="h-8 w-8 opacity-60" />
+                    <Video className="h-8 w-8 opacity-60" />
+                  </div>
+                  <p className="text-sm font-medium">Clique para enviar ou arraste o arquivo aqui</p>
+                  <p className="text-xs opacity-70">Imagem (PNG, JPG, WEBP) ou vídeo (MP4, MOV) até 50MB</p>
                 </div>
               )}
             </div>
+            {file && (
+              <div className="mt-1.5 flex items-center justify-between text-xs text-muted-foreground">
+                <span className="truncate max-w-[200px]">{file.name}</span>
+                <button type="button" className="text-destructive hover:underline ml-2 shrink-0" onClick={() => handleFile(null)}>Remover</button>
+              </div>
+            )}
             <input ref={fileInputRef} type="file" accept="image/*,video/*" className="hidden" onChange={onFileInput} />
           </div>
 
@@ -315,10 +343,14 @@ function NovaCampanha() {
                 </div>
               </div>
 
-              {/* Image area */}
+              {/* Image/video area */}
               <div className="aspect-square bg-muted/30 flex items-center justify-center overflow-hidden">
                 {preview ? (
-                  <img src={preview} alt="preview" className="h-full w-full object-cover" />
+                  file?.type.startsWith("video/") ? (
+                    <video src={preview} className="h-full w-full object-cover" muted />
+                  ) : (
+                    <img src={preview} alt="preview" className="h-full w-full object-cover" />
+                  )
                 ) : (
                   <ImagePlus className="h-12 w-12 text-muted-foreground/30" />
                 )}

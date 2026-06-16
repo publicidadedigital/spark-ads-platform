@@ -25,6 +25,9 @@ type Row = {
   renovacoes: number;
   manuais: number;
   valorManual: number;
+  aLiberar: number;
+  liberado: number;
+  cancelado: number;
 };
 
 function AdminPontuacao() {
@@ -36,11 +39,13 @@ function AdminPontuacao() {
     if (!supabase) return;
     setLoading(true);
 
-    const [{ data: users }, { data: pointRows }, { data: orders }, { data: manualCycles }] = await Promise.all([
+    const [{ data: users }, { data: pointRows }, { data: orders }, { data: manualCycles }, { data: wallets }, { data: bonuses }] = await Promise.all([
       supabase.from("users_profile").select("id,nome,email,instagram").order("created_at", { ascending: false }).limit(500),
       supabase.from("point_events").select("user_id,points").eq("status", "valid"),
       supabase.from("package_orders").select("user_id,valor,status").eq("status", "pago"),
       supabase.from("user_cycles").select("user_id,valor_pacote").eq("activation_source", "manual"),
+      supabase.from("wallet_balances").select("user_id,saldo_a_liberar"),
+      supabase.from("bonuses").select("user_id,valor,status").in("status", ["liberado", "cancelado"]),
     ]);
 
     const pointsByUser = new Map<string, number>();
@@ -64,9 +69,21 @@ function AdminPontuacao() {
       manualByUser.set(c.user_id, cur);
     }
 
+    const walletByUser = new Map<string, number>();
+    for (const w of wallets ?? []) walletByUser.set(w.user_id, Number(w.saldo_a_liberar ?? 0));
+
+    const bonusByUser = new Map<string, { liberado: number; cancelado: number }>();
+    for (const b of bonuses ?? []) {
+      const cur = bonusByUser.get(b.user_id) ?? { liberado: 0, cancelado: 0 };
+      if (b.status === "liberado") cur.liberado += Number(b.valor ?? 0);
+      if (b.status === "cancelado") cur.cancelado += Number(b.valor ?? 0);
+      bonusByUser.set(b.user_id, cur);
+    }
+
     const result: Row[] = (users ?? []).map((u: any) => {
       const orderInfo = ordersByUser.get(u.id) ?? { total: 0, count: 0 };
       const manualInfo = manualByUser.get(u.id) ?? { count: 0, total: 0 };
+      const bonusInfo = bonusByUser.get(u.id) ?? { liberado: 0, cancelado: 0 };
       return {
         id: u.id,
         nome: u.nome,
@@ -78,6 +95,9 @@ function AdminPontuacao() {
         renovacoes: Math.max(0, orderInfo.count - 1),
         manuais: manualInfo.count,
         valorManual: manualInfo.total,
+        aLiberar: walletByUser.get(u.id) ?? 0,
+        liberado: bonusInfo.liberado,
+        cancelado: bonusInfo.cancelado,
       };
     });
 
@@ -108,7 +128,7 @@ function AdminPontuacao() {
         ) : rows.length === 0 ? (
           <p className="p-6 text-muted-foreground">Nenhum usuário encontrado.</p>
         ) : (
-          <div className="overflow-x-auto"><table className="w-full min-w-[700px] text-sm">
+          <div className="overflow-x-auto"><table className="w-full min-w-[1000px] text-sm">
             <thead className="border-b border-border/50 text-xs uppercase text-muted-foreground">
               <tr>
                 <th className="text-left p-3">#</th>
@@ -119,6 +139,9 @@ function AdminPontuacao() {
                 <th className="text-left p-3">Pedidos pagos</th>
                 <th className="text-left p-3">Renovações</th>
                 <th className="text-left p-3">Ativação manual</th>
+                <th className="text-left p-3 text-amber-300">A liberar</th>
+                <th className="text-left p-3 text-success">Liberado</th>
+                <th className="text-left p-3 text-destructive">Cancelados</th>
               </tr>
             </thead>
             <tbody>
@@ -156,6 +179,9 @@ function AdminPontuacao() {
                       <span className="text-muted-foreground">—</span>
                     )}
                   </td>
+                  <td className="p-3 font-semibold text-amber-300">{r.aLiberar > 0 ? usd.format(r.aLiberar) : <span className="text-muted-foreground">—</span>}</td>
+                  <td className="p-3 font-semibold text-success">{r.liberado > 0 ? usd.format(r.liberado) : <span className="text-muted-foreground">—</span>}</td>
+                  <td className="p-3 font-semibold text-destructive">{r.cancelado > 0 ? usd.format(r.cancelado) : <span className="text-muted-foreground">—</span>}</td>
                 </tr>
               ))}
             </tbody>

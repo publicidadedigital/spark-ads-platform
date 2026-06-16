@@ -53,6 +53,12 @@ type Bonus = {
   nivel: number | null;
   created_at: string;
   release_at?: string | null;
+  origem_id?: string | null;
+};
+
+type NetworkBonus = Bonus & {
+  indicadoNome: string | null;
+  cycleStatus: string | null;
 };
 
 type Category = {
@@ -87,7 +93,9 @@ function ExtratoPage() {
   const { supabase, user } = useAuth();
   const [tx, setTx] = useState<Transaction[]>([]);
   const [bonuses, setBonuses] = useState<Bonus[]>([]);
-  const [cycleBalance, setCycleBalance] = useState(0);
+  const [networkBonuses, setNetworkBonuses] = useState<NetworkBonus[]>([]);
+  const [saldoDisponivel, setSaldoDisponivel] = useState(0);
+  const [saldoAguardando, setSaldoAguardando] = useState(0);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("todas");
   const [search, setSearch] = useState("");
@@ -106,7 +114,7 @@ function ExtratoPage() {
         return;
       }
 
-      const [{ data: walletRows }, { data: bonusRows }, { data: cycle }] = await Promise.all([
+      const [{ data: walletRows }, { data: bonusRows }, { data: wallet }] = await Promise.all([
         supabase
           .from("wallet_transactions")
           .select("*")
@@ -115,29 +123,53 @@ function ExtratoPage() {
           .limit(160),
         supabase
           .from("bonuses")
-          .select("id,tipo,valor,status,nivel,created_at,balance_holds(release_at)")
+          .select("id,tipo,valor,status,nivel,created_at,origem_id,balance_holds(release_at)")
           .eq("user_id", prof.id)
           .order("created_at", { ascending: false })
           .limit(160),
         supabase
           .from("wallet_balances")
-          .select("saldo_disponivel")
+          .select("saldo_disponivel,saldo_a_liberar")
           .eq("user_id", prof.id)
           .maybeSingle(),
       ]);
 
       setTx((walletRows ?? []) as Transaction[]);
+      setSaldoDisponivel(Number(wallet?.saldo_disponivel ?? 0));
+      setSaldoAguardando(Number(wallet?.saldo_a_liberar ?? 0));
+
       const bonusesWithRelease = (bonusRows ?? []).map((b: any) => ({
         ...b,
         release_at: b.balance_holds?.[0]?.release_at ?? null,
       }));
       setBonuses(bonusesWithRelease as Bonus[]);
-      setCycleBalance(Number(cycle?.saldo_disponivel ?? 0));
+
+      // Fetch network bonus origin user names
+      const networkRows = bonusesWithRelease.filter((b: any) => ["adesao", "renovacao", "residual"].includes(b.tipo) && b.origem_id);
+      const origemIds = [...new Set(networkRows.map((b: any) => b.origem_id as string))];
+      if (origemIds.length > 0) {
+        const { data: cycles } = await supabase
+          .from("user_cycles")
+          .select("id,user_id,status")
+          .in("id", origemIds);
+        const cycleMap = new Map((cycles ?? []).map((c: any) => [c.id, c]));
+        const userIds = [...new Set((cycles ?? []).map((c: any) => c.user_id as string))];
+        const { data: profiles } = userIds.length
+          ? await supabase.from("users_profile").select("id,nome").in("id", userIds)
+          : { data: [] };
+        const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p.nome]));
+        setNetworkBonuses(networkRows.map((b: any) => {
+          const cycle = cycleMap.get(b.origem_id);
+          return { ...b, indicadoNome: cycle ? (profileMap.get(cycle.user_id) ?? null) : null, cycleStatus: cycle?.status ?? null };
+        }));
+      } else {
+        setNetworkBonuses(networkRows.map((b: any) => ({ ...b, indicadoNome: null, cycleStatus: null })));
+      }
       setLoading(false);
     })();
   }, [supabase, user]);
 
-  const stats = useMemo(() => buildStats(tx, bonuses, cycleBalance), [tx, bonuses, cycleBalance]);
+  const stats = useMemo(() => buildStats(tx, bonuses, saldoDisponivel), [tx, bonuses, saldoDisponivel]);
   const chartData = useMemo(() => buildChart(tx), [tx]);
   const filteredTx = useMemo(() => filterTransactions(tx, activeTab, search), [tx, activeTab, search]);
   const period = useMemo(() => formatPeriod(tx), [tx]);
@@ -191,14 +223,12 @@ function ExtratoPage() {
             <SummaryCard key={category.key} category={category} />
           ))}
           <SummaryCard
-            category={{
-              key: "saldo",
-              label: "Saldo disponivel",
-              total: stats.balance,
-              color: "#00d17d",
-              icon: Wallet,
-            }}
+            category={{ key: "saldo", label: "Saldo liberado", total: stats.balance, color: "#00d17d", icon: Wallet }}
             sub="Disponivel para saque"
+          />
+          <SummaryCard
+            category={{ key: "aguardando", label: "Aguardando (7d)", total: saldoAguardando, color: "#f5b51b", icon: Clock }}
+            sub="Em periodo de retencao"
           />
         </div>
       </Card>
@@ -381,6 +411,55 @@ function ExtratoPage() {
               )}
             </div>
           </Card>
+          {networkBonuses.length > 0 && (
+            <Card className="border-primary/15 bg-card/50 p-5">
+              <h2 className="font-semibold mb-4">Histórico de bônus de rede</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[640px] text-sm">
+                  <thead className="text-xs text-muted-foreground border-b border-border/50">
+                    <tr>
+                      <th className="px-3 py-2 text-left">Data</th>
+                      <th className="px-3 py-2 text-left">Tipo</th>
+                      <th className="px-3 py-2 text-left">Nível</th>
+                      <th className="px-3 py-2 text-left">Indicado</th>
+                      <th className="px-3 py-2 text-left">Valor</th>
+                      <th className="px-3 py-2 text-left">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {networkBonuses.map((b) => {
+                      const days = b.release_at ? Math.max(0, Math.ceil((new Date(b.release_at).getTime() - Date.now()) / 86400000)) : null;
+                      const isVencido = b.status === "liberado" && b.cycleStatus === "completado";
+                      return (
+                        <tr key={b.id} className="border-b border-border/30 last:border-0">
+                          <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">{formatDateTime(b.created_at)}</td>
+                          <td className="px-3 py-2 capitalize">{b.tipo}</td>
+                          <td className="px-3 py-2 text-muted-foreground">Nv {b.nivel ?? 1}</td>
+                          <td className="px-3 py-2 font-medium">{b.indicadoNome ?? "—"}</td>
+                          <td className="px-3 py-2 font-semibold text-success">+ {formatMoney(moneyValue(b.valor))}</td>
+                          <td className="px-3 py-2">
+                            {b.status === "cancelado" ? (
+                              <Badge className="border-destructive/30 bg-destructive/15 text-destructive">Cancelado</Badge>
+                            ) : isVencido ? (
+                              <Badge className="border-border/50 bg-muted/20 text-muted-foreground">Vencido</Badge>
+                            ) : b.status === "pendente" && days !== null && days > 0 ? (
+                              <Badge className="border-amber-400/30 bg-amber-500/15 text-amber-300">
+                                <Clock className="h-3 w-3 mr-1" />Aguardando {days}d
+                              </Badge>
+                            ) : (
+                              <Badge className="border-success/30 bg-success/15 text-success">
+                                <ShieldCheck className="h-3 w-3 mr-1" />Ok
+                              </Badge>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          )}
         </div>
 
         <aside className="space-y-4">
@@ -394,11 +473,10 @@ function ExtratoPage() {
   );
 }
 
-function buildStats(tx: Transaction[], bonuses: Bonus[], balanceFallback: number) {
+function buildStats(tx: Transaction[], bonuses: Bonus[], saldoDisponivel: number) {
   const entries = tx.filter((item) => item.tipo === "credito").reduce((sum, item) => sum + moneyValue(item.valor), 0);
   const exits = tx.filter((item) => item.tipo !== "credito").reduce((sum, item) => sum + moneyValue(item.valor), 0);
-  const latestBalance = tx[0]?.saldo_depois;
-  const balance = latestBalance === undefined ? balanceFallback : moneyValue(latestBalance);
+  const balance = saldoDisponivel;
   const categoryTotals = {
     residual: 0,
     indicacao_direta: 0,

@@ -234,7 +234,7 @@ function Dashboard() {
             </div>
 
             <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              <TopMetric icon={Wallet} label="Saldo do ciclo" value={formatMoney(s.saldo)} sub="Disponível para saque" tone="violet" />
+              <TopMetric icon={Wallet} label="Saldo do ciclo" value={formatMoney(s.saldo)} sub="Bônus acumulados no ciclo" tone="violet" />
               <TopMetric icon={Star} label="Pontos acumulados" value={formatNumber(s.points)} sub="Este mês" tone="purple" />
               <TopMetric icon={Share2} label="Compartilhamentos hoje" value={`${s.sharesHoje} / ${s.metaDia}`} sub={restantes ? `Faltam ${restantes} para o bônus` : "Meta concluída"} tone="primary" />
               <TopMetric icon={Goal} label="Ciclo (até 200%)" value={`${cyclePercent}%`} sub="Progresso atual" tone="ring" progress={cyclePercent} />

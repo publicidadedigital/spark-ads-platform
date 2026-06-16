@@ -103,7 +103,7 @@ function AdminUsers() {
         .eq("status", "approved")
         .order("paid_at", { ascending: false }),
       // All advertising packages
-      supabase.from("advertising_packages").select("id,name,price_usd"),
+      supabase.from("advertising_packages").select("id,name,price_usd").eq("status", "ativo").order("price_usd"),
       // Advertiser indicadores (users_profile who referred them)
       supabase.from("users_profile").select("id,nome"),
     ]);

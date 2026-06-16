@@ -33,6 +33,7 @@ type ReferralProfile = {
   status: string | null;
   created_at: string | null;
   indicador_id: string | null;
+  pacote_nome: string | null;
 };
 
 type Member = ReferralProfile & {
@@ -113,6 +114,7 @@ function RedePage() {
         created_at: row.created_at,
         indicador_id: row.indicador_id,
         nivel: row.nivel,
+        pacote_nome: row.pacote_nome ?? null,
         referralStatus: row.status,
         referralCreatedAt: row.created_at,
       })) as Member[];
@@ -465,6 +467,12 @@ function NodeCard({
         <Badge variant="outline" className={style.badge}>{style.label}</Badge>
         <span className="text-xs text-muted-foreground">{childCount} direto(s)</span>
       </div>
+      {member.pacote_nome && (
+        <div className="mt-2 flex items-center gap-1">
+          <Zap className="h-3 w-3 shrink-0 text-amber-400" />
+          <span className="truncate text-[11px] font-medium text-amber-300">{member.pacote_nome}</span>
+        </div>
+      )}
     </div>
   );
 }

@@ -221,13 +221,13 @@ function CampanhasPage() {
             </div>
           </Card>
 
-          <Card className="overflow-hidden border-violet-500/35 bg-[radial-gradient(circle_at_right,rgba(245,181,27,0.22),transparent_28%),linear-gradient(90deg,rgba(88,28,135,0.55),rgba(2,6,23,0.55))] p-5">
-            <div className="grid gap-5 xl:grid-cols-[minmax(220px,1fr)_minmax(360px,420px)_minmax(190px,250px)] xl:items-center">
-              <div>
+          <Card className="border-violet-500/35 bg-[radial-gradient(circle_at_right,rgba(245,181,27,0.22),transparent_28%),linear-gradient(90deg,rgba(88,28,135,0.55),rgba(2,6,23,0.55))] p-5">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div className="shrink-0">
                 <h2 className="font-semibold">Complete as {DAILY_GOAL} publicidades diarias</h2>
                 <p className="mt-1 text-sm text-muted-foreground">e garanta seu bonus completo!</p>
               </div>
-              <div className="flex min-w-0 items-center justify-center gap-2">
+              <div className="flex flex-wrap items-center justify-center gap-1">
                 {Array.from({ length: DAILY_GOAL }, (_, index) => {
                   const done = approvedCount > index;
                   return (
@@ -238,15 +238,15 @@ function CampanhasPage() {
                         {index + 1}
                         {done && <Check className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-success text-success-foreground" />}
                       </div>
-                      {index < DAILY_GOAL - 1 && <div className={`h-px w-8 min-[1400px]:w-10 ${approvedCount > index + 1 ? "bg-success" : "bg-primary/30"}`} />}
+                      {index < DAILY_GOAL - 1 && <div className={`h-px w-6 ${approvedCount > index + 1 ? "bg-success" : "bg-primary/30"}`} />}
                     </div>
                   );
                 })}
               </div>
-              <div className="flex items-center justify-center gap-4 border-primary/20 xl:border-l xl:pl-4">
-                <Trophy className="h-14 w-14 text-amber-300 drop-shadow-[0_0_16px_rgba(245,181,27,0.45)]" />
+              <div className="flex shrink-0 items-center justify-center gap-3 border-t border-primary/20 pt-4 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
+                <Trophy className="h-12 w-12 text-amber-300 drop-shadow-[0_0_16px_rgba(245,181,27,0.45)]" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Bonus diario</p>
+                  <p className="text-sm text-muted-foreground">Bônus diário</p>
                   <p className="text-2xl font-bold text-amber-300">{formatMoney(dailyBonus)}</p>
                 </div>
               </div>

@@ -473,7 +473,7 @@ function AdvertiserCampaignCard({ campaign, index, alreadyShared, profileId, cyc
           </Badge>
         ) : (
           <AdvertiserShareDialog campaign={campaign} profileId={profileId} cycleId={cycleId} onSubmitted={onSubmitted}>
-            <Button size="sm" variant="outline" className="h-7 w-full whitespace-normal px-1.5 text-[10px] leading-tight" style={{ borderColor: `${color}88`, color }}>
+            <Button size="sm" variant="outline" className="h-auto min-h-7 w-full whitespace-normal px-1 py-1 text-[9px] leading-[1.1]" style={{ borderColor: `${color}88`, color }}>
               Compartilhar campanha
             </Button>
           </AdvertiserShareDialog>

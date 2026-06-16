@@ -14,6 +14,7 @@ import {
   Check,
   CircleHelp,
   Clock,
+  Download,
   ExternalLink,
   Flame,
   Instagram,
@@ -417,6 +418,23 @@ function CampaignCard({ campaign, index, alreadyShared, profileId, cycleId, onSu
   );
 }
 
+async function downloadMedia(url: string, filename: string) {
+  try {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = objectUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(objectUrl);
+  } catch {
+    window.open(url, "_blank");
+  }
+}
+
 function AdvertiserCampaignCard({ campaign, index, alreadyShared, profileId, cycleId, onSubmitted }: {
   campaign: AdvertiserCampaign;
   index: number;
@@ -426,28 +444,36 @@ function AdvertiserCampaignCard({ campaign, index, alreadyShared, profileId, cyc
   onSubmitted: () => void;
 }) {
   const color = cardColor(index);
+  const ext = campaign.media_type === "video" ? "mp4" : "jpg";
   return (
     <Card className="overflow-hidden border-primary/15 bg-card/50">
-      <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+      <div className="relative max-h-40 overflow-hidden bg-muted">
         {campaign.media_type === "video" ? (
-          <video src={campaign.media_url} controls className="h-full w-full object-cover" />
+          <video src={campaign.media_url} controls className="h-40 w-full object-cover" />
         ) : (
-          <img src={campaign.media_url} alt={campaign.title} className="h-full w-full object-cover transition duration-300 hover:scale-105" />
+          <img src={campaign.media_url} alt={campaign.title} className="h-40 w-full object-cover transition duration-300 hover:scale-105" />
         )}
-        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-background/95 to-transparent" />
       </div>
-      <div className="space-y-3 p-3 text-center">
+      <div className="space-y-2 p-2.5 text-center">
         <div>
-          <h3 className="line-clamp-2 min-h-10 text-sm font-semibold">{campaign.title}</h3>
-          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{campaign.caption}</p>
+          <h3 className="line-clamp-1 text-xs font-semibold">{campaign.title}</h3>
+          <p className="mt-0.5 line-clamp-2 text-[11px] text-muted-foreground">{campaign.caption}</p>
         </div>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-7 w-full gap-1.5 text-[11px] text-muted-foreground hover:text-foreground"
+          onClick={() => downloadMedia(campaign.media_url, `${campaign.title.replace(/\s+/g, "-")}.${ext}`)}
+        >
+          <Download className="h-3 w-3" /> Baixar {campaign.media_type === "video" ? "vídeo" : "imagem"}
+        </Button>
         {alreadyShared ? (
-          <Badge className="w-full justify-center border-success/30 bg-success/15 py-2 text-success hover:bg-success/15">
+          <Badge className="w-full justify-center border-success/30 bg-success/15 py-1.5 text-xs text-success hover:bg-success/15">
             <ShieldCheck className="mr-1 h-3 w-3" /> Enviada
           </Badge>
         ) : (
           <AdvertiserShareDialog campaign={campaign} profileId={profileId} cycleId={cycleId} onSubmitted={onSubmitted}>
-            <Button size="sm" variant="outline" className="w-full" style={{ borderColor: `${color}88`, color }}>
+            <Button size="sm" variant="outline" className="w-full text-xs" style={{ borderColor: `${color}88`, color }}>
               Compartilhar campanha
             </Button>
           </AdvertiserShareDialog>

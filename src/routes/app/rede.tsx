@@ -14,6 +14,7 @@ import {
   Medal,
   Network,
   QrCode,
+  RefreshCw,
   Share2,
   Sparkles,
   Star,
@@ -222,54 +223,103 @@ function RedePage() {
           </Card>
 
           <Card className="overflow-hidden border-primary/20 bg-card/50">
-            <div className="flex flex-col gap-4 border-b border-border/60 p-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-col gap-3 border-b border-border/60 p-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="text-lg font-semibold">Sua rede <span className="text-muted-foreground">(árvore de ramificação)</span></h2>
-                <p className="text-sm text-muted-foreground">{totalCount} membro(s) distribuídos em até 10 níveis</p>
+                <h2 className="text-lg font-semibold">Sua rede</h2>
+                <p className="text-sm text-muted-foreground">
+                  {totalCount === 0 ? "Nenhum membro ainda" : `${totalCount} membro(s) · até nível ${highestLevel || 0}`}
+                </p>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="outline" className="border-primary/40 bg-primary/10 text-primary">Nível máximo {highestLevel || 0}</Badge>
-                <Button size="sm" variant="outline" className="hidden md:inline-flex" onClick={() => setExpanded(new Set(["root", ...members.map((m) => m.id)]))}>
-                  <ChevronDown className="mr-2 h-4 w-4" /> Expandir
-                </Button>
-                <Button size="sm" variant="outline" className="hidden md:inline-flex" onClick={() => setExpanded(new Set(["root"]))}>
-                  <ChevronUp className="mr-2 h-4 w-4" /> Recolher
-                </Button>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline" className="border-primary/40 bg-primary/10 text-primary">
+                  Nível máximo {highestLevel || 0}
+                </Badge>
+                {totalCount > 0 && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setExpanded((p) => {
+                      const allOpen = members.every((m) => p.has(m.id));
+                      return allOpen ? new Set(["root"]) : new Set(["root", ...members.map((m) => m.id)]);
+                    })}
+                  >
+                    <ChevronDown className="mr-1.5 h-3.5 w-3.5" /> Expandir / Recolher
+                  </Button>
+                )}
               </div>
             </div>
 
-            <div className="relative min-h-[520px] overflow-x-auto bg-[radial-gradient(circle_at_top,rgba(37,99,235,0.18),transparent_34%),linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:auto,32px_32px,32px_32px] p-5">
+            {/* Member cards — always visible on all screen sizes */}
+            <div className="p-4">
               {loading ? (
-                <p className="text-sm text-muted-foreground">Carregando rede...</p>
+                <div className="flex items-center gap-2 py-8 text-sm text-muted-foreground">
+                  <RefreshCw className="h-4 w-4 animate-spin" /> Carregando rede...
+                </div>
+              ) : members.length === 0 ? (
+                <EmptyTree />
               ) : (
-                <>
-                  <div className="hidden md:block">
-                    <div className="mx-auto min-w-[760px] max-w-6xl">
-                      <div className="flex flex-col items-center">
-                        <RootNode name={profile?.nome ?? "Você"} directCount={directCount} />
-                        <div className="h-8 w-px border-l border-dashed border-primary/50" />
-                        {network.roots.length === 0 ? (
-                          <EmptyTree />
-                        ) : (
-                          <div className="flex w-full items-start justify-center gap-6">
-                            {network.roots.map((member) => (
-                              <Branch
-                                key={member.id}
-                                member={member}
-                                childrenByParent={network.childrenByParent}
-                                expanded={expanded}
-                                onToggle={(id) => toggleExpanded(id, setExpanded)}
-                              />
-                            ))}
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  {members.map((member) => {
+                    const style = levelStyles[Math.min(4, member.nivel)] ?? levelStyles[4];
+                    const childCount = (network.childrenByParent.get(member.id) ?? []).length;
+                    return (
+                      <div
+                        key={member.id}
+                        className={`flex items-start gap-3 rounded-xl border ${style.border} bg-card/80 p-4 transition-shadow hover:shadow-md`}
+                      >
+                        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${style.dot} text-sm font-bold text-white shadow-sm`}>
+                          {(member.nome ?? "U").slice(0, 1).toUpperCase()}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-semibold leading-tight">{member.nome ?? "Usuário"}</p>
+                          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                            <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${style.badge}`}>
+                              {style.label}
+                            </Badge>
+                            {member.pacote_nome && (
+                              <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-300">
+                                <Zap className="h-2.5 w-2.5 shrink-0" />{member.pacote_nome}
+                              </span>
+                            )}
                           </div>
-                        )}
+                          <p className="mt-1.5 text-xs text-muted-foreground">
+                            {childCount > 0 ? `${childCount} indicado(s)` : "Sem indicados"}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Tree visualization — collapsible, desktop only */}
+            {!loading && members.length > 0 && (
+              <details className="hidden md:block border-t border-border/40">
+                <summary className="cursor-pointer select-none p-4 text-sm text-muted-foreground hover:text-foreground flex items-center gap-2">
+                  <Network className="h-4 w-4" /> Ver árvore de ramificação
+                </summary>
+                <div className="overflow-x-auto bg-[radial-gradient(circle_at_top,rgba(37,99,235,0.15),transparent_50%)] p-5">
+                  <div style={{ minWidth: "600px" }}>
+                    <div className="flex flex-col items-center gap-0">
+                      <RootNode name={profile?.nome ?? "Você"} directCount={directCount} />
+                      <div className="h-8 w-px border-l border-dashed border-primary/40" />
+                      <div className="flex flex-wrap items-start justify-center gap-4">
+                        {network.roots.map((member) => (
+                          <Branch
+                            key={member.id}
+                            member={member}
+                            childrenByParent={network.childrenByParent}
+                            expanded={expanded}
+                            onToggle={(id) => toggleExpanded(id, setExpanded)}
+                          />
+                        ))}
                       </div>
                     </div>
                   </div>
-                  <MobileFlatList members={members} network={network} />
-                </>
-              )}
-            </div>
+                </div>
+              </details>
+            )}
           </Card>
 
           <Card className="grid gap-4 border-primary/20 bg-card/50 p-5 md:grid-cols-2">

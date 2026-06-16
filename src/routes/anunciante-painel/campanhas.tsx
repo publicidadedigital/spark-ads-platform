@@ -24,6 +24,7 @@ function AdvertiserCampaigns() {
   const { supabase, user } = useAuth();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [shareCounts, setShareCounts] = useState<Record<string, number>>({});
+  const [hasApprovedPayment, setHasApprovedPayment] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -40,11 +41,21 @@ function AdvertiserCampaigns() {
         return;
       }
 
-      const { data } = await supabase
-        .from("advertiser_campaigns")
-        .select("id,title,media_url,status,rejection_reason,created_at,order:order_id(price_usd,estimated_views,package:advertising_package_id(name,duration_days))")
-        .eq("advertiser_id", prof.id)
-        .order("created_at", { ascending: false });
+      const [{ data }, { data: payments }] = await Promise.all([
+        supabase
+          .from("advertiser_campaigns")
+          .select("id,title,media_url,status,rejection_reason,created_at,order:order_id(price_usd,estimated_views,package:advertising_package_id(name,duration_days))")
+          .eq("advertiser_id", prof.id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("advertiser_payment_orders")
+          .select("id")
+          .eq("advertiser_profile_id", prof.id)
+          .eq("status", "approved")
+          .limit(1),
+      ]);
+
+      setHasApprovedPayment((payments ?? []).length > 0);
 
       const list = (data ?? []) as unknown as Campaign[];
       setCampaigns(list);
@@ -75,11 +86,19 @@ function AdvertiserCampaigns() {
           <h1 className="text-2xl font-bold">Minhas Campanhas</h1>
           <p className="text-sm text-muted-foreground">Acompanhe o status, plano e desempenho das suas campanhas</p>
         </div>
-        <Link to="/anunciante-painel/nova-campanha">
-          <Button className="bg-gold-gradient text-primary-foreground">
-            <PlusCircle className="mr-2 h-4 w-4" /> Nova campanha
-          </Button>
-        </Link>
+        {hasApprovedPayment ? (
+          <Link to="/anunciante-painel/nova-campanha" search={{ packageId: "" }}>
+            <Button className="bg-gold-gradient text-primary-foreground">
+              <PlusCircle className="mr-2 h-4 w-4" /> Nova campanha
+            </Button>
+          </Link>
+        ) : (
+          <Link to="/anunciante-painel/" search={{ tab: "pagamentos" }}>
+            <Button variant="outline" className="border-amber-400/30 text-amber-300">
+              Ative um pacote para criar campanhas
+            </Button>
+          </Link>
+        )}
       </div>
 
       {campaigns.length === 0 ? (

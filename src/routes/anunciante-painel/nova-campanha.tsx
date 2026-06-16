@@ -57,10 +57,24 @@ function NovaCampanha() {
       const list = (pkgs ?? []) as Pkg[];
       setPackages(list);
       setProfile(prof);
-      // If no packageId from URL, fall back to default
-      if (!selectedPackageId) {
-        if (list[1]) setPackageId(list[1].id);
-        else if (list[0]) setPackageId(list[0].id);
+
+      if (selectedPackageId) {
+        setPackageId(selectedPackageId);
+      } else if (prof?.id) {
+        // Pre-select the package from the most recent approved payment
+        const { data: payment } = await supabase
+          .from("advertiser_payment_orders")
+          .select("advertising_package_id")
+          .eq("advertiser_profile_id", prof.id)
+          .eq("status", "approved")
+          .order("paid_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (payment?.advertising_package_id) {
+          setPackageId(payment.advertising_package_id);
+        } else if (list[0]) {
+          setPackageId(list[0].id);
+        }
       }
       setLoading(false);
     })();

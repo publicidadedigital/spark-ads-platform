@@ -172,7 +172,7 @@ function CampanhasPage() {
   const progress = Math.min(100, Math.round((approvedCount / DAILY_GOAL) * 100));
   const remaining = Math.max(0, DAILY_GOAL - approvedCount);
   const totalGanho = monthBonuses.reduce((sum, bonus) => sum + Number(bonus.valor ?? 0), 0);
-  const currentStreak = Math.max(1, Math.min(7, approvedCount + pendingCount || submittedCount || 1));
+  const currentStreak = approvedCount;
 
   if (loading) return <p className="text-muted-foreground">Carregando campanhas...</p>;
 
@@ -216,7 +216,7 @@ function CampanhasPage() {
             <div className="mt-6 grid gap-3 md:grid-cols-2 min-[1400px]:grid-cols-4">
               <MetricCard label="Publicidades aprovadas hoje" value={`${approvedCount} / ${DAILY_GOAL}`} sub={`Restam ${remaining} para completar`} icon={Megaphone} />
               <MetricCard label="Bonus do dia" value={formatMoney(dailyBonus)} sub={`Ao completar ${DAILY_GOAL} publicacoes`} icon={Wallet} tone="success" />
-              <MetricCard label="Sequencia atual" value={`${currentStreak} dias`} sub="Continue assim!" icon={Flame} tone="warning" />
+              <MetricCard label="Aprovadas hoje" value={`${approvedCount} / ${DAILY_GOAL}`} sub={approvedCount >= DAILY_GOAL ? "Meta concluída!" : `Faltam ${remaining}`} icon={Flame} tone="warning" />
               <MetricCard label="Total ganho" value={formatMoney(totalGanho)} sub="Este mes" icon={Sparkles} tone="success" />
             </div>
           </Card>

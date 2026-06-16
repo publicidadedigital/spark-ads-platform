@@ -20,10 +20,8 @@ import {
   Award,
   Bell,
   Crown,
-  Gift,
   Goal,
   Grid2X2,
-  Medal,
   Rocket,
   Share2,
   ShieldCheck,
@@ -256,21 +254,18 @@ function Dashboard() {
           </div>
 
           <Card className="overflow-hidden border-violet-500/30 bg-[radial-gradient(circle_at_right,rgba(124,58,237,0.36),transparent_30%),linear-gradient(90deg,rgba(88,28,135,0.42),rgba(2,6,23,0.72))] p-5">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div className="flex items-center gap-4">
-                <div className="rounded-xl border border-amber-300/35 bg-amber-500/15 p-3 text-amber-300">
-                  <Trophy className="h-8 w-8" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">Você está mandando muito bem!</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Faltam {formatNumber(nextPrize.remaining)} pontos para desbloquear sua próxima conquista.
-                  </p>
-                </div>
+            <div className="flex items-center gap-4">
+              <div className="rounded-xl border border-amber-300/35 bg-amber-500/15 p-3 text-amber-300">
+                <Trophy className="h-8 w-8" />
               </div>
-              <Button variant="outline" className="border-primary/40 bg-primary/10 text-primary">
-                Ver catálogo de prêmios
-              </Button>
+              <div>
+                <h3 className="font-semibold">Você está mandando muito bem!</h3>
+                <p className="text-sm text-muted-foreground">
+                  {s.points > 0
+                    ? `${formatNumber(s.points)} pontos acumulados — continue assim!`
+                    : "Complete publicações diárias para acumular pontos."}
+                </p>
+              </div>
             </div>
           </Card>
         </div>
@@ -311,7 +306,7 @@ function TopMetric({ icon: Icon, label, value, sub, tone, progress }: any) {
 }
 
 function JourneyCard({ points, nextPrize }: { points: number; nextPrize: ReturnType<typeof nextAchievement> }) {
-  const percent = Math.min(100, (points / 30000) * 100);
+  const percent = Math.min(100, nextPrize.target > 0 ? (points / nextPrize.target) * 100 : 0);
   return (
     <Card className="overflow-hidden border-primary/20 bg-[radial-gradient(circle_at_40%_0%,rgba(124,58,237,0.28),transparent_30%),radial-gradient(circle_at_right,rgba(37,99,235,0.18),transparent_28%),linear-gradient(180deg,rgba(15,23,42,0.86),rgba(2,6,23,0.88))] p-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -319,10 +314,9 @@ function JourneyCard({ points, nextPrize }: { points: number; nextPrize: ReturnT
           <Crown className="mt-1 h-5 w-5 text-amber-300" />
           <div>
             <h2 className="font-semibold">Sua jornada de conquistas</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Acumule pontos e troque por prêmios incríveis!</p>
+            <p className="mt-1 text-sm text-muted-foreground">Acumule pontos completando suas publicações diárias.</p>
           </div>
         </div>
-        <Button variant="outline" className="border-primary/30 bg-primary/10 text-primary">Ver catálogo completo</Button>
       </div>
 
       <div className="mt-7">
@@ -332,47 +326,22 @@ function JourneyCard({ points, nextPrize }: { points: number; nextPrize: ReturnT
             <p className="text-sm text-muted-foreground">pontos acumulados</p>
           </div>
           <Badge variant="outline" className="border-violet-400/40 bg-violet-500/15 text-violet-200">
-            Próxima conquista: {formatNumber(nextPrize.target)} pontos
+            Próxima marca: {formatNumber(nextPrize.target)} pontos
           </Badge>
         </div>
         <div className="relative h-3 rounded-full bg-primary/10">
           <div className="h-full rounded-full bg-[linear-gradient(90deg,#7c3aed,#2563eb)] shadow-[0_0_22px_rgba(124,58,237,0.55)]" style={{ width: `${percent}%` }} />
-          <div className="absolute left-1/3 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full border border-primary/60 bg-primary/20 text-primary shadow-gold">
-            <Star className="h-4 w-4" />
-          </div>
-          <Gift className="absolute right-2 top-1/2 h-9 w-9 -translate-y-1/2 text-amber-300" />
         </div>
-        <div className="mt-4 grid grid-cols-3 text-sm text-muted-foreground">
-          <span>0</span>
-          <span className="text-center">10.000</span>
-          <span className="text-right">30.000</span>
+        <div className="mt-2 flex justify-between text-xs text-muted-foreground">
+          <span>{formatNumber(points)} pts</span>
+          <span>{formatNumber(nextPrize.remaining)} pts restantes</span>
+          <span>{formatNumber(nextPrize.target)} pts</span>
         </div>
-      </div>
-
-      <div className="mt-5 grid gap-3 md:grid-cols-2">
-        <PrizeCard title="iPhone" points="10.000 pontos" available />
-        <PrizeCard title="Viagem dos sonhos" points="30.000 pontos" />
       </div>
     </Card>
   );
 }
 
-function PrizeCard({ title, points, available }: { title: string; points: string; available?: boolean }) {
-  return (
-    <div className="flex items-center gap-3 rounded-lg border border-primary/15 bg-background/45 p-3">
-      <div className={`grid h-14 w-16 place-items-center rounded-lg ${available ? "bg-violet-500/15 text-violet-300" : "bg-amber-500/15 text-amber-300"}`}>
-        {available ? <Rocket className="h-7 w-7" /> : <Medal className="h-7 w-7" />}
-      </div>
-      <div>
-        <p className="text-sm font-medium">{title}</p>
-        <p className="text-sm font-semibold">{points}</p>
-        <Badge className={available ? "mt-1 bg-success/15 text-success hover:bg-success/15" : "mt-1 bg-muted text-muted-foreground hover:bg-muted"}>
-          {available ? "Disponível" : "Bloqueado"}
-        </Badge>
-      </div>
-    </div>
-  );
-}
 
 function GainCard({ icon: Icon, label, value, change, tone }: any) {
   const tones: Record<string, string> = {
@@ -428,7 +397,7 @@ function EarningsChart({ data, total }: { data: any[]; total: number }) {
       <div className="mt-4 grid gap-3 border-t border-border/50 pt-4 sm:grid-cols-3">
         <MiniStat icon={Wallet} label="Total no período" value={formatMoney(total)} />
         <MiniStat icon={TrendingUp} label="Maior ganho diário" value={formatMoney(max)} />
-        <MiniStat icon={Sparkles} label="Média diária" value={formatMoney(total / 7)} />
+        <MiniStat icon={Sparkles} label="Média diária" value={formatMoney(total / Math.max(1, data.filter((d: any) => d.valor > 0).length))} />
       </div>
     </Card>
   );

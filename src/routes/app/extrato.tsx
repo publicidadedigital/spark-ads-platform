@@ -539,8 +539,7 @@ function NextReleaseCard({ pending }: { pending: number }) {
           <p className="text-xs text-muted-foreground">Valor em processamento</p>
         </div>
       </div>
-      <Progress value={value > 0 ? 68 : 0} className="mt-5 h-2 bg-primary/10" />
-      <p className="mt-3 text-xs text-primary">{value > 0 ? "Aguardando regras de liberacao" : "Nenhum valor pendente"}</p>
+      <p className="mt-4 text-xs text-muted-foreground">{value > 0 ? "Aguardando processamento de liberação" : "Nenhum valor pendente"}</p>
     </Card>
   );
 }

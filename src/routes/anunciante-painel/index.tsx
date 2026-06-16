@@ -85,7 +85,7 @@ const CAKTO_URLS: Record<number, string> = {
 
 const HOW_IT_WORKS = [
   "Você contrata um plano de divulgação (7, 15 ou 30 dias).",
-  "Criamos sua campanha e distribuímos para nossa rede de criadores no Instagram.",
+  "Você cria sua campanha e nós aprovamos e distribuímos para nossa rede de criadores no Instagram.",
   "Cada criador compartilha seu anúncio nos stories ou feed com o link da sua marca.",
   "Você acompanha em tempo real o número de compartilhamentos, alcance estimado e desempenho.",
   "Ao final do período, você tem acesso ao relatório completo da campanha.",

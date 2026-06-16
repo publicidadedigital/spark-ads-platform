@@ -93,16 +93,14 @@ function LoginPage() {
 
   async function handleResend(e: React.FormEvent) {
     e.preventDefault();
-    if (!resendEmail) return;
+    if (!resendEmail || !supabase) return;
     setResendLoading(true);
     try {
-      const res = await fetch("/api/public/email-confirmation/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: resendEmail }),
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: resendEmail,
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || "Erro ao reenviar");
+      if (error) throw error;
       toast.success("E-mail de confirmação reenviado! Verifique sua caixa de entrada.");
       setShowResend(false);
     } catch (err: any) {

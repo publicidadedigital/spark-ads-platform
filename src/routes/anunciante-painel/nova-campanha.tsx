@@ -83,13 +83,9 @@ function NovaCampanha() {
   function handleFile(f: File | null) {
     setFile(f);
     if (!f) { setPreview(null); return; }
-    if (f.type.startsWith("video/")) {
-      setPreview(URL.createObjectURL(f));
-    } else {
-      const reader = new FileReader();
-      reader.onload = (e) => setPreview(e.target?.result as string);
-      reader.readAsDataURL(f);
-    }
+    const reader = new FileReader();
+    reader.onload = (e) => setPreview(e.target?.result as string);
+    reader.readAsDataURL(f);
   }
 
   function onFileInput(e: React.ChangeEvent<HTMLInputElement>) {

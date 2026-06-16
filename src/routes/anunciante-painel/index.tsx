@@ -155,7 +155,7 @@ function AdvertiserDashboard() {
         </p>
         <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3">
           {packages.map((pkg) => (
-            <PackageCard key={pkg.id} pkg={pkg} canSelect={profile.status === "ativo"} />
+            <PackageCard key={pkg.id} pkg={pkg} canSelect={profile.status === "ativo"} email={profile.email} contactName={profile.contact_name} />
           ))}
           {packages.length === 0 && (
             <p className="col-span-full text-sm text-muted-foreground">Nenhum pacote disponível no momento.</p>
@@ -200,9 +200,17 @@ function InfoCard({ icon: Icon, label, value }: { icon: typeof Building2; label:
   );
 }
 
-function PackageCard({ pkg, canSelect }: { pkg: Pkg; canSelect: boolean }) {
+function PackageCard({ pkg, canSelect, email, contactName }: { pkg: Pkg; canSelect: boolean; email?: string | null; contactName?: string | null }) {
   const features = ["Compartilhamentos reais", "Alcance orgânico", "Relatório de desempenho"];
-  const caktoUrl = pkg.duration_days ? CAKTO_URLS[pkg.duration_days] : undefined;
+  const baseUrl = pkg.duration_days ? CAKTO_URLS[pkg.duration_days] : undefined;
+  const caktoUrl = baseUrl
+    ? (() => {
+        const u = new URL(baseUrl);
+        if (email) u.searchParams.set("email", email);
+        if (contactName) u.searchParams.set("name", contactName);
+        return u.toString();
+      })()
+    : undefined;
   return (
     <Card className="flex flex-col border-border/50 bg-card/60 p-6 gap-0">
       <div className="mb-4 flex items-center justify-center rounded-2xl bg-primary/10 w-14 h-14 shrink-0">
@@ -213,7 +221,7 @@ function PackageCard({ pkg, canSelect }: { pkg: Pkg; canSelect: boolean }) {
       </h3>
       <p className="text-sm text-muted-foreground mb-3">de compartilhamentos</p>
       <p className="text-3xl font-bold text-primary mb-4">{usd.format(Number(pkg.price_usd))}</p>
-      <ul className="space-y-2 mb-6 flex-1">
+      <ul className="space-y-2 mb-4 flex-1">
         {features.map((f) => (
           <li key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
             <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
@@ -221,6 +229,9 @@ function PackageCard({ pkg, canSelect }: { pkg: Pkg; canSelect: boolean }) {
           </li>
         ))}
       </ul>
+      <p className="text-xs text-amber-300 mb-4 rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-2">
+        Após o pagamento, sua conta será ativada automaticamente e você poderá criar campanhas.
+      </p>
       {caktoUrl && canSelect ? (
         <a href={caktoUrl} target="_blank" rel="noreferrer">
           <Button className="w-full bg-primary text-primary-foreground">

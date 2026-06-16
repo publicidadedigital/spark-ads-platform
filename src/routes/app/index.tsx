@@ -20,8 +20,10 @@ import {
   Award,
   Bell,
   Crown,
+  Gift,
   Goal,
   Grid2X2,
+  Medal,
   Rocket,
   Share2,
   ShieldCheck,
@@ -305,8 +307,15 @@ function TopMetric({ icon: Icon, label, value, sub, tone, progress }: any) {
   );
 }
 
+const PRIZES = [
+  { title: "iPhone", points: 10000, icon: Rocket },
+  { title: "Viagem dos sonhos", points: 30000, icon: Medal },
+] as const;
+
 function JourneyCard({ points, nextPrize }: { points: number; nextPrize: ReturnType<typeof nextAchievement> }) {
-  const percent = Math.min(100, nextPrize.target > 0 ? (points / nextPrize.target) * 100 : 0);
+  const maxPoints = PRIZES[PRIZES.length - 1].points;
+  const percent = Math.min(100, (points / maxPoints) * 100);
+
   return (
     <Card className="overflow-hidden border-primary/20 bg-[radial-gradient(circle_at_40%_0%,rgba(124,58,237,0.28),transparent_30%),radial-gradient(circle_at_right,rgba(37,99,235,0.18),transparent_28%),linear-gradient(180deg,rgba(15,23,42,0.86),rgba(2,6,23,0.88))] p-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -314,9 +323,12 @@ function JourneyCard({ points, nextPrize }: { points: number; nextPrize: ReturnT
           <Crown className="mt-1 h-5 w-5 text-amber-300" />
           <div>
             <h2 className="font-semibold">Sua jornada de conquistas</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Acumule pontos completando suas publicações diárias.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Acumule pontos e troque por prêmios incríveis!</p>
           </div>
         </div>
+        <Badge variant="outline" className="border-violet-400/40 bg-violet-500/15 text-violet-200 shrink-0">
+          Próxima conquista: {formatNumber(nextPrize.target)} pontos
+        </Badge>
       </div>
 
       <div className="mt-7">
@@ -325,18 +337,37 @@ function JourneyCard({ points, nextPrize }: { points: number; nextPrize: ReturnT
             <p className="text-2xl font-bold">{formatNumber(points)}</p>
             <p className="text-sm text-muted-foreground">pontos acumulados</p>
           </div>
-          <Badge variant="outline" className="border-violet-400/40 bg-violet-500/15 text-violet-200">
-            Próxima marca: {formatNumber(nextPrize.target)} pontos
-          </Badge>
         </div>
         <div className="relative h-3 rounded-full bg-primary/10">
           <div className="h-full rounded-full bg-[linear-gradient(90deg,#7c3aed,#2563eb)] shadow-[0_0_22px_rgba(124,58,237,0.55)]" style={{ width: `${percent}%` }} />
+          <Gift className="absolute right-2 top-1/2 h-9 w-9 -translate-y-1/2 text-amber-300" />
         </div>
-        <div className="mt-2 flex justify-between text-xs text-muted-foreground">
-          <span>{formatNumber(points)} pts</span>
-          <span>{formatNumber(nextPrize.remaining)} pts restantes</span>
-          <span>{formatNumber(nextPrize.target)} pts</span>
+        <div className="mt-4 flex justify-between text-sm text-muted-foreground">
+          <span>0</span>
+          {PRIZES.map((prize) => (
+            <span key={prize.title}>{formatNumber(prize.points)}</span>
+          ))}
         </div>
+      </div>
+
+      <div className="mt-5 grid gap-3 md:grid-cols-2">
+        {PRIZES.map((prize) => {
+          const unlocked = points >= prize.points;
+          return (
+            <div key={prize.title} className="flex items-center gap-3 rounded-lg border border-primary/15 bg-background/45 p-3">
+              <div className={`grid h-14 w-16 place-items-center rounded-lg ${unlocked ? "bg-violet-500/15 text-violet-300" : "bg-amber-500/15 text-amber-300"}`}>
+                <prize.icon className="h-7 w-7" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">{prize.title}</p>
+                <p className="text-sm font-semibold">{formatNumber(prize.points)} pontos</p>
+                <Badge className={unlocked ? "mt-1 bg-success/15 text-success hover:bg-success/15" : "mt-1 bg-muted text-muted-foreground hover:bg-muted"}>
+                  {unlocked ? "Disponível" : "Bloqueado"}
+                </Badge>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </Card>
   );

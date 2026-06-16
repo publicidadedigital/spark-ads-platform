@@ -177,7 +177,8 @@
 
 @media (max-width: 1180px) {
   .app-shell-grid,
-  .grid.md\:grid-cols-\[240px_1fr\] {
+  .grid.md\:grid-cols-\[240px_1fr\],
+  .grid.md\:grid-cols-\[220px_1fr\] {
     grid-template-columns: 1fr !important;
   }
 
@@ -192,7 +193,8 @@
   .grid[class*="xl:grid-cols-[minmax(0,1fr)_330px]"],
   .grid[class*="xl:grid-cols-[minmax(0,1fr)_304px]"],
   .grid[class*="lg:grid-cols-[1fr_420px_250px]"],
-  .grid[class*="lg:grid-cols-[1.4fr_1fr_1fr]"] {
+  .grid[class*="lg:grid-cols-[1.4fr_1fr_1fr]"],
+  .grid[class*="lg:grid-cols-[1fr_280px]"] {
     grid-template-columns: 1fr !important;
   }
 }

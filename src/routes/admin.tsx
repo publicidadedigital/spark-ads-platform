@@ -72,7 +72,7 @@ function AdminLayout() {
           <div className="flex items-center gap-3">
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden"><Menu className="h-5 w-5" /></Button>
+                <Button variant="ghost" size="icon" className="app-mobile-menu hidden"><Menu className="h-5 w-5" /></Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-64 p-0 pt-6">
                 <AdminNav pathname={loc.pathname} />
@@ -92,11 +92,11 @@ function AdminLayout() {
           </div>
         </div>
       </header>
-      <div className="w-full max-w-screen-2xl mx-auto px-4 py-6 grid md:grid-cols-[220px_1fr] gap-6">
-        <aside className="hidden md:block">
+      <div className="app-shell-grid w-full max-w-screen-2xl mx-auto px-4 py-6 grid md:grid-cols-[220px_1fr] gap-6">
+        <aside className="app-sidebar hidden md:block">
           <AdminNav pathname={loc.pathname} />
         </aside>
-        <main className="min-w-0 w-full overflow-hidden"><Outlet /></main>
+        <main className="min-w-0"><Outlet /></main>
       </div>
     </div>
   );

@@ -329,7 +329,7 @@ function CampanhasPage() {
                 <h2 className="text-xl font-semibold">Campanhas de anunciantes</h2>
                 <p className="text-sm text-muted-foreground">Divulgue campanhas de anunciantes parceiros e envie o link para validacao.</p>
               </div>
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
                 {advertiserCampaigns.map((campaign, index) => (
                   <AdvertiserCampaignCard
                     key={campaign.id}
@@ -447,11 +447,11 @@ function AdvertiserCampaignCard({ campaign, index, alreadyShared, profileId, cyc
   const ext = campaign.media_type === "video" ? "mp4" : "jpg";
   return (
     <Card className="overflow-hidden border-primary/15 bg-card/50">
-      <div className="relative max-h-40 overflow-hidden bg-muted">
+      <div className="relative aspect-square overflow-hidden bg-black/40">
         {campaign.media_type === "video" ? (
-          <video src={campaign.media_url} controls className="h-40 w-full object-cover" />
+          <video src={campaign.media_url} controls className="h-full w-full object-contain" />
         ) : (
-          <img src={campaign.media_url} alt={campaign.title} className="h-40 w-full object-cover transition duration-300 hover:scale-105" />
+          <img src={campaign.media_url} alt={campaign.title} className="h-full w-full object-contain" />
         )}
       </div>
       <div className="space-y-2 p-2.5 text-center">

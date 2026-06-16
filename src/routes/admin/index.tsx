@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/supabase/auth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, Zap, PackageOpen } from "lucide-react";
 import { toast } from "sonner";
 import { getTwoFactorStatus } from "@/lib/security/totp.functions";
 import { TwoFactorReminderBanner } from "@/components/TwoFactorSetup";
@@ -67,7 +67,7 @@ function AdminUsers() {
     if (!supabase) return;
     setLoading(true);
     const [{ data }, { data: adminRoles }, { data: legacyAdmins }, { data: adv }, { data: withdrawalRows }, { data: depositRows }] = await Promise.all([
-      supabase.from("users_profile").select("*").order("created_at", { ascending: false }).limit(200),
+      supabase.from("users_profile").select("*,package:pacote_ativo_id(nome,valor)").order("created_at", { ascending: false }).limit(200),
       supabase.from("admin_roles").select("auth_user_id").eq("status", "ativo"),
       supabase.from("user_roles").select("user_id").in("role", ["admin", "super_admin"]),
       supabase.from("advertiser_profiles").select("*").order("created_at", { ascending: false }).limit(200),
@@ -174,14 +174,31 @@ function AdminUsers() {
           {loading ? <p className="p-6 text-muted-foreground">Carregando...</p> : (
             <table className="w-full text-sm">
               <thead className="border-b border-border/50 text-xs uppercase text-muted-foreground">
-                <tr><th className="text-left p-3">Nome</th><th className="text-left p-3">E-mail</th><th className="text-left p-3">Instagram</th><th className="text-left p-3">Status</th><th className="text-left p-3">Último login</th><th className="text-right p-3">Ações</th></tr>
+                <tr><th className="text-left p-3">Nome</th><th className="text-left p-3">E-mail</th><th className="text-left p-3">Instagram</th><th className="text-left p-3">Plano</th><th className="text-left p-3">Status</th><th className="text-left p-3">Último login</th><th className="text-right p-3">Ações</th></tr>
               </thead>
               <tbody>
-                {users.map((u) => (
+                {users.map((u) => {
+                  const pkg = Array.isArray(u.package) ? u.package[0] : u.package;
+                  return (
                   <tr key={u.id} className="border-b border-border/30">
                     <td className="p-3">{u.nome}</td>
                     <td className="p-3 text-muted-foreground">{u.email}</td>
                     <td className="p-3">@{u.instagram}</td>
+                    <td className="p-3">
+                      {pkg?.nome ? (
+                        u.status === "ativo" ? (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/40 bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-300">
+                            <Zap className="h-3 w-3" />{pkg.nome}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/40 px-2 py-0.5 text-xs text-muted-foreground">
+                            <PackageOpen className="h-3 w-3" />{pkg.nome} · pendente
+                          </span>
+                        )
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Sem plano</span>
+                      )}
+                    </td>
                     <td className="p-3"><Badge variant="outline">{u.status}</Badge></td>
                     <td className="p-3 text-muted-foreground">{lastLoginLabel(u.auth_user_id)}</td>
                     <td className="p-3 text-right space-x-1">
@@ -189,7 +206,8 @@ function AdminUsers() {
                       {u.status !== "bloqueado" && <Button size="sm" variant="destructive" onClick={() => setStatus(u.id, "bloqueado")}>Bloquear</Button>}
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           )}

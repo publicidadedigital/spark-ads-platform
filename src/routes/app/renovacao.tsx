@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   ArrowRight,
   BarChart3,
-  Bell,
   Check,
   Headphones,
   Layers3,
@@ -43,6 +42,7 @@ type Cycle = {
   status: string;
   started_at: string | null;
   completed_at?: string | null;
+  packages?: { id: string; nome: string; valor: number | string } | null;
 };
 
 function RenovacaoPage() {
@@ -51,7 +51,7 @@ function RenovacaoPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [cycle, setCycle] = useState<Cycle | null>(null);
   const [packages, setPackages] = useState<PackageRow[]>([]);
-  const [cycleSettings, setCycleSettings] = useState({ cycle_duration_days: 90, cycle_goal_percent: 200 });
+  const [cycleGoalPercent, setCycleGoalPercent] = useState(200);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -59,9 +59,9 @@ function RenovacaoPage() {
     (async () => {
       const { data: rs } = await supabase
         .from("renewal_settings")
-        .select("cycle_duration_days,cycle_goal_percent")
+        .select("cycle_goal_percent")
         .maybeSingle();
-      if (rs) setCycleSettings(rs);
+      if (rs?.cycle_goal_percent) setCycleGoalPercent(Number(rs.cycle_goal_percent));
 
       const { data: prof } = await supabase
         .from("users_profile")
@@ -73,12 +73,12 @@ function RenovacaoPage() {
       if (prof) {
         const { data: cy } = await supabase
           .from("user_cycles")
-          .select("id,percentual_atual,saldo_bonificacoes,status,started_at,completed_at")
+          .select("id,percentual_atual,saldo_bonificacoes,status,started_at,completed_at,packages:package_id(id,nome,valor)")
           .eq("user_id", prof.id)
           .order("started_at", { ascending: false })
           .limit(1)
           .maybeSingle();
-        setCycle(cy);
+        setCycle(cy as Cycle | null);
       }
 
       const { data: pks } = await supabase
@@ -96,14 +96,14 @@ function RenovacaoPage() {
   }
 
   const currentPackage = useMemo(() => {
-    if (!packages.length) return null;
-    return packages.find((pkg) => pkg.id === profile?.pacote_ativo_id) ?? packages[0];
-  }, [packages, profile?.pacote_ativo_id]);
+    const fromCycle = cycle?.packages as PackageRow | null | undefined;
+    if (fromCycle) return fromCycle;
+    if (!packages.length || !profile?.pacote_ativo_id) return null;
+    return packages.find((p) => p.id === profile.pacote_ativo_id) ?? null;
+  }, [cycle, packages, profile?.pacote_ativo_id]);
 
   if (loading) return <p className="text-muted-foreground">Carregando renovação...</p>;
 
-  const cycleGoalPercent = Number(cycleSettings.cycle_goal_percent) || 200;
-  const cycleDurationDays = Number(cycleSettings.cycle_duration_days) || 90;
   const cyclePercentRaw = Number(cycle?.percentual_atual ?? 0);
   const cycleProgress = Math.min(100, Math.max(0, Math.round((cyclePercentRaw / cycleGoalPercent) * 100)));
   const currentValue = moneyValue(currentPackage?.valor);
@@ -111,11 +111,8 @@ function RenovacaoPage() {
   const cycleTotal = Number(cycle?.saldo_bonificacoes ?? 0);
   const missingValue = Math.max(0, cycleGoal - cycleTotal);
   const startedAt = cycle?.started_at ? new Date(cycle.started_at) : null;
-  const validUntil = addDays(startedAt ?? new Date(), cycleDurationDays);
-  const daysLeft = Math.max(1, Math.ceil((validUntil.getTime() - Date.now()) / 86400000));
-  const dailyAverage = daysLeft ? missingValue / daysLeft : 0;
   const canRenew = !cycle || cyclePercentRaw >= cycleGoalPercent || cycle.status === "concluido";
-  const upgradePackage = packages.find((pkg) => moneyValue(pkg.valor) > currentValue) ?? packages[packages.length - 1] ?? currentPackage;
+  const upgradePackage = packages.find((pkg) => moneyValue(pkg.valor) > currentValue) ?? null;
 
   return (
     <div className="space-y-4">
@@ -123,22 +120,18 @@ function RenovacaoPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-normal">Renovação de pacote</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Seu ciclo termina ao atingir 200% do valor do pacote contratado.
+            Seu ciclo é concluído ao atingir {cycleGoalPercent}% do valor do pacote contratado.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        {cycle && (
           <div className="rounded-lg border border-success/20 bg-card/60 px-4 py-2">
             <div className="flex items-center gap-2 text-sm font-medium">
               <span className="h-2.5 w-2.5 rounded-full bg-success shadow-[0_0_18px_rgba(34,197,94,0.7)]" />
               Ciclo ativo
             </div>
-            <p className="text-xs text-muted-foreground">{daysLeft} dias restantes</p>
+            <p className="text-xs text-muted-foreground">{cyclePercentRaw.toFixed(1)}% de {cycleGoalPercent}%</p>
           </div>
-          <button className="relative grid h-11 w-11 place-items-center rounded-full border border-primary/20 bg-background/60 text-muted-foreground">
-            <Bell className="h-5 w-5" />
-            <span className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">3</span>
-          </button>
-        </div>
+        )}
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
@@ -150,12 +143,12 @@ function RenovacaoPage() {
                 <div>
                   <p className="text-sm text-muted-foreground">Seu pacote atual</p>
                   <h2 className="text-3xl font-bold text-primary">{currentPackage?.nome ?? "Sem pacote ativo"}</h2>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Adquirido em {formatDate(startedAt)}
-                  </p>
-                  <Badge className="mt-2 bg-success/15 text-success hover:bg-success/15">
-                    Válido até {formatDate(validUntil)}
-                  </Badge>
+                  {currentPackage && (
+                    <p className="mt-1 text-lg font-semibold text-muted-foreground">{formatMoney(moneyValue(currentPackage.valor))}</p>
+                  )}
+                  {startedAt && (
+                    <p className="mt-2 text-sm text-muted-foreground">Adquirido em {formatDate(startedAt)}</p>
+                  )}
                 </div>
               </div>
 
@@ -186,7 +179,7 @@ function RenovacaoPage() {
                 <div>
                   <p className="text-sm text-muted-foreground">Faltam</p>
                   <p className="text-2xl font-bold text-primary">{formatMoney(missingValue)}</p>
-                  <p className="text-sm text-muted-foreground">para atingir 200%</p>
+                  <p className="text-sm text-muted-foreground">para atingir {cycleGoalPercent}%</p>
                 </div>
                 <div className="rounded-lg border border-amber-300/25 bg-amber-500/10 p-3">
                   <p className="font-medium">Mantenha o ritmo!</p>
@@ -199,11 +192,9 @@ function RenovacaoPage() {
             </Button>
           </Card>
 
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-3 md:grid-cols-2">
             <CycleMetric label="Ganho total do ciclo" value={formatMoney(cycleTotal)} sub={`${cycleProgress}% do objetivo`} />
-            <CycleMetric label="Ganhos diários (média)" value={formatMoney(dailyAverage)} sub="Media do ciclo atual" />
-            <CycleMetric label="Dias restantes" value={`${daysLeft} dias`} sub="Para atingir 200%" />
-            <CycleMetric label="Previsão de conclusão" value={formatDate(addDays(new Date(), Math.ceil(missingValue / Math.max(1, dailyAverage))))} sub="Se mantiver o ritmo atual" />
+            <CycleMetric label="Ganhos diários (média)" value={cycle ? formatMoney(cycleTotal / Math.max(1, daysSince(startedAt))) : "—"} sub="Média desde o início do ciclo" />
           </div>
 
           <Card className="border-primary/15 bg-card/50 p-5">
@@ -218,7 +209,7 @@ function RenovacaoPage() {
                 icon="renew"
                 button="Renovar pacote"
                 disabled={!canRenew || !currentPackage}
-                onClick={() => currentPackage && escolher(currentPackage)}
+                onClick={() => currentPackage && escolher(currentPackage as PackageRow)}
                 bullets={["Mesmo pacote e benefícios", "Toda sua estrutura e equipe", "Seu histórico de ganhos"]}
               />
               <ActionCard
@@ -235,34 +226,36 @@ function RenovacaoPage() {
             </div>
           </Card>
 
-          <Card className="border-primary/15 bg-card/50 p-5">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-xl font-semibold">Compare os pacotes e escolha o melhor para você</h2>
-                <p className="mt-1 text-sm text-muted-foreground">O pacote superior aumenta o teto de retorno do ciclo.</p>
+          {packages.length > 0 && (
+            <Card className="border-primary/15 bg-card/50 p-5">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-xl font-semibold">Compare os pacotes</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">O pacote superior aumenta o teto de retorno do ciclo.</p>
+                </div>
+                <Button size="icon" variant="outline" className="hidden shrink-0 rounded-full lg:inline-flex">
+                  <ArrowRight className="h-5 w-5" />
+                </Button>
               </div>
-              <Button size="icon" variant="outline" className="hidden shrink-0 rounded-full lg:inline-flex">
-                <ArrowRight className="h-5 w-5" />
-              </Button>
-            </div>
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              {packages.map((pkg, index) => (
-                <PackageCard
-                  key={pkg.id}
-                  pkg={pkg}
-                  index={index}
-                  current={pkg.id === currentPackage?.id}
-                  goalPercent={cycleGoalPercent}
-                  onChoose={() => escolher(pkg)}
-                />
-              ))}
-            </div>
-          </Card>
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                {packages.map((pkg, index) => (
+                  <PackageCard
+                    key={pkg.id}
+                    pkg={pkg}
+                    index={index}
+                    current={pkg.id === currentPackage?.id}
+                    goalPercent={cycleGoalPercent}
+                    onChoose={() => escolher(pkg)}
+                  />
+                ))}
+              </div>
+            </Card>
+          )}
         </main>
 
         <aside className="space-y-4">
           <BenefitsCard />
-          <HistoryCard currentPackage={currentPackage} cycle={cycle} progress={cycleProgress} cycleDurationDays={cycleDurationDays} />
+          <HistoryCard currentPackage={currentPackage as PackageRow | null} cycle={cycle} progress={cycleProgress} />
           <HelpCard />
         </aside>
       </div>
@@ -270,36 +263,21 @@ function RenovacaoPage() {
   );
 }
 
-function CycleMetric({ label, value, sub, positive }: { label: string; value: string; sub: string; positive?: boolean }) {
+function CycleMetric({ label, value, sub }: { label: string; value: string; sub: string }) {
   return (
     <Card className="border-primary/15 bg-card/50 p-4">
       <p className="text-sm text-muted-foreground">{label}</p>
       <p className="mt-2 text-2xl font-bold">{value}</p>
-      <p className={`mt-1 text-sm ${positive ? "text-success" : "text-muted-foreground"}`}>{sub}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{sub}</p>
     </Card>
   );
 }
 
 function ActionCard({
-  title,
-  description,
-  price,
-  bullets,
-  button,
-  icon,
-  accent,
-  disabled,
-  onClick,
+  title, description, price, bullets, button, icon, accent, disabled, onClick,
 }: {
-  title: string;
-  description: string;
-  price: number;
-  bullets: string[];
-  button: string;
-  icon: "renew" | "rocket";
-  accent?: boolean;
-  disabled?: boolean;
-  onClick: () => void;
+  title: string; description: string; price: number; bullets: string[];
+  button: string; icon: "renew" | "rocket"; accent?: boolean; disabled?: boolean; onClick: () => void;
 }) {
   return (
     <Card className={`relative overflow-hidden p-5 ${accent ? "border-violet-500/30 bg-violet-500/10" : "border-primary/20 bg-background/35"}`}>
@@ -328,7 +306,7 @@ function ActionCard({
       <div className="relative z-10 mt-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm text-muted-foreground">Investimento</p>
-          <p className={`text-2xl font-bold ${accent ? "text-violet-300" : "text-primary"}`}>{formatMoney(price)}</p>
+          <p className={`text-2xl font-bold ${accent ? "text-violet-300" : "text-primary"}`}>{price > 0 ? formatMoney(price) : "—"}</p>
         </div>
         <Button onClick={onClick} disabled={disabled} className={accent ? "bg-violet-600 text-white hover:bg-violet-500" : "bg-primary text-primary-foreground"}>
           {button}
@@ -358,7 +336,7 @@ function PackageCard({ pkg, index, current, goalPercent, onChoose }: { pkg: Pack
       <div className="mt-4 border-t border-border/45 pt-3 text-sm text-muted-foreground">
         <div className="flex gap-2">
           <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" />
-          <span>Bônus diário {formatMoney(Math.max(15, value / 24))}</span>
+          <span>Bônus diário a partir de {formatMoney(Math.max(15, value / 24))}</span>
         </div>
       </div>
     </Card>
@@ -392,17 +370,9 @@ function BenefitsCard() {
   );
 }
 
-function HistoryCard({ currentPackage, cycle, progress, cycleDurationDays }: { currentPackage: PackageRow | null; cycle: Cycle | null; progress: number; cycleDurationDays: number }) {
+function HistoryCard({ currentPackage, cycle, progress }: { currentPackage: PackageRow | null; cycle: Cycle | null; progress: number }) {
   const rows = cycle
-    ? [
-        {
-          name: currentPackage?.nome ?? "Ciclo atual",
-          date: cycle.started_at
-            ? `${formatDate(new Date(cycle.started_at))} a ${formatDate(addDays(new Date(cycle.started_at), cycleDurationDays))}`
-            : "Ciclo atual",
-          progress,
-        },
-      ]
+    ? [{ name: currentPackage?.nome ?? "Ciclo atual", date: cycle.started_at ? formatDate(new Date(cycle.started_at)) : "—", progress }]
     : [];
   return (
     <Card className="border-primary/15 bg-card/50 p-5">
@@ -417,9 +387,9 @@ function HistoryCard({ currentPackage, cycle, progress, cycleDurationDays }: { c
             <PackageIcon tone={index === 0 ? "blue" : "gray"} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{row.name}</p>
-              <p className="text-xs text-muted-foreground">{row.date}</p>
+              <p className="text-xs text-muted-foreground">Iniciado em {row.date}</p>
             </div>
-            <Badge className={row.progress >= 200 ? "bg-success/15 text-success hover:bg-success/15" : "bg-primary/15 text-primary hover:bg-primary/15"}>
+            <Badge className={row.progress >= 100 ? "bg-success/15 text-success hover:bg-success/15" : "bg-primary/15 text-primary hover:bg-primary/15"}>
               {row.progress}%
             </Badge>
           </div>
@@ -464,10 +434,9 @@ function PackageIcon({ tone = "blue", size = "normal" }: { tone?: "blue" | "viol
   );
 }
 
-function addDays(date: Date, days: number) {
-  const next = new Date(date);
-  next.setDate(next.getDate() + days);
-  return next;
+function daysSince(date: Date | null) {
+  if (!date) return 1;
+  return Math.max(1, Math.ceil((Date.now() - date.getTime()) / 86400000));
 }
 
 function moneyValue(value: number | string | null | undefined) {
@@ -489,6 +458,6 @@ function formatMoney(value: number) {
 }
 
 function formatDate(value: Date | null) {
-  if (!value || Number.isNaN(value.getTime())) return "--/--/----";
+  if (!value || Number.isNaN(value.getTime())) return "—";
   return value.toLocaleDateString("pt-BR");
 }

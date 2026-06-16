@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/supabase/auth";
 import { Card } from "@/components/ui/card";
@@ -175,6 +175,25 @@ function CampanhasPage() {
   const currentStreak = Math.max(1, Math.min(7, approvedCount + pendingCount || submittedCount || 1));
 
   if (loading) return <p className="text-muted-foreground">Carregando campanhas...</p>;
+
+  if (!cycleId) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center px-4">
+        <Card className="max-w-md w-full text-center bg-card/60 border-border/50 p-8 space-y-4">
+          <div className="flex items-center justify-center rounded-full bg-primary/10 w-16 h-16 mx-auto">
+            <Megaphone className="h-8 w-8 text-primary" />
+          </div>
+          <h2 className="text-xl font-bold">Ative seu pacote para participar</h2>
+          <p className="text-sm text-muted-foreground">
+            Para acessar as campanhas de compartilhamento e ganhar bônus diários, você precisa ter um pacote ativo.
+          </p>
+          <Link to="/app">
+            <Button className="w-full bg-primary text-primary-foreground">Ver pacotes disponíveis</Button>
+          </Link>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

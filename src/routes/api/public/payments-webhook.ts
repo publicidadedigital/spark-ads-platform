@@ -36,7 +36,7 @@ const CORS = {
 const PayloadSchema = z.object({
   cycle_id: z.string().uuid(),
   payment_id: z.string().min(1).max(255).optional(),
-  status: z.enum(["approved", "failed", "pending"]),
+  status: z.enum(["approved", "failed", "pending", "cancelled", "refunded", "chargeback"]),
   amount: z.number().nonnegative().optional(),
 });
 
@@ -155,6 +155,57 @@ export const Route = createFileRoute("/api/public/payments-webhook")({
         if (parsed.status === "approved" && cycle.status === "ativo") {
           return json({ ok: true, idempotent: true });
         }
+
+        // ── Cancelamento / estorno / chargeback ─────────────────────────────
+        if (["cancelled", "refunded", "chargeback"].includes(parsed.status)) {
+          // 1. Bloqueia o ciclo
+          await admin.from("user_cycles")
+            .update({ status: "bloqueado" })
+            .eq("id", cycle.id);
+
+          // 2. Invalida os pontos do usuário gerados por este ciclo
+          await admin.from("point_events")
+            .update({ status: "cancelled" })
+            .eq("user_id", cycle.user_id)
+            .eq("status", "valid");
+
+          // 3. Cancela bônus pendentes (de rede que ainda não foram liberados)
+          await admin.from("bonuses")
+            .update({ status: "cancelado" })
+            .eq("origem_id", cycle.id)
+            .eq("status", "pendente");
+
+          // 4. Remove retenções de saldo pendentes relacionadas ao ciclo
+          const { data: cancelledBonuses } = await admin.from("bonuses")
+            .select("id")
+            .eq("origem_id", cycle.id)
+            .eq("status", "cancelado");
+
+          if (cancelledBonuses && cancelledBonuses.length > 0) {
+            await admin.from("balance_holds")
+              .delete()
+              .in("bonus_id", cancelledBonuses.map((b) => b.id));
+          }
+
+          // 5. Bloqueia o perfil do usuário
+          await admin.from("users_profile")
+            .update({ status: "bloqueado" })
+            .eq("id", cycle.user_id);
+
+          await logPaymentError({
+            cycleId: cycle.id,
+            userId: cycle.user_id,
+            errorType: `payment_${parsed.status}`,
+            description: `Pagamento ${parsed.status} para ciclo ${cycle.id}. Ciclo bloqueado, pontos e bônus pendentes cancelados.`,
+            probableReason: `Gateway retornou status "${parsed.status}"${parsed.payment_id ? ` para payment_id ${parsed.payment_id}` : ""}.`,
+            recommendedAction: "Verificar junto ao gateway e ao usuário. Reativar manualmente se for engano.",
+            severity: parsed.status === "chargeback" ? "critico" : "alto",
+            metadata: { payment_id: parsed.payment_id ?? null, amount: parsed.amount ?? null },
+          });
+
+          return json({ ok: true, status: parsed.status });
+        }
+        // ────────────────────────────────────────────────────────────────────
 
         if (parsed.status === "pending") {
           return json({ ok: true, status: "pending" });

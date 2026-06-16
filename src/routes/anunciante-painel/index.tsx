@@ -125,21 +125,23 @@ function AdvertiserDashboard() {
   useEffect(() => {
     if (!supabase || !user) return;
     (async () => {
-      const [{ data: prof }, { data: pkgs }, { data: payRows }, { data: campRows }] = await Promise.all([
-        supabase
-          .from("advertiser_profiles")
-          .select("id,company_name,cnpj,contact_name,email,phone,country_code,cep,estado,cidade,status")
-          .eq("auth_user_id", user.id)
-          .maybeSingle(),
+      const { data: prof } = await supabase
+        .from("advertiser_profiles")
+        .select("id,company_name,cnpj,contact_name,email,phone,country_code,cep,estado,cidade,status")
+        .eq("auth_user_id", user.id)
+        .maybeSingle();
+
+      const [{ data: pkgs }, { data: payRows }, { data: campRows }] = await Promise.all([
         supabase.from("advertising_packages").select("*").eq("status", "ativo").order("price_usd"),
         supabase
           .from("advertiser_payment_orders")
           .select("id,created_at,amount_usd,status,advertising_package:advertising_package_id(name,duration_days)")
-          .eq("advertiser_profile_id", (await supabase.from("advertiser_profiles").select("id").eq("auth_user_id", user.id).maybeSingle()).data?.id ?? "")
+          .eq("advertiser_profile_id", prof?.id ?? "")
           .order("created_at", { ascending: false }),
         supabase
           .from("advertiser_campaigns")
-          .select("id,title,status,created_at,advertising_package:advertising_package_id(name,duration_days)")
+          .select("id,title,status,created_at,order:order_id(advertising_package:advertising_package_id(name,duration_days))")
+          .eq("advertiser_id", prof?.id ?? "")
           .order("created_at", { ascending: false })
           .limit(50),
       ]);
@@ -171,7 +173,7 @@ function AdvertiserDashboard() {
             title: c.title,
             status: c.status,
             created_at: c.created_at,
-            advertising_package: c.advertising_package,
+            advertising_package: c.order?.advertising_package ?? null,
             shares_count: sharesCount ?? 0,
             approved_count: approvedCount ?? 0,
             estimated_views: estimatedViews,

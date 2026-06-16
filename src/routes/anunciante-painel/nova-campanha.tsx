@@ -80,10 +80,18 @@ function NovaCampanha() {
     })();
   }, [supabase, user]);
 
+  const VIDEO_EXTS = ["mp4", "mov", "avi", "mkv", "webm", "m4v", "3gp"];
+
+  function isVideo(f: File) {
+    if (f.type.startsWith("video/")) return true;
+    const ext = f.name.split(".").pop()?.toLowerCase() ?? "";
+    return VIDEO_EXTS.includes(ext);
+  }
+
   function handleFile(f: File | null) {
     setFile(f);
     if (!f) { setPreview(null); return; }
-    if (f.type.startsWith("video/")) {
+    if (isVideo(f)) {
       setPreview(URL.createObjectURL(f));
     } else {
       const reader = new FileReader();
@@ -109,7 +117,7 @@ function NovaCampanha() {
     e.preventDefault();
     setDragging(false);
     const f = e.dataTransfer.files?.[0] ?? null;
-    if (f && (f.type.startsWith("image/") || f.type.startsWith("video/"))) {
+    if (f && (f.type.startsWith("image/") || isVideo(f))) {
       handleFile(f);
     }
   }
@@ -151,7 +159,7 @@ function NovaCampanha() {
         advertiser_id: profile.id,
         title: title.trim(),
         media_url: pub.publicUrl,
-        media_type: file.type.startsWith("video") ? "video" : "imagem",
+        media_type: isVideo(file) ? "video" : "imagem",
         caption: caption.trim(),
         destination_url: destinationUrl.trim(),
       });
@@ -232,7 +240,7 @@ function NovaCampanha() {
               } overflow-hidden`}
             >
               {preview ? (
-                file?.type.startsWith("video/") ? (
+                file && isVideo(file) ? (
                   <video key={preview} src={preview} controls playsInline className="h-full w-full object-cover max-h-64" />
                 ) : (
                   <img src={preview} alt="preview" className="h-full w-full object-cover" />
@@ -350,7 +358,7 @@ function NovaCampanha() {
               </div>
               <div className="aspect-square bg-muted/20 flex items-center justify-center overflow-hidden">
                 {preview ? (
-                  file?.type.startsWith("video/") ? (
+                  file && isVideo(file) ? (
                     <video key={preview} src={preview} playsInline muted className="h-full w-full object-cover" />
                   ) : (
                     <img src={preview} alt="feed preview" className="h-full w-full object-cover" />
@@ -387,7 +395,7 @@ function NovaCampanha() {
             <div className="mx-auto w-[160px]">
               <div className="relative rounded-2xl overflow-hidden border border-border/60 bg-black" style={{ aspectRatio: "9/16" }}>
                 {preview ? (
-                  file?.type.startsWith("video/") ? (
+                  file && isVideo(file) ? (
                     <video key={preview} src={preview} playsInline muted className="absolute inset-0 h-full w-full object-cover" />
                   ) : (
                     <img src={preview} alt="stories preview" className="absolute inset-0 h-full w-full object-cover" />

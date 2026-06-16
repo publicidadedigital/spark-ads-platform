@@ -35,13 +35,6 @@ type ReferralProfile = {
   indicador_id: string | null;
 };
 
-type ReferralRow = {
-  nivel: number;
-  status: string | null;
-  created_at: string | null;
-  indicado: ReferralProfile | ReferralProfile[] | null;
-};
-
 type Member = ReferralProfile & {
   nivel: number;
   referralStatus: string | null;
@@ -103,31 +96,26 @@ function RedePage() {
 
       setProfile(prof);
 
-      const { data: refs } = await supabase
-        .from("referrals")
-        .select("nivel,status,created_at,indicado:indicado_id(id,nome,status,created_at,indicador_id)")
-        .eq("indicador_id", prof.id)
-        .order("nivel", { ascending: true })
-        .order("created_at", { ascending: true });
+      const [{ data: refs }, { data: bonuses }] = await Promise.all([
+        supabase.rpc("get_user_network", { root_id: prof.id }),
+        supabase
+          .from("bonuses")
+          .select("valor")
+          .eq("user_id", prof.id)
+          .eq("status", "liberado")
+          .in("tipo", ["indicacao", "equipe"]),
+      ]);
 
-      const parsed = (refs ?? [])
-        .map((row: ReferralRow) => {
-          const indicado = Array.isArray(row.indicado) ? row.indicado[0] : row.indicado;
-          if (!indicado) return null;
-          return {
-            ...indicado,
-            nivel: row.nivel,
-            referralStatus: row.status,
-            referralCreatedAt: row.created_at,
-          };
-        })
-        .filter(Boolean) as Member[];
-
-      const { data: bonuses } = await supabase
-        .from("bonuses")
-        .select("valor")
-        .eq("user_id", prof.id)
-        .eq("status", "liberado");
+      const parsed = (refs ?? []).map((row: any) => ({
+        id: row.id,
+        nome: row.nome,
+        status: row.status,
+        created_at: row.created_at,
+        indicador_id: row.indicador_id,
+        nivel: row.nivel,
+        referralStatus: row.status,
+        referralCreatedAt: row.created_at,
+      })) as Member[];
 
       setMembers(parsed);
       setBonusTotal((bonuses ?? []).reduce((sum: number, b: any) => sum + Number(b.valor ?? 0), 0));
@@ -196,7 +184,7 @@ function RedePage() {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <MetricCard icon={Users} label="Equipe total" value={totalCount.toString()} sub="pessoas" />
-        <MetricCard icon={Sparkles} label="Bônus gerado" value={`$ ${bonusTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}`} sub="total liberado" />
+        <MetricCard icon={Sparkles} label="Bônus de rede" value={`$ ${bonusTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}`} sub="indicação + equipe liberados" />
         <MetricCard icon={User} label="Diretos" value={directCount.toString()} sub="pessoas" />
         <MetricCard icon={Star} label="Maior nível alcançado" value={highestLevel ? `Nível ${highestLevel}` : "Nível 0"} sub="na sua rede" />
         <MetricCard icon={TrendingUp} label="Crescimento semanal" value={`+${countRecent(members, 7)}`} sub="novos membros" />
@@ -279,22 +267,34 @@ function RedePage() {
 
           <Card className="grid gap-4 border-primary/20 bg-card/50 p-5 md:grid-cols-2">
             <div>
-              <h3 className="mb-4 font-semibold">Legenda de níveis</h3>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <h3 className="mb-4 font-semibold">Bônus por nível de rede</h3>
+              <div className="space-y-2">
+                {[
+                  { level: 1, label: "Nível 1 (diretos)", rate: "20%", dot: levelStyles[1].dot },
+                  { level: 2, label: "Nível 2", rate: "10%", dot: levelStyles[2].dot },
+                  { level: 3, label: "Nível 3", rate: "3%", dot: levelStyles[3].dot },
+                  { level: 4, label: "Nível 4 e 5", rate: "3%", dot: levelStyles[4].dot },
+                ].map((item) => (
+                  <div key={item.level} className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <span className={`h-3 w-3 rounded-full bg-gradient-to-br ${item.dot}`} />
+                      {item.label}
+                    </div>
+                    <span className="font-semibold text-primary">{item.rate}</span>
+                  </div>
+                ))}
+                <p className="pt-1 text-xs text-muted-foreground">Sobre o bônus diário do indicado ao completar 5 publicações</p>
+              </div>
+            </div>
+            <div>
+              <h3 className="mb-4 font-semibold">Legenda de cores</h3>
+              <div className="space-y-2">
                 {[1, 2, 3, 4].map((level) => (
                   <div key={level} className="flex items-center gap-2 text-sm text-muted-foreground">
                     <span className={`h-3 w-3 rounded-full bg-gradient-to-br ${levelStyles[level].dot}`} />
                     {levelStyles[level].label}
                   </div>
                 ))}
-              </div>
-            </div>
-            <div>
-              <h3 className="mb-4 font-semibold">Legenda de status</h3>
-              <div className="grid gap-3 sm:grid-cols-3">
-                <StatusLegend icon={Flame} label="Entrou hoje" />
-                <StatusLegend icon={Zap} label="Cresceu esta semana" />
-                <StatusLegend icon={Star} label="Melhor desempenho" />
               </div>
             </div>
           </Card>

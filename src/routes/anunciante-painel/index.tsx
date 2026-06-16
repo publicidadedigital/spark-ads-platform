@@ -9,7 +9,10 @@ import {
   Info, ChevronDown, ChevronUp, Megaphone, Clock, TrendingUp, Users,
 } from "lucide-react";
 
-export const Route = createFileRoute("/anunciante-painel/")({ component: AdvertiserDashboard });
+export const Route = createFileRoute("/anunciante-painel/")({
+  validateSearch: (s) => ({ tab: (s.tab as Tab) || "pagamentos" }),
+  component: AdvertiserDashboard,
+});
 
 type Tab = "pagamentos" | "historico" | "campanhas";
 
@@ -111,7 +114,8 @@ function AdvertiserDashboard() {
   const [packages, setPackages] = useState<Pkg[]>([]);
   const [payments, setPayments] = useState<PaymentOrder[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [tab, setTab] = useState<Tab>("pagamentos");
+  const { tab: initialTab } = Route.useSearch();
+  const [tab, setTab] = useState<Tab>(initialTab ?? "pagamentos");
   const [howOpen, setHowOpen] = useState(false);
 
   useEffect(() => {

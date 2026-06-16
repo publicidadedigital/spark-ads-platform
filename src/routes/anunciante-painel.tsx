@@ -10,12 +10,12 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 export const Route = createFileRoute("/anunciante-painel")({ component: AdvertiserLayout });
 
 const nav = [
-  { to: "/anunciante-painel", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { to: "/anunciante-painel/campanhas", label: "Campanhas", icon: Megaphone },
-  { to: "/anunciante-painel/campanhas", label: "Relatórios", icon: BarChart2 },
-  { to: "/anunciante-perfil", label: "Pagamentos", icon: CreditCard },
-  { to: "/anunciante-perfil", label: "Perfil", icon: UserCircle },
-];
+  { to: "/anunciante-painel", search: {}, label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { to: "/anunciante-painel/campanhas", search: {}, label: "Campanhas", icon: Megaphone },
+  { to: "/anunciante-painel/campanhas", search: {}, label: "Relatórios", icon: BarChart2 },
+  { to: "/anunciante-painel", search: { tab: "historico" }, label: "Pagamentos", icon: CreditCard, exact: true },
+  { to: "/anunciante-perfil", search: {}, label: "Perfil", icon: UserCircle },
+] as const;
 
 function AdvertiserLayout() {
   const { session, loading, signOut, user } = useAuth();
@@ -80,6 +80,7 @@ function AdvertiserLayout() {
               <Link
                 key={label}
                 to={to}
+                search={search as any}
                 className={`flex flex-col items-center gap-0.5 px-3 py-1 text-[10px] transition ${
                   finalActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
                 }`}
@@ -101,7 +102,7 @@ function SidebarContent({ pathname }: { pathname: string }) {
       {nav.map(({ to, label, icon: Icon, exact }) => {
         const active = exact ? pathname === to : pathname.startsWith(to);
         return (
-          <Link key={label} to={to} className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition ${
+          <Link key={label} to={to} search={search as any} className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition ${
             active ? "bg-gold/10 text-gold border border-gold/30" : "text-muted-foreground hover:bg-card hover:text-foreground"
           }`}>
             <Icon className="h-4 w-4" />{label}

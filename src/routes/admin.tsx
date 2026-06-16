@@ -1,7 +1,7 @@
 import { Logo } from "@/components/Logo";
 import { ExchangeRateTicker } from "@/components/ExchangeRateTicker";
 import { createFileRoute, Outlet, Link, useNavigate, useLocation } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/supabase/auth";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -14,28 +14,46 @@ const nav = [
   { to: "/admin/admins", label: "Administradores", icon: ShieldCheck },
   { to: "/admin/campanhas", label: "Campanhas", icon: Megaphone },
   { to: "/admin/provas", label: "Provas", icon: CheckSquare },
-  { to: "/admin/campanhas-anunciantes", label: "Campanhas Anunciantes", icon: Building2 },
+  { to: "/admin/campanhas-anunciantes", label: "Campanhas Anunciantes", icon: Building2, countKey: "campanhasAnunciantes" },
   { to: "/admin/pagamentos", label: "Pagamentos", icon: CreditCard },
   { to: "/admin/pacotes", label: "Pacotes", icon: Package },
   { to: "/admin/renovacao", label: "Renovação", icon: RefreshCw },
   { to: "/admin/pontuacao", label: "Pontuação", icon: Trophy },
-  { to: "/admin/saques", label: "Saques", icon: Send },
+  { to: "/admin/saques", label: "Saques", icon: Send, countKey: "saques" },
   { to: "/admin/rede", label: "Bônus de Rede", icon: Network },
   { to: "/admin/carteiras", label: "Carteiras", icon: Wallet },
   { to: "/admin/financeiro", label: "Financeiro", icon: DollarSign },
   { to: "/admin/seguranca", label: "Segurança", icon: Lock },
   { to: "/admin/ativacao", label: "Ativação Manual", icon: Zap },
   { to: "/admin/logs", label: "Logs do Sistema", icon: Bug },
-];
+] as const;
+
+type PendingCounts = { campanhasAnunciantes: number; saques: number };
 
 function AdminLayout() {
-  const { session, loading, isAdmin, signOut } = useAuth();
+  const { session, loading, isAdmin, signOut, supabase } = useAuth();
   const navigate = useNavigate();
   const loc = useLocation();
+  const [counts, setCounts] = useState<PendingCounts>({ campanhasAnunciantes: 0, saques: 0 });
 
   useEffect(() => {
     if (!loading && !session && loc.pathname !== "/admin/login") navigate({ to: "/admin/login" });
   }, [loading, session, navigate, loc.pathname]);
+
+  useEffect(() => {
+    if (!supabase || !isAdmin) return;
+    const client = supabase;
+    async function loadCounts() {
+      const [{ count: campCount }, { count: saqueCount }] = await Promise.all([
+        client.from("advertiser_campaigns").select("id", { count: "exact", head: true }).eq("status", "em_analise"),
+        client.from("withdrawal_requests").select("id", { count: "exact", head: true }).in("status", ["solicitado", "em_analise"]),
+      ]);
+      setCounts({ campanhasAnunciantes: campCount ?? 0, saques: saqueCount ?? 0 });
+    }
+    loadCounts();
+    const interval = setInterval(loadCounts, 60_000);
+    return () => clearInterval(interval);
+  }, [supabase, isAdmin]);
 
   if (loc.pathname === "/admin/login") return <Outlet />;
 
@@ -77,7 +95,7 @@ function AdminLayout() {
                 <Button variant="ghost" size="icon" className="app-mobile-menu hidden"><Menu className="h-5 w-5" /></Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-64 p-0 pt-6">
-                <AdminNav pathname={loc.pathname} />
+                <AdminNav pathname={loc.pathname} counts={counts} />
               </SheetContent>
             </Sheet>
             <Link to="/admin" className="flex items-center gap-2">
@@ -96,7 +114,7 @@ function AdminLayout() {
       </header>
       <div className="app-shell-grid w-full max-w-screen-2xl mx-auto px-4 py-6 grid md:grid-cols-[220px_1fr] gap-6">
         <aside className="app-sidebar hidden md:block">
-          <AdminNav pathname={loc.pathname} />
+          <AdminNav pathname={loc.pathname} counts={counts} />
         </aside>
         <main className="min-w-0"><Outlet /></main>
       </div>
@@ -104,15 +122,26 @@ function AdminLayout() {
   );
 }
 
-function AdminNav({ pathname }: { pathname: string }) {
+function AdminNav({ pathname, counts }: { pathname: string; counts: PendingCounts }) {
   return (
     <nav className="space-y-1 px-3">
-      {nav.map(({ to, label, icon: Icon, exact }) => {
+      {nav.map((item) => {
+        const { to, label, icon: Icon, exact } = item as typeof item & { exact?: boolean; countKey?: keyof PendingCounts };
         const active = exact ? pathname === to : pathname.startsWith(to);
+        const countKey = (item as any).countKey as keyof PendingCounts | undefined;
+        const count = countKey ? counts[countKey] : 0;
         return (
           <Link key={to} to={to as any} className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition ${
             active ? "bg-gold/10 text-gold border border-gold/30" : "text-muted-foreground hover:bg-card hover:text-foreground"
-          }`}><Icon className="h-4 w-4" />{label}</Link>
+          }`}>
+            <Icon className="h-4 w-4" />
+            <span className="flex-1">{label}</span>
+            {count > 0 && (
+              <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-destructive px-1.5 text-[11px] font-semibold text-destructive-foreground">
+                {count}
+              </span>
+            )}
+          </Link>
         );
       })}
     </nav>

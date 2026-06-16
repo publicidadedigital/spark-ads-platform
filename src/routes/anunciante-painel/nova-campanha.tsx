@@ -359,7 +359,7 @@ function NovaCampanha() {
               <div className="aspect-square bg-muted/20 flex items-center justify-center overflow-hidden">
                 {preview ? (
                   file && isVideo(file) ? (
-                    <video key={preview} src={preview} playsInline muted className="h-full w-full object-cover" />
+                    <video key={preview} src={preview} autoPlay loop playsInline muted className="h-full w-full object-cover" />
                   ) : (
                     <img src={preview} alt="feed preview" className="h-full w-full object-cover" />
                   )

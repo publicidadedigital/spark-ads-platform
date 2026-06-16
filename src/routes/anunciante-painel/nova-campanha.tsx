@@ -120,7 +120,9 @@ function NovaCampanha() {
 
     setSubmitting(true);
     try {
-      const path = `${profile.id}/${Date.now()}-${file.name}`;
+      const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+      const safeName = `${Date.now()}.${ext}`;
+      const path = `${profile.id}/${safeName}`;
       const { error: upErr } = await supabase.storage.from("advertiser-media").upload(path, file);
       if (upErr) throw upErr;
       const { data: pub } = supabase.storage.from("advertiser-media").getPublicUrl(path);

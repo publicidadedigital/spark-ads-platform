@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/supabase/auth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ShieldCheck, Zap, PackageOpen, Pencil, Check, X } from "lucide-react";
+import { ShieldCheck, Zap, PackageOpen, Pencil, Check, X, RefreshCcw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { getTwoFactorStatus } from "@/lib/security/totp.functions";
@@ -67,11 +67,17 @@ function AdminUsers() {
   const [indicadorSearch, setIndicadorSearch] = useState("");
   const [indicadorResults, setIndicadorResults] = useState<{ id: string; nome: string }[]>([]);
   const [activeCycles, setActiveCycles] = useState<Map<string, string>>(new Map());
+  const [advOrderMap, setAdvOrderMap] = useState<Map<string, { pkg_id: string; source: string }>>(new Map());
+  const [advPkgMap, setAdvPkgMap] = useState<Map<string, string>>(new Map());
+  const [userNamesMap, setUserNamesMap] = useState<Map<string, string>>(new Map());
+  const [advPackagesList, setAdvPackagesList] = useState<{ id: string; name: string }[]>([]);
+  const [activatingAdv, setActivatingAdv] = useState<string | null>(null);
+  const [selectedAdvPkg, setSelectedAdvPkg] = useState<Record<string, string>>({});
 
   async function load() {
     if (!supabase) return;
     setLoading(true);
-    const [{ data }, { data: adminRoles }, { data: legacyAdmins }, { data: adv }, { data: withdrawalRows }, { data: depositRows }, { data: cycleRows }] = await Promise.all([
+    const [{ data }, { data: adminRoles }, { data: legacyAdmins }, { data: adv }, { data: withdrawalRows }, { data: depositRows }, { data: cycleRows }, { data: advOrders }, { data: advPackages }, { data: advIndicadores }] = await Promise.all([
       supabase.from("users_profile").select("*,package:pacote_ativo_id(nome,valor),indicador:indicador_id(id,nome)").order("created_at", { ascending: false }).limit(200),
       supabase.from("admin_roles").select("auth_user_id").eq("status", "ativo"),
       supabase.from("user_roles").select("user_id").in("role", ["admin", "super_admin"]),
@@ -90,11 +96,37 @@ function AdminUsers() {
         .from("user_cycles")
         .select("user_id,activation_source")
         .eq("status", "ativo"),
+      // Latest approved advertiser order per advertiser
+      supabase
+        .from("advertiser_payment_orders")
+        .select("advertiser_profile_id,advertising_package_id,activation_source,paid_at")
+        .eq("status", "approved")
+        .order("paid_at", { ascending: false }),
+      // All advertising packages
+      supabase.from("advertising_packages").select("id,name,price_usd"),
+      // Advertiser indicadores (users_profile who referred them)
+      supabase.from("users_profile").select("id,nome"),
     ]);
     const adminIds = new Set([
       ...((adminRoles ?? []).map((r: any) => r.auth_user_id)),
       ...((legacyAdmins ?? []).map((r: any) => r.user_id)),
     ]);
+
+    // Build maps for advertiser enrichment
+    const advOrderMap = new Map<string, { pkg_id: string; source: string }>();
+    for (const o of advOrders ?? []) {
+      if (!advOrderMap.has(o.advertiser_profile_id)) {
+        advOrderMap.set(o.advertiser_profile_id, { pkg_id: o.advertising_package_id, source: o.activation_source ?? "payment_gateway" });
+      }
+    }
+    const advPkgMap = new Map<string, string>((advPackages ?? []).map((p: any) => [p.id, p.name]));
+    const userNamesMap = new Map<string, string>((advIndicadores ?? []).map((u: any) => [u.id, u.nome]));
+
+    setAdvOrderMap(advOrderMap);
+    setAdvPkgMap(advPkgMap);
+    setUserNamesMap(userNamesMap);
+    setAdvPackagesList((advPackages ?? []).map((p: any) => ({ id: p.id, name: p.name })));
+
     const cycleMap = new Map<string, string>();
     for (const c of cycleRows ?? []) cycleMap.set(c.user_id, c.activation_source ?? "payment_webhook");
     setActiveCycles(cycleMap);
@@ -155,6 +187,20 @@ function AdminUsers() {
     setEditingIndicador(null);
     setIndicadorSearch("");
     setIndicadorResults([]);
+    load();
+  }
+
+  async function activateAdvPackage(advId: string) {
+    const pkgId = selectedAdvPkg[advId];
+    if (!pkgId || !supabase) return;
+    setActivatingAdv(advId);
+    const { error } = await supabase.rpc("admin_activate_advertiser_package", {
+      p_advertiser_profile_id: advId,
+      p_advertising_package_id: pkgId,
+    });
+    setActivatingAdv(null);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Pacote de anunciante ativado");
     load();
   }
 
@@ -305,24 +351,71 @@ function AdminUsers() {
           {loading ? <p className="p-6 text-muted-foreground">Carregando...</p> : advertisers.length === 0 ? (
             <p className="p-6 text-muted-foreground">Nenhum anunciante cadastrado.</p>
           ) : (
-            <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-sm">
+            <div className="overflow-x-auto"><table className="w-full min-w-[900px] text-sm">
               <thead className="border-b border-border/50 text-xs uppercase text-muted-foreground">
-                <tr><th className="text-left p-3">Empresa</th><th className="text-left p-3">Contato</th><th className="text-left p-3">E-mail</th><th className="text-left p-3">Status</th><th className="text-left p-3">Último login</th><th className="text-right p-3">Ações</th></tr>
+                <tr>
+                  <th className="text-left p-3">Empresa</th>
+                  <th className="text-left p-3">E-mail</th>
+                  <th className="text-left p-3">Indicado por</th>
+                  <th className="text-left p-3">Plano ativo</th>
+                  <th className="text-left p-3">Status</th>
+                  <th className="text-left p-3">Último login</th>
+                  <th className="text-right p-3">Ações</th>
+                </tr>
               </thead>
               <tbody>
-                {advertisers.map((a) => (
-                  <tr key={a.id} className="border-b border-border/30">
-                    <td className="p-3">{a.company_name}</td>
-                    <td className="p-3 text-muted-foreground">{a.contact_name}</td>
-                    <td className="p-3 text-muted-foreground">{a.email}</td>
-                    <td className="p-3"><Badge variant="outline">{a.status}</Badge></td>
-                    <td className="p-3 text-muted-foreground">{lastLoginLabel(a.auth_user_id)}</td>
-                    <td className="p-3 text-right space-x-1">
-                      {a.status !== "ativo" && <Button size="sm" variant="outline" onClick={() => setAdvertiserStatus(a.id, "ativo")}>Aprovar</Button>}
-                      {a.status !== "bloqueado" && <Button size="sm" variant="destructive" onClick={() => setAdvertiserStatus(a.id, "bloqueado")}>Bloquear</Button>}
-                    </td>
-                  </tr>
-                ))}
+                {advertisers.map((a) => {
+                  const order = advOrderMap.get(a.id);
+                  const pkgName = order ? (advPkgMap.get(order.pkg_id) ?? "—") : null;
+                  const indNome = a.indicador_id ? (userNamesMap.get(a.indicador_id) ?? a.indicador_id.slice(0, 8)) : null;
+                  return (
+                    <tr key={a.id} className="border-b border-border/30 align-top">
+                      <td className="p-3">
+                        <p className="font-medium">{a.company_name}</p>
+                        <p className="text-xs text-muted-foreground">{a.contact_name}</p>
+                      </td>
+                      <td className="p-3 text-muted-foreground">{a.email}</td>
+                      <td className="p-3 text-sm text-muted-foreground">{indNome ?? "—"}</td>
+                      <td className="p-3">
+                        {pkgName ? (
+                          <div className="flex flex-col gap-0.5">
+                            <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/40 bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-300">
+                              <Zap className="h-3 w-3" />{pkgName}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground">
+                              {order?.source === "manual" ? "⚡ Manual" : "✓ Automático"}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col gap-1">
+                            <span className="text-xs text-muted-foreground">Sem plano</span>
+                            {advPackagesList.length > 0 && (
+                              <div className="flex gap-1">
+                                <select
+                                  className="rounded border border-border bg-background px-1 py-0.5 text-xs"
+                                  value={selectedAdvPkg[a.id] ?? ""}
+                                  onChange={(e) => setSelectedAdvPkg(p => ({ ...p, [a.id]: e.target.value }))}
+                                >
+                                  <option value="">Selecionar...</option>
+                                  {advPackagesList.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                </select>
+                                <Button size="sm" disabled={!selectedAdvPkg[a.id] || activatingAdv === a.id} onClick={() => activateAdvPackage(a.id)} className="h-6 px-2 text-xs">
+                                  {activatingAdv === a.id ? <RefreshCcw className="h-3 w-3 animate-spin" /> : <Zap className="h-3 w-3" />}
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </td>
+                      <td className="p-3"><Badge variant="outline">{a.status}</Badge></td>
+                      <td className="p-3 text-muted-foreground">{lastLoginLabel(a.auth_user_id)}</td>
+                      <td className="p-3 text-right space-x-1">
+                        {a.status !== "ativo" && <Button size="sm" variant="outline" onClick={() => setAdvertiserStatus(a.id, "ativo")}>Aprovar</Button>}
+                        {a.status !== "bloqueado" && <Button size="sm" variant="destructive" onClick={() => setAdvertiserStatus(a.id, "bloqueado")}>Bloquear</Button>}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table></div>
           )}

@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/supabase/auth";
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { fetchAddressByCep, isValidBrazilianPhone, isValidCNPJ, isValidCPF } from "@/lib/validators/br-documents";
@@ -79,6 +79,13 @@ function CadastroPage() {
   });
   const [loading, setLoading] = useState(false);
   const [cepLoading, setCepLoading] = useState(false);
+  const [referrerName, setReferrerName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!supabase || !ref) return;
+    supabase.from("users_profile").select("nome").eq("id", ref).maybeSingle()
+      .then(({ data }) => { if (data?.nome) setReferrerName(data.nome); });
+  }, [supabase, ref]);
 
   function set(key: keyof typeof form, value: string) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -245,7 +252,11 @@ function CadastroPage() {
           </Link>
         </div>
 
-        {ref && <p className="text-xs text-gold text-center mb-4">Indicacao detectada</p>}
+        {ref && (
+          <p className="text-xs text-gold text-center mb-4">
+            {referrerName ? `Indicado por ${referrerName}` : "Carregando indicação..."}
+          </p>
+        )}
         <form onSubmit={handleSubmit} className="space-y-3">
           {isAdvertiser ? (
             <>

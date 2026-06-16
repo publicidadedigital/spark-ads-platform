@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/supabase/auth";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   RefreshCcw, TrendingUp, TrendingDown, Clock, XCircle, CheckCircle2,
-  Users, Megaphone, PiggyBank, Receipt, Landmark, AlertTriangle,
+  Users, Megaphone, PiggyBank, Receipt, Landmark, AlertTriangle, Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -34,6 +34,8 @@ type Data = {
   redePendente: number;
   comissaoConcluida: number;
   comissaoPendente: number;
+  ativacoesManual: number;
+  ativacoesManualCount: number;
 };
 
 function MetricCard({
@@ -94,6 +96,8 @@ function AdminFinanceiro() {
     redePendente: 0,
     comissaoConcluida: 0,
     comissaoPendente: 0,
+    ativacoesManual: 0,
+    ativacoesManualCount: 0,
   });
 
   async function load() {
@@ -114,6 +118,7 @@ function AdminFinanceiro() {
       redePendente,
       comConcluida,
       comPendente,
+      manuais,
     ] = await Promise.all([
       supabase.from("payment_orders").select("amount_usd").eq("status", "approved").gte("created_at", since),
       supabase.from("payment_orders").select("amount_usd").eq("status", "pending").gte("created_at", since),
@@ -124,6 +129,7 @@ function AdminFinanceiro() {
       supabase.from("bonuses").select("valor").eq("status", "pendente").gte("created_at", since),
       supabase.from("advertiser_bonus_events").select("referrer_bonus").eq("status", "liberado").gte("created_at", since),
       supabase.from("advertiser_bonus_events").select("referrer_bonus").eq("status", "pendente").gte("created_at", since),
+      supabase.from("user_cycles").select("valor_pacote").eq("activation_source", "manual").gte("started_at", since),
     ]);
 
     setData({
@@ -136,6 +142,8 @@ function AdminFinanceiro() {
       redePendente: sum(redePendente.data, "valor"),
       comissaoConcluida: sum(comConcluida.data, "referrer_bonus"),
       comissaoPendente: sum(comPendente.data, "referrer_bonus"),
+      ativacoesManual: sum(manuais.data, "valor_pacote"),
+      ativacoesManualCount: (manuais.data ?? []).length,
     });
     setLoading(false);
   }
@@ -173,10 +181,11 @@ function AdminFinanceiro() {
       {/* Entradas */}
       <div>
         <SectionTitle title="Entradas (pacotes de clientes)" sub={`Pagamentos de pacotes — ${periodDesc}`} />
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard icon={CheckCircle2} label="Entradas concluídas" value={usd.format(data.entradasConcluidas)} tone="green" sub="Pagamentos aprovados" />
           <MetricCard icon={Clock} label="Entradas pendentes" value={usd.format(data.entradasPendentes)} tone="amber" sub="Aguardando confirmação" />
           <MetricCard icon={XCircle} label="Entradas canceladas" value={usd.format(data.entradasCanceladas)} tone="red" sub="Falhou ou expirou" />
+          <MetricCard icon={Zap} label="Ativação manual (admin)" value={usd.format(data.ativacoesManual)} tone="violet" sub={`${data.ativacoesManualCount} ativação(ões) pelo admin`} />
         </div>
       </div>
 
@@ -241,6 +250,7 @@ function AdminFinanceiro() {
               label="Obrigações pendentes"
               value={usd.format(data.saquesPendentes + data.redePendente + data.comissaoPendente)}
             />
+            <Row label={`Ativações manuais (${data.ativacoesManualCount}x)`} value={usd.format(data.ativacoesManual)} />
           </div>
         </CardContent>
       </Card>

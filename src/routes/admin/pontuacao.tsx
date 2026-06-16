@@ -23,6 +23,8 @@ type Row = {
   totalPago: number;
   pedidosPagos: number;
   renovacoes: number;
+  manuais: number;
+  valorManual: number;
 };
 
 function AdminPontuacao() {
@@ -34,10 +36,11 @@ function AdminPontuacao() {
     if (!supabase) return;
     setLoading(true);
 
-    const [{ data: users }, { data: pointRows }, { data: orders }] = await Promise.all([
+    const [{ data: users }, { data: pointRows }, { data: orders }, { data: manualCycles }] = await Promise.all([
       supabase.from("users_profile").select("id,nome,email,instagram").order("created_at", { ascending: false }).limit(500),
       supabase.from("point_events").select("user_id,points").eq("status", "valid"),
       supabase.from("package_orders").select("user_id,valor,status").eq("status", "pago"),
+      supabase.from("user_cycles").select("user_id,valor_pacote").eq("activation_source", "manual"),
     ]);
 
     const pointsByUser = new Map<string, number>();
@@ -53,8 +56,17 @@ function AdminPontuacao() {
       ordersByUser.set(order.user_id, current);
     }
 
+    const manualByUser = new Map<string, { count: number; total: number }>();
+    for (const c of manualCycles ?? []) {
+      const cur = manualByUser.get(c.user_id) ?? { count: 0, total: 0 };
+      cur.count += 1;
+      cur.total += Number(c.valor_pacote ?? 0);
+      manualByUser.set(c.user_id, cur);
+    }
+
     const result: Row[] = (users ?? []).map((u: any) => {
       const orderInfo = ordersByUser.get(u.id) ?? { total: 0, count: 0 };
+      const manualInfo = manualByUser.get(u.id) ?? { count: 0, total: 0 };
       return {
         id: u.id,
         nome: u.nome,
@@ -64,6 +76,8 @@ function AdminPontuacao() {
         totalPago: orderInfo.total,
         pedidosPagos: orderInfo.count,
         renovacoes: Math.max(0, orderInfo.count - 1),
+        manuais: manualInfo.count,
+        valorManual: manualInfo.total,
       };
     });
 
@@ -104,6 +118,7 @@ function AdminPontuacao() {
                 <th className="text-left p-3">Total pago</th>
                 <th className="text-left p-3">Pedidos pagos</th>
                 <th className="text-left p-3">Renovações</th>
+                <th className="text-left p-3">Ativação manual</th>
               </tr>
             </thead>
             <tbody>
@@ -131,6 +146,16 @@ function AdminPontuacao() {
                   <td className="p-3">{usd.format(r.totalPago)}</td>
                   <td className="p-3 text-muted-foreground">{r.pedidosPagos}</td>
                   <td className="p-3 text-muted-foreground">{r.renovacoes}</td>
+                  <td className="p-3">
+                    {r.manuais > 0 ? (
+                      <span className="inline-flex flex-col">
+                        <span className="text-amber-300 font-medium">{r.manuais}x</span>
+                        <span className="text-xs text-muted-foreground">{usd.format(r.valorManual)}</span>
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

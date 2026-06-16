@@ -66,11 +66,12 @@ function AdminUsers() {
   const [editingIndicador, setEditingIndicador] = useState<string | null>(null);
   const [indicadorSearch, setIndicadorSearch] = useState("");
   const [indicadorResults, setIndicadorResults] = useState<{ id: string; nome: string }[]>([]);
+  const [activeCycles, setActiveCycles] = useState<Map<string, string>>(new Map());
 
   async function load() {
     if (!supabase) return;
     setLoading(true);
-    const [{ data }, { data: adminRoles }, { data: legacyAdmins }, { data: adv }, { data: withdrawalRows }, { data: depositRows }] = await Promise.all([
+    const [{ data }, { data: adminRoles }, { data: legacyAdmins }, { data: adv }, { data: withdrawalRows }, { data: depositRows }, { data: cycleRows }] = await Promise.all([
       supabase.from("users_profile").select("*,package:pacote_ativo_id(nome,valor),indicador:indicador_id(id,nome)").order("created_at", { ascending: false }).limit(200),
       supabase.from("admin_roles").select("auth_user_id").eq("status", "ativo"),
       supabase.from("user_roles").select("user_id").in("role", ["admin", "super_admin"]),
@@ -85,11 +86,18 @@ function AdminUsers() {
         .select("id,created_at,amount_usd,status,method,users_profile:user_id(nome,email)")
         .order("created_at", { ascending: false })
         .limit(200),
+      supabase
+        .from("user_cycles")
+        .select("user_id,activation_source")
+        .eq("status", "ativo"),
     ]);
     const adminIds = new Set([
       ...((adminRoles ?? []).map((r: any) => r.auth_user_id)),
       ...((legacyAdmins ?? []).map((r: any) => r.user_id)),
     ]);
+    const cycleMap = new Map<string, string>();
+    for (const c of cycleRows ?? []) cycleMap.set(c.user_id, c.activation_source ?? "payment_webhook");
+    setActiveCycles(cycleMap);
     setUsers((data ?? []).filter((u: any) => !adminIds.has(u.auth_user_id)));
     setAdvertisers(adv ?? []);
     setWithdrawals((withdrawalRows ?? []) as unknown as WithdrawalRow[]);
@@ -259,9 +267,16 @@ function AdminUsers() {
                     <td className="p-3">
                       {pkg?.nome ? (
                         u.status === "ativo" ? (
-                          <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/40 bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-300">
-                            <Zap className="h-3 w-3" />{pkg.nome}
-                          </span>
+                          <div className="flex flex-col gap-0.5">
+                            <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/40 bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-300">
+                              <Zap className="h-3 w-3" />{pkg.nome}
+                            </span>
+                            {activeCycles.get(u.id) === "manual" ? (
+                              <span className="text-[10px] text-violet-400">⚡ Ativação manual</span>
+                            ) : activeCycles.has(u.id) ? (
+                              <span className="text-[10px] text-emerald-400">✓ Pagamento automático</span>
+                            ) : null}
+                          </div>
                         ) : (
                           <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/40 px-2 py-0.5 text-xs text-muted-foreground">
                             <PackageOpen className="h-3 w-3" />{pkg.nome} · pendente

@@ -193,6 +193,7 @@ export const Route = createFileRoute("/api/public/payments-webhook")({
             cycle_limit_200: accounting.cycle_limit_200,
             amount_counted_for_rewards: accounting.amount_counted_for_rewards,
             status_normalized: "active",
+            activation_source: "payment_webhook",
           })
           .eq("id", cycle.id);
 

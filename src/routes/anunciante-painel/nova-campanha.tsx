@@ -323,56 +323,98 @@ function NovaCampanha() {
           </Button>
         </Card>
 
-        {/* Right: Instagram preview */}
-        <div className="space-y-4">
-          <Card className="p-5 bg-card/50 border-border/50">
-            <p className="font-semibold mb-4 text-sm">Prévia do compartilhamento</p>
+        {/* Right: Instagram previews */}
+        <div className="space-y-5">
 
-            {/* Instagram mockup */}
+          {/* Feed preview */}
+          <Card className="p-4 bg-card/50 border-border/50">
+            <p className="font-semibold text-sm mb-3 flex items-center gap-2">
+              <span className="inline-block h-3 w-3 rounded-sm bg-primary/70" />
+              Feed (1:1)
+            </p>
             <div className="rounded-xl border border-border/60 bg-background overflow-hidden">
-              {/* Header */}
-              <div className="flex items-center gap-3 px-3 py-2.5">
-                <div className="h-8 w-8 rounded-full bg-muted" />
-                <div className="space-y-1 flex-1">
-                  <div className="h-2.5 w-24 rounded bg-muted" />
-                  <div className="h-2 w-16 rounded bg-muted/60" />
+              <div className="flex items-center gap-2.5 px-3 py-2">
+                <div className="h-7 w-7 rounded-full bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 p-[2px]">
+                  <div className="h-full w-full rounded-full bg-background" />
                 </div>
+                <div className="space-y-1 flex-1">
+                  <div className="h-2 w-20 rounded bg-muted" />
+                </div>
+                <div className="h-1 w-1 rounded-full bg-muted" />
+                <div className="h-1 w-1 rounded-full bg-muted" />
+                <div className="h-1 w-1 rounded-full bg-muted" />
               </div>
-
-              {/* Image/video area */}
-              <div className="aspect-square bg-muted/30 flex items-center justify-center overflow-hidden">
+              <div className="aspect-square bg-muted/20 flex items-center justify-center overflow-hidden">
                 {preview ? (
                   file?.type.startsWith("video/") ? (
                     <video key={preview} src={preview} playsInline muted className="h-full w-full object-cover" />
                   ) : (
-                    <img src={preview} alt="preview" className="h-full w-full object-cover" />
+                    <img src={preview} alt="feed preview" className="h-full w-full object-cover" />
                   )
                 ) : (
-                  <ImagePlus className="h-12 w-12 text-muted-foreground/30" />
+                  <ImagePlus className="h-10 w-10 text-muted-foreground/20" />
                 )}
               </div>
-
-              {/* Actions */}
-              <div className="flex items-center gap-4 px-3 py-2.5">
-                <Heart className="h-5 w-5 text-muted-foreground" />
-                <MessageCircle className="h-5 w-5 text-muted-foreground" />
-                <Share2 className="h-5 w-5 text-muted-foreground" />
+              <div className="flex items-center gap-3.5 px-3 py-2">
+                <Heart className="h-4.5 w-4.5 text-muted-foreground" />
+                <MessageCircle className="h-4.5 w-4.5 text-muted-foreground" />
+                <Share2 className="h-4.5 w-4.5 text-muted-foreground" />
               </div>
-
-              {/* Caption preview */}
               <div className="px-3 pb-3 space-y-1">
                 {caption ? (
-                  <p className="text-xs text-foreground line-clamp-3">{caption}</p>
+                  <p className="text-[11px] text-foreground line-clamp-3">{caption}</p>
                 ) : (
                   <>
-                    <div className="h-2 w-full rounded bg-muted/60" />
-                    <div className="h-2 w-3/4 rounded bg-muted/60" />
-                    <div className="h-2 w-1/2 rounded bg-muted/40" />
+                    <div className="h-1.5 w-full rounded bg-muted/60" />
+                    <div className="h-1.5 w-3/4 rounded bg-muted/60" />
+                    <div className="h-1.5 w-1/2 rounded bg-muted/40" />
                   </>
                 )}
               </div>
             </div>
           </Card>
+
+          {/* Stories preview */}
+          <Card className="p-4 bg-card/50 border-border/50">
+            <p className="font-semibold text-sm mb-3 flex items-center gap-2">
+              <span className="inline-block h-4 w-2.5 rounded-sm bg-primary/70" />
+              Stories (9:16)
+            </p>
+            <div className="mx-auto w-[160px]">
+              <div className="relative rounded-2xl overflow-hidden border border-border/60 bg-black" style={{ aspectRatio: "9/16" }}>
+                {preview ? (
+                  file?.type.startsWith("video/") ? (
+                    <video key={preview} src={preview} playsInline muted className="absolute inset-0 h-full w-full object-cover" />
+                  ) : (
+                    <img src={preview} alt="stories preview" className="absolute inset-0 h-full w-full object-cover" />
+                  )
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <ImagePlus className="h-8 w-8 text-white/20" />
+                  </div>
+                )}
+                {/* Stories UI overlay */}
+                <div className="absolute inset-x-0 top-0 p-2 flex items-center gap-1.5">
+                  <div className="flex-1 h-0.5 rounded-full bg-white/60" />
+                </div>
+                <div className="absolute inset-x-0 top-4 px-2 flex items-center gap-1.5">
+                  <div className="h-5 w-5 rounded-full bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 p-[1.5px]">
+                    <div className="h-full w-full rounded-full bg-black/50" />
+                  </div>
+                  <div className="h-1.5 w-12 rounded bg-white/50" />
+                </div>
+                {caption && (
+                  <div className="absolute inset-x-0 bottom-6 px-3">
+                    <p className="text-[9px] text-white line-clamp-3 drop-shadow">{caption}</p>
+                  </div>
+                )}
+                <div className="absolute inset-x-0 bottom-1 flex justify-center">
+                  <div className="h-1.5 w-12 rounded-full bg-white/30" />
+                </div>
+              </div>
+            </div>
+          </Card>
+
         </div>
       </div>
     </div>

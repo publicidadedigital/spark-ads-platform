@@ -97,7 +97,6 @@ function ExtratoPage() {
   const [saldoDisponivel, setSaldoDisponivel] = useState(0);
   const [saldoAguardando, setSaldoAguardando] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("todas");
   const [search, setSearch] = useState("");
 
   useEffect(() => {
@@ -171,19 +170,23 @@ function ExtratoPage() {
 
   const stats = useMemo(() => buildStats(tx, bonuses, saldoDisponivel), [tx, bonuses, saldoDisponivel]);
   const chartData = useMemo(() => buildChart(tx), [tx]);
-  const filteredTx = useMemo(() => filterTransactions(tx, activeTab, search), [tx, activeTab, search]);
   const period = useMemo(() => formatPeriod(tx), [tx]);
 
   const exportCsv = () => {
+    const networkMap = new Map(networkBonuses.map((nb) => [nb.id, nb]));
     const rows = [
-      ["Data", "Descricao", "Tipo", "Valor", "Saldo depois"],
-      ...filteredTx.map((item) => [
-        formatDateTime(item.created_at),
-        item.descricao,
-        item.tipo,
-        moneyValue(item.valor).toFixed(2),
-        moneyValue(item.saldo_depois).toFixed(2),
-      ]),
+      ["Data", "Tipo", "Nivel", "Indicado", "Valor", "Status"],
+      ...bonuses.map((b) => {
+        const nb = networkMap.get(b.id);
+        return [
+          formatDateTime(b.created_at),
+          TIPO_LABEL[b.tipo] ?? b.tipo,
+          b.nivel != null ? `Nv ${b.nivel}` : "",
+          nb?.indicadoNome ?? "",
+          moneyValue(b.valor).toFixed(2),
+          b.status,
+        ];
+      }),
     ];
     const csv = rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
@@ -235,25 +238,6 @@ function ExtratoPage() {
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_330px]">
         <div className="space-y-4">
-          <Card className="overflow-hidden border-primary/15 bg-card/50">
-            <div className="flex gap-3 overflow-x-auto border-b border-border/50 px-3">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.key}
-                  type="button"
-                  onClick={() => setActiveTab(tab.key)}
-                  className={`min-h-12 shrink-0 border-b-2 px-3 text-sm transition ${
-                    activeTab === tab.key
-                      ? "border-primary text-primary"
-                      : "border-transparent text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </Card>
-
           <Card className="border-primary/15 bg-card/50 p-5">
             <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
@@ -300,62 +284,20 @@ function ExtratoPage() {
             </div>
           </Card>
 
-          {bonuses.filter((b) => b.status === "pendente").length > 0 && (
-            <Card className="border-amber-400/25 bg-card/50 p-5">
-              <h2 className="font-semibold mb-1 flex items-center gap-2">
-                <Clock className="h-4 w-4 text-amber-300" /> Bonus aguardando liberacao (7 dias)
-              </h2>
-              <p className="text-xs text-muted-foreground mb-4">Esses bonus entram para saque apos o periodo de retencao.</p>
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[560px] text-sm">
-                  <thead className="text-xs text-muted-foreground border-b border-border/50">
-                    <tr>
-                      <th className="px-3 py-2 text-left">Data</th>
-                      <th className="px-3 py-2 text-left">Tipo</th>
-                      <th className="px-3 py-2 text-left">Valor</th>
-                      <th className="px-3 py-2 text-left">Liberacao</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {bonuses.filter((b) => b.status === "pendente").map((b) => {
-                      const days = b.release_at ? Math.max(0, Math.ceil((new Date(b.release_at).getTime() - Date.now()) / 86400000)) : null;
-                      const tipoLabel: Record<string, string> = { adesao: "Bonus de adesao", renovacao: "Bonus de renovacao", residual: "Bonus residual" };
-                      return (
-                        <tr key={b.id} className="border-b border-border/30 last:border-0">
-                          <td className="px-3 py-2 text-muted-foreground">{formatDateTime(b.created_at)}</td>
-                          <td className="px-3 py-2">{tipoLabel[b.tipo] ?? b.tipo}{b.nivel ? ` (Nv ${b.nivel})` : ""}</td>
-                          <td className="px-3 py-2 font-semibold text-amber-300">+ {formatMoney(moneyValue(b.valor))}</td>
-                          <td className="px-3 py-2">
-                            {days === null ? (
-                              <Badge className="border-amber-400/30 bg-amber-500/15 text-amber-300">Pendente</Badge>
-                            ) : days === 0 ? (
-                              <Badge className="border-success/30 bg-success/15 text-success">Liberando...</Badge>
-                            ) : (
-                              <Badge className="border-amber-400/30 bg-amber-500/15 text-amber-300">
-                                <Clock className="h-3 w-3 mr-1" />{days}d restantes
-                              </Badge>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          )}
-
           <Card className="border-primary/15 bg-card/50 p-5">
             <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <h2 className="font-semibold">Historico de movimentacoes</h2>
+              <div>
+                <h2 className="font-semibold">Historico de movimentacoes</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">Bonus, saques e ajustes — pendentes e liberados</p>
+              </div>
               <div className="flex gap-2">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
-                    placeholder="Buscar transacao..."
-                    className="w-full pl-9 md:w-64"
+                    placeholder="Buscar..."
+                    className="w-full pl-9 md:w-56"
                   />
                 </div>
                 <Button variant="outline" onClick={exportCsv}>
@@ -364,102 +306,13 @@ function ExtratoPage() {
               </div>
             </div>
 
-            <div className="overflow-x-auto">
-              {filteredTx.length === 0 ? (
-                <p className="py-8 text-sm text-muted-foreground">Sem movimentacoes para este filtro.</p>
-              ) : (
-                <table className="w-full min-w-[760px] text-sm">
-                  <thead className="text-xs text-muted-foreground">
-                    <tr className="border-b border-border/50">
-                      <th className="px-3 py-3 text-left font-medium">Data</th>
-                      <th className="px-3 py-3 text-left font-medium">Descricao</th>
-                      <th className="px-3 py-3 text-left font-medium">Categoria</th>
-                      <th className="px-3 py-3 text-left font-medium">Valor</th>
-                      <th className="px-3 py-3 text-left font-medium">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredTx.slice(0, 12).map((item) => {
-                      const category = transactionCategory(item);
-                      const meta = categoryMeta[category] ?? categoryMeta.residual;
-                      const isCredit = item.tipo === "credito";
-                      return (
-                        <tr key={item.id} className="border-b border-border/35 last:border-0">
-                          <td className="px-3 py-3 text-muted-foreground">{formatDateTime(item.created_at)}</td>
-                          <td className="px-3 py-3">
-                            <div className="font-medium">{item.descricao}</div>
-                            <div className="text-xs text-muted-foreground">Ref. #{item.id.slice(0, 8).toUpperCase()}</div>
-                          </td>
-                          <td className="px-3 py-3">
-                            <Badge variant="outline" style={{ borderColor: `${meta.color}55`, color: meta.color, background: `${meta.color}18` }}>
-                              {meta.label}
-                            </Badge>
-                          </td>
-                          <td className={`px-3 py-3 font-semibold ${isCredit ? "text-success" : "text-destructive"}`}>
-                            {isCredit ? "+" : "-"} {formatMoney(moneyValue(item.valor))}
-                          </td>
-                          <td className="px-3 py-3">
-                            <Badge className="border-success/30 bg-success/15 text-success hover:bg-success/15">
-                              <ShieldCheck className="mr-1 h-3 w-3" /> Concluido
-                            </Badge>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              )}
-            </div>
+            <UnifiedHistory
+              bonuses={bonuses}
+              networkBonuses={networkBonuses}
+              withdrawals={tx.filter((t) => /saque|pix|withdraw/i.test(`${t.tipo} ${t.descricao}`))}
+              search={search}
+            />
           </Card>
-          {networkBonuses.length > 0 && (
-            <Card className="border-primary/15 bg-card/50 p-5">
-              <h2 className="font-semibold mb-4">Histórico de bônus de rede</h2>
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[640px] text-sm">
-                  <thead className="text-xs text-muted-foreground border-b border-border/50">
-                    <tr>
-                      <th className="px-3 py-2 text-left">Data</th>
-                      <th className="px-3 py-2 text-left">Tipo</th>
-                      <th className="px-3 py-2 text-left">Nível</th>
-                      <th className="px-3 py-2 text-left">Indicado</th>
-                      <th className="px-3 py-2 text-left">Valor</th>
-                      <th className="px-3 py-2 text-left">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {networkBonuses.map((b) => {
-                      const days = b.release_at ? Math.max(0, Math.ceil((new Date(b.release_at).getTime() - Date.now()) / 86400000)) : null;
-                      const isVencido = b.status === "liberado" && b.cycleStatus === "completado";
-                      return (
-                        <tr key={b.id} className="border-b border-border/30 last:border-0">
-                          <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">{formatDateTime(b.created_at)}</td>
-                          <td className="px-3 py-2 capitalize">{b.tipo}</td>
-                          <td className="px-3 py-2 text-muted-foreground">Nv {b.nivel ?? 1}</td>
-                          <td className="px-3 py-2 font-medium">{b.indicadoNome ?? "—"}</td>
-                          <td className="px-3 py-2 font-semibold text-success">+ {formatMoney(moneyValue(b.valor))}</td>
-                          <td className="px-3 py-2">
-                            {b.status === "cancelado" ? (
-                              <Badge className="border-destructive/30 bg-destructive/15 text-destructive">Cancelado</Badge>
-                            ) : isVencido ? (
-                              <Badge className="border-border/50 bg-muted/20 text-muted-foreground">Vencido</Badge>
-                            ) : b.status === "pendente" && days !== null && days > 0 ? (
-                              <Badge className="border-amber-400/30 bg-amber-500/15 text-amber-300">
-                                <Clock className="h-3 w-3 mr-1" />Aguardando {days}d
-                              </Badge>
-                            ) : (
-                              <Badge className="border-success/30 bg-success/15 text-success">
-                                <ShieldCheck className="h-3 w-3 mr-1" />Ok
-                              </Badge>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          )}
         </div>
 
         <aside className="space-y-4">
@@ -607,6 +460,137 @@ function DistributionCard({ categories, total }: { categories: Category[]; total
         </div>
       </div>
     </Card>
+  );
+}
+
+const TIPO_LABEL: Record<string, string> = {
+  diario: "Bonus diario",
+  adesao: "Bonus de adesao",
+  renovacao: "Bonus de renovacao",
+  residual: "Bonus residual",
+  mensalidade: "Royalties",
+  ajuste: "Ajuste",
+  publicidade: "Publicidade",
+};
+
+function UnifiedHistory({
+  bonuses,
+  networkBonuses,
+  withdrawals,
+  search,
+}: {
+  bonuses: Bonus[];
+  networkBonuses: NetworkBonus[];
+  withdrawals: Transaction[];
+  search: string;
+}) {
+  const networkMap = new Map(networkBonuses.map((nb) => [nb.id, nb]));
+
+  type Row = {
+    id: string;
+    date: string;
+    descricao: string;
+    nivel: number | null;
+    indicado: string | null;
+    valor: number;
+    isCredit: boolean;
+    status: string;
+    release_at: string | null;
+    cycleStatus: string | null;
+  };
+
+  const rows: Row[] = [
+    ...bonuses.map((b) => {
+      const nb = networkMap.get(b.id);
+      return {
+        id: b.id,
+        date: b.created_at,
+        descricao: TIPO_LABEL[b.tipo] ?? b.tipo,
+        nivel: b.nivel,
+        indicado: nb?.indicadoNome ?? null,
+        valor: moneyValue(b.valor),
+        isCredit: true,
+        status: b.status,
+        release_at: b.release_at ?? null,
+        cycleStatus: nb?.cycleStatus ?? null,
+      };
+    }),
+    ...withdrawals.map((t) => ({
+      id: t.id,
+      date: t.created_at,
+      descricao: t.descricao,
+      nivel: null,
+      indicado: null,
+      valor: moneyValue(t.valor),
+      isCredit: false,
+      status: "concluido",
+      release_at: null,
+      cycleStatus: null,
+    })),
+  ]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .filter((r) => {
+      if (!search.trim()) return true;
+      const term = search.toLowerCase();
+      return r.descricao.toLowerCase().includes(term) || (r.indicado ?? "").toLowerCase().includes(term);
+    });
+
+  if (rows.length === 0) {
+    return <p className="py-8 text-sm text-muted-foreground">Sem movimentacoes encontradas.</p>;
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[700px] text-sm">
+        <thead className="text-xs text-muted-foreground border-b border-border/50">
+          <tr>
+            <th className="px-3 py-3 text-left font-medium">Data</th>
+            <th className="px-3 py-3 text-left font-medium">Tipo</th>
+            <th className="px-3 py-3 text-left font-medium hidden md:table-cell">Nível</th>
+            <th className="px-3 py-3 text-left font-medium">Indicado</th>
+            <th className="px-3 py-3 text-left font-medium">Valor</th>
+            <th className="px-3 py-3 text-left font-medium">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.slice(0, 50).map((row) => {
+            const days = row.release_at
+              ? Math.max(0, Math.ceil((new Date(row.release_at).getTime() - Date.now()) / 86400000))
+              : null;
+            const isVencido = row.status === "liberado" && row.cycleStatus === "completado";
+            return (
+              <tr key={row.id} className="border-b border-border/30 last:border-0 hover:bg-muted/5 transition-colors">
+                <td className="px-3 py-2.5 text-muted-foreground whitespace-nowrap">{formatDateTime(row.date)}</td>
+                <td className="px-3 py-2.5 font-medium">{row.descricao}</td>
+                <td className="px-3 py-2.5 text-muted-foreground hidden md:table-cell">
+                  {row.nivel != null ? `Nv ${row.nivel}` : "—"}
+                </td>
+                <td className="px-3 py-2.5">{row.indicado ?? <span className="text-muted-foreground">—</span>}</td>
+                <td className={`px-3 py-2.5 font-semibold ${row.isCredit ? "text-success" : "text-destructive"}`}>
+                  {row.isCredit ? "+" : "-"} {formatMoney(row.valor)}
+                </td>
+                <td className="px-3 py-2.5">
+                  {row.status === "cancelado" ? (
+                    <Badge className="border-destructive/30 bg-destructive/15 text-destructive">Cancelado</Badge>
+                  ) : isVencido ? (
+                    <Badge className="border-border/50 bg-muted/20 text-muted-foreground">Vencido</Badge>
+                  ) : row.status === "pendente" ? (
+                    <Badge className="border-amber-400/30 bg-amber-500/15 text-amber-300">
+                      <Clock className="h-3 w-3 mr-1" />{days != null && days > 0 ? `${days}d` : "Liberando"}
+                    </Badge>
+                  ) : (
+                    <Badge className="border-success/30 bg-success/15 text-success hover:bg-success/15">
+                      <ShieldCheck className="mr-1 h-3 w-3" />
+                      {row.status === "concluido" ? "Concluido" : "Liberado"}
+                    </Badge>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 }
 

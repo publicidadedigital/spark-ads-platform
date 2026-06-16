@@ -17,6 +17,7 @@ import {
   YAxis,
 } from "recharts";
 import {
+  AlertTriangle,
   Award,
   Bell,
   Crown,
@@ -56,7 +57,7 @@ type Stats = {
   nome: string;
   saldo: number;
   pacote: { nome: string; valor: number } | null;
-  cycle: { percentual: number; status: string } | null;
+  cycle: { percentual: number; status: string; renewalGraceUntil: string | null } | null;
   status: string;
   sharesHoje: number;
   metaDia: number;
@@ -118,9 +119,9 @@ function Dashboard() {
       const [{ data: cycle }, { count: sharesHoje }, { data: bonuses }, { data: recentShares }, { data: pointEvents }] = await Promise.all([
         supabase
           .from("user_cycles")
-          .select("percentual_atual, saldo_bonificacoes, status")
+          .select("percentual_atual, saldo_bonificacoes, status, renewal_grace_until")
+          .in("status", ["ativo", "concluido"])
           .eq("user_id", profileId)
-          .eq("status", "ativo")
           .order("started_at", { ascending: false })
           .limit(1)
           .maybeSingle(),
@@ -157,7 +158,7 @@ function Dashboard() {
         nome: profile.nome || user.email?.split("@")[0] || "Membro",
         saldo,
         pacote: profile.packages as any,
-        cycle: cycle ? { percentual: Number(cycle.percentual_atual), status: cycle.status } : null,
+        cycle: cycle ? { percentual: Number(cycle.percentual_atual), status: cycle.status, renewalGraceUntil: cycle.renewal_grace_until ?? null } : null,
         status: profile.status,
         sharesHoje: sharesHoje ?? 0,
         metaDia: DAILY_GOAL,
@@ -215,6 +216,7 @@ function Dashboard() {
   return (
     <div className="dashboard-page space-y-4">
       {!twoFactorEnabled && <TwoFactorReminderBanner to="/app/seguranca" />}
+      <CycleWarningBanner cycle={s.cycle} />
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_290px]">
         <div className="space-y-4">
           <Card className="overflow-hidden border-primary/15 bg-card/50 p-4 md:p-5">
@@ -665,4 +667,70 @@ function formatShortDate(value: string) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function CycleWarningBanner({ cycle }: { cycle: Stats["cycle"] }) {
+  if (!cycle) return null;
+
+  const pct = cycle.percentual;
+
+  // Ciclo concluído (200%) — prazo de renovação correndo
+  if (cycle.status === "concluido" || pct >= 200) {
+    const graceUntil = cycle.renewalGraceUntil ? new Date(cycle.renewalGraceUntil) : null;
+    const daysLeft = graceUntil ? Math.max(0, Math.ceil((graceUntil.getTime() - Date.now()) / 86400000)) : null;
+    const expired = daysLeft !== null && daysLeft === 0;
+
+    return (
+      <div className={`flex items-start gap-3 rounded-lg border p-4 ${
+        expired
+          ? "border-destructive/50 bg-destructive/10 text-destructive"
+          : "border-amber-400/50 bg-amber-500/10 text-amber-300"
+      }`}>
+        <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-sm">
+            {expired
+              ? "Prazo expirado — pontos perdidos"
+              : `Seu ciclo atingiu 200%! Renove em até ${daysLeft}d para manter seus pontos.`}
+          </p>
+          <p className="text-xs mt-0.5 opacity-80">
+            {expired
+              ? "Você não renovou o pacote dentro do prazo de 7 dias. Todos os pontos acumulados foram zerados."
+              : `Você tem ${daysLeft ?? "poucos"} dia(s) para renovar seu pacote. Se não renovar, todos os pontos acumulados serão perdidos e você recomeça do zero.`}
+          </p>
+        </div>
+        <Link to="/app/renovacao">
+          <Button size="sm" variant={expired ? "destructive" : "outline"} className={expired ? "" : "border-amber-400/50 text-amber-300 hover:bg-amber-500/10"}>
+            {expired ? "Ver pacotes" : "Renovar agora"}
+          </Button>
+        </Link>
+      </div>
+    );
+  }
+
+  // Alerta preventivo a partir de 150%
+  if (pct >= 150) {
+    const pctDisplay = Math.round(pct);
+    const remaining = Math.round(200 - pct);
+    return (
+      <div className="flex items-start gap-3 rounded-lg border border-warning/40 bg-warning/10 text-warning p-4">
+        <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-sm">
+            Seu ciclo está em {pctDisplay}% — faltam apenas {remaining}% para os 200%!
+          </p>
+          <p className="text-xs mt-0.5 opacity-80">
+            Ao atingir 200%, você terá 7 dias para renovar o pacote e manter todos os seus pontos acumulados. Se não renovar nesse prazo, os pontos serão zerados e você recomeça do zero.
+          </p>
+        </div>
+        <Link to="/app/renovacao">
+          <Button size="sm" variant="outline" className="border-warning/40 text-warning hover:bg-warning/10 shrink-0">
+            Ver renovação
+          </Button>
+        </Link>
+      </div>
+    );
+  }
+
+  return null;
 }

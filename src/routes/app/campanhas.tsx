@@ -329,7 +329,7 @@ function CampanhasPage() {
                 <h2 className="text-xl font-semibold">Campanhas de anunciantes</h2>
                 <p className="text-sm text-muted-foreground">Divulgue campanhas de anunciantes parceiros e envie o link para validacao.</p>
               </div>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-2.5">
                 {advertiserCampaigns.map((campaign, index) => (
                   <AdvertiserCampaignCard
                     key={campaign.id}

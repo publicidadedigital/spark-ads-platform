@@ -1,22 +1,24 @@
 /**
- * Webhook de confirmacao de pagamento.
+ * Webhook de confirmacao de pagamento — compativel com Cakto e formato interno.
  *
- * Endpoint publico chamado pelo gateway (Mercado Pago, Stripe, Asaas...) apos
- * a tentativa de pagamento. Atualiza o ciclo correspondente no Supabase.
+ * A Cakto envia eventos com nomes proprios. Este handler normaliza para status internos:
  *
- * Seguranca:
- *  - Verifica HMAC SHA-256 do corpo bruto contra o header `x-webhook-signature`,
- *    usando a env `PAYMENTS_WEBHOOK_SECRET`.
- *    OBRIGATÓRIO: se PAYMENTS_WEBHOOK_SECRET nao estiver configurada, TODAS as
- *    requisicoes sao rejeitadas (fail-closed). Configure a env em producao.
+ *  Cakto event                        → status interno
+ *  ─────────────────────────────────────────────────────
+ *  PURCHASE_APPROVED / approved       → approved
+ *  PURCHASE_REFUSED  / refused        → failed
+ *  PURCHASE_REFUNDED / refund         → refunded
+ *  PURCHASE_CHARGEBACK / chargeback   → chargeback
+ *  PURCHASE_CANCELLED / subscription_canceled / canceled → cancelled
+ *  (qualquer outro)                   → pending
  *
- * Payload esperado (JSON):
- *  {
- *    "cycle_id": "<uuid do user_cycles criado no checkout>",
- *    "payment_id": "<id do gateway, opcional para log>",
- *    "status": "approved" | "failed" | "pending",
- *    "amount": <number, opcional>
- *  }
+ * O cycle_id e extraido de (em ordem de prioridade):
+ *   payload.cycle_id  (formato interno)
+ *   payload.data.metadata.cycle_id
+ *   payload.data.smart_checkout_data.cycle_id
+ *   payload.data.tracker_id (fallback)
+ *
+ * Seguranca: HMAC SHA-256 via header x-webhook-signature (PAYMENTS_WEBHOOK_SECRET).
  */
 
 import { createFileRoute } from "@tanstack/react-router";
@@ -33,12 +35,63 @@ const CORS = {
   "Access-Control-Allow-Headers": "Content-Type, x-webhook-signature",
 } as const;
 
-const PayloadSchema = z.object({
-  cycle_id: z.string().uuid(),
-  payment_id: z.string().min(1).max(255).optional(),
-  status: z.enum(["approved", "failed", "pending", "cancelled", "refunded", "chargeback"]),
-  amount: z.number().nonnegative().optional(),
-});
+type NormalizedStatus = "approved" | "failed" | "pending" | "cancelled" | "refunded" | "chargeback";
+
+type NormalizedPayload = {
+  cycle_id: string;
+  payment_id?: string;
+  status: NormalizedStatus;
+  amount?: number;
+};
+
+// Converte evento/status da Cakto para status interno
+function normalizeCaktoStatus(raw: string): NormalizedStatus {
+  const s = (raw ?? "").toLowerCase().replace(/[^a-z_]/g, "");
+  if (["purchase_approved","approved","compra_aprovada","sale_approved"].includes(s)) return "approved";
+  if (["purchase_refused","refused","compra_recusada","sale_refused","failed","recusada"].includes(s)) return "failed";
+  if (["purchase_refunded","refunded","refund","reembolso","estorno"].includes(s)) return "refunded";
+  if (["purchase_chargeback","chargeback"].includes(s)) return "chargeback";
+  if (["purchase_cancelled","cancelled","canceled","subscription_canceled","subscription_cancelled","assinatura_cancelada","venda_cancelada"].includes(s)) return "cancelled";
+  return "pending";
+}
+
+// Extrai cycle_id de payloads Cakto ou interno
+function extractCycleId(body: any): string | null {
+  // Formato interno direto
+  if (typeof body?.cycle_id === "string" && body.cycle_id.length === 36) return body.cycle_id;
+  // Cakto: data.metadata.cycle_id
+  if (typeof body?.data?.metadata?.cycle_id === "string") return body.data.metadata.cycle_id;
+  // Cakto: data.smart_checkout_data.cycle_id
+  if (typeof body?.data?.smart_checkout_data?.cycle_id === "string") return body.data.smart_checkout_data.cycle_id;
+  // Cakto: data.tracker_id (último recurso)
+  if (typeof body?.data?.tracker_id === "string" && body.data.tracker_id.length === 36) return body.data.tracker_id;
+  return null;
+}
+
+// Normaliza qualquer payload (Cakto ou interno) para formato padrão
+function normalizePayload(body: any): NormalizedPayload | null {
+  const cycleId = extractCycleId(body);
+  if (!cycleId) return null;
+
+  // Evento Cakto: body.event (ex: "PURCHASE_APPROVED") ou body.data.status
+  const rawEvent = body?.event ?? body?.data?.status ?? body?.status ?? "";
+  const status = normalizeCaktoStatus(rawEvent);
+
+  // Payment ID: Cakto usa body.data.id
+  const paymentId = body?.payment_id ?? body?.data?.id ?? body?.data?.payment_id ?? undefined;
+
+  // Valor: Cakto usa body.data.value (em centavos BRL) ou body.amount
+  let amount: number | undefined;
+  if (typeof body?.amount === "number") {
+    amount = body.amount;
+  } else if (typeof body?.data?.value === "number") {
+    amount = body.data.value / 100; // Cakto envia em centavos
+  } else if (typeof body?.data?.amount === "number") {
+    amount = body.data.amount;
+  }
+
+  return { cycle_id: cycleId, payment_id: paymentId, status, amount };
+}
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -106,17 +159,20 @@ export const Route = createFileRoute("/api/public/payments-webhook")({
           return json({ error: "Invalid signature" }, 401);
         }
 
-        let parsed: z.infer<typeof PayloadSchema>;
+        let parsed: NormalizedPayload;
         try {
-          parsed = PayloadSchema.parse(JSON.parse(rawBody));
+          const body = JSON.parse(rawBody);
+          const normalized = normalizePayload(body);
+          if (!normalized) throw new Error("cycle_id nao encontrado no payload");
+          parsed = normalized;
         } catch (e: any) {
           await logPaymentError({
             errorType: "invalid_payload",
-            description: "Webhook de pagamento recebido com payload invalido.",
+            description: "Webhook de pagamento recebido com payload invalido ou sem cycle_id.",
             probableReason: e?.message ?? "JSON fora do contrato esperado.",
-            recommendedAction: "Conferir o mapeamento do gateway para cycle_id, status e amount.",
+            recommendedAction: "Verificar se o cycle_id esta sendo enviado no metadata do produto na Cakto.",
             severity: "alto",
-            metadata: { rawBody },
+            metadata: { rawBody: rawBody.slice(0, 500) },
           });
           return json({ error: "Invalid payload" }, 400);
         }

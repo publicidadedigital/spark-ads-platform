@@ -229,10 +229,10 @@ function RedePage() {
               </div>
               <div className="flex flex-wrap gap-2">
                 <Badge variant="outline" className="border-primary/40 bg-primary/10 text-primary">Nível máximo {highestLevel || 0}</Badge>
-                <Button size="sm" variant="outline" onClick={() => setExpanded(new Set(["root", ...members.map((m) => m.id)]))}>
+                <Button size="sm" variant="outline" className="hidden md:inline-flex" onClick={() => setExpanded(new Set(["root", ...members.map((m) => m.id)]))}>
                   <ChevronDown className="mr-2 h-4 w-4" /> Expandir
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => setExpanded(new Set(["root"]))}>
+                <Button size="sm" variant="outline" className="hidden md:inline-flex" onClick={() => setExpanded(new Set(["root"]))}>
                   <ChevronUp className="mr-2 h-4 w-4" /> Recolher
                 </Button>
               </div>
@@ -266,34 +266,7 @@ function RedePage() {
                       </div>
                     </div>
                   </div>
-                  <div className="md:hidden space-y-3">
-                    {members.length === 0 ? (
-                      <EmptyTree />
-                    ) : (
-                      members.map((member) => {
-                        const style = levelStyles[Math.min(4, member.nivel)] ?? levelStyles[4];
-                        const directReferrals = (network.childrenByParent.get(member.id) ?? []).length;
-                        return (
-                          <div key={member.id} className={`flex items-center gap-3 rounded-lg border ${style.border} bg-background/80 p-3`}>
-                            <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${style.dot} text-sm font-bold`}>
-                              {(member.nome ?? "U").slice(0, 1).toUpperCase()}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="truncate text-sm font-semibold">{member.nome ?? "Usuário"}</div>
-                              {member.pacote_nome && (
-                                <div className="flex items-center gap-1">
-                                  <Zap className="h-3 w-3 shrink-0 text-amber-400" />
-                                  <span className="truncate text-[11px] text-amber-300">{member.pacote_nome}</span>
-                                </div>
-                              )}
-                              <div className="text-xs text-muted-foreground">{directReferrals} direto(s)</div>
-                            </div>
-                            <Badge variant="outline" className={style.badge}>{style.label}</Badge>
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
+                  <MobileFlatList members={members} network={network} />
                 </>
               )}
             </div>
@@ -623,6 +596,66 @@ function EmptyTree() {
       <Users className="mx-auto mb-3 h-8 w-8 text-primary" />
       <h3 className="font-semibold">Sua árvore começa no primeiro indicado</h3>
       <p className="mt-1 text-sm text-muted-foreground">Compartilhe seu link para iniciar a rede.</p>
+    </div>
+  );
+}
+
+function MobileFlatList({ members, network }: { members: Member[]; network: ReturnType<typeof buildNetwork> }) {
+  const [filterNivel, setFilterNivel] = useState<number | null>(null);
+  const maxNivel = members.reduce((max, m) => Math.max(max, m.nivel), 0);
+  const filtered = filterNivel ? members.filter((m) => m.nivel === filterNivel) : members;
+
+  if (members.length === 0) return <div className="md:hidden"><EmptyTree /></div>;
+
+  return (
+    <div className="md:hidden space-y-3">
+      {maxNivel > 1 && (
+        <div className="flex flex-wrap gap-2 pb-1">
+          <button
+            type="button"
+            onClick={() => setFilterNivel(null)}
+            className={`rounded-full border px-3 py-1 text-xs transition ${filterNivel === null ? "border-primary bg-primary/20 text-primary" : "border-border text-muted-foreground"}`}
+          >
+            Todos ({members.length})
+          </button>
+          {Array.from({ length: maxNivel }, (_, i) => i + 1).map((n) => {
+            const count = members.filter((m) => m.nivel === n).length;
+            const style = levelStyles[Math.min(4, n)] ?? levelStyles[4];
+            return (
+              <button
+                key={n}
+                type="button"
+                onClick={() => setFilterNivel(filterNivel === n ? null : n)}
+                className={`rounded-full border px-3 py-1 text-xs transition ${filterNivel === n ? `${style.badge} border-current` : "border-border text-muted-foreground"}`}
+              >
+                Nível {n} ({count})
+              </button>
+            );
+          })}
+        </div>
+      )}
+      {filtered.map((member) => {
+        const style = levelStyles[Math.min(4, member.nivel)] ?? levelStyles[4];
+        const directReferrals = (network.childrenByParent.get(member.id) ?? []).length;
+        return (
+          <div key={member.id} className={`flex items-center gap-3 rounded-lg border ${style.border} bg-background/80 p-3`}>
+            <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${style.dot} text-sm font-bold`}>
+              {(member.nome ?? "U").slice(0, 1).toUpperCase()}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-sm font-semibold">{member.nome ?? "Usuário"}</div>
+              {member.pacote_nome && (
+                <div className="flex items-center gap-1">
+                  <Zap className="h-3 w-3 shrink-0 text-amber-400" />
+                  <span className="truncate text-[11px] text-amber-300">{member.pacote_nome}</span>
+                </div>
+              )}
+              <div className="text-xs text-muted-foreground">{directReferrals} direto(s)</div>
+            </div>
+            <Badge variant="outline" className={style.badge}>{style.label}</Badge>
+          </div>
+        );
+      })}
     </div>
   );
 }

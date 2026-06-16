@@ -71,7 +71,7 @@ function AdvertiserLayout() {
       {/* Bottom nav — always visible */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-border/50 bg-background/90 backdrop-blur-md">
         <div className="flex items-center justify-around py-2">
-          {nav.map(({ to, label, icon: Icon, exact }) => {
+          {nav.map(({ to, label, icon: Icon, exact, search }) => {
             const active = exact ? location.pathname === to : location.pathname.startsWith(to) && to !== "/anunciante-painel";
             const dashActive = exact && location.pathname === "/anunciante-painel";
             const isActive = dashActive || (!exact && location.pathname.startsWith(to) && to !== "/anunciante-painel");
@@ -99,7 +99,7 @@ function AdvertiserLayout() {
 function SidebarContent({ pathname }: { pathname: string }) {
   return (
     <nav className="space-y-1 pt-4">
-      {nav.map(({ to, label, icon: Icon, exact }) => {
+      {nav.map(({ to, label, icon: Icon, exact, search }) => {
         const active = exact ? pathname === to : pathname.startsWith(to);
         return (
           <Link key={label} to={to} search={search as any} className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition ${

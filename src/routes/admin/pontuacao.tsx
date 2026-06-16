@@ -108,7 +108,7 @@ function AdminPontuacao() {
         ) : rows.length === 0 ? (
           <p className="p-6 text-muted-foreground">Nenhum usuário encontrado.</p>
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto"><table className="w-full min-w-[700px] text-sm">
             <thead className="border-b border-border/50 text-xs uppercase text-muted-foreground">
               <tr>
                 <th className="text-left p-3">#</th>
@@ -159,7 +159,7 @@ function AdminPontuacao() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         )}
       </Card>
     </div>

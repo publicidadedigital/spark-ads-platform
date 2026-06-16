@@ -184,17 +184,17 @@ function AdminUsers() {
 
       {!twoFactorEnabled && <TwoFactorReminderBanner to="/admin/seguranca" />}
 
-      <div className="flex gap-2">
-        <Button size="sm" variant={tab === "clientes" ? "default" : "outline"} onClick={() => setTab("clientes")}>
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        <Button size="sm" shrink-0 variant={tab === "clientes" ? "default" : "outline"} onClick={() => setTab("clientes")} className="shrink-0">
           Clientes ({users.length})
         </Button>
-        <Button size="sm" variant={tab === "anunciantes" ? "default" : "outline"} onClick={() => setTab("anunciantes")}>
+        <Button size="sm" variant={tab === "anunciantes" ? "default" : "outline"} onClick={() => setTab("anunciantes")} className="shrink-0">
           Anunciantes ({advertisers.length})
         </Button>
-        <Button size="sm" variant={tab === "saques" ? "default" : "outline"} onClick={() => setTab("saques")}>
+        <Button size="sm" variant={tab === "saques" ? "default" : "outline"} onClick={() => setTab("saques")} className="shrink-0">
           Saques ({withdrawals.length})
         </Button>
-        <Button size="sm" variant={tab === "depositos" ? "default" : "outline"} onClick={() => setTab("depositos")}>
+        <Button size="sm" variant={tab === "depositos" ? "default" : "outline"} onClick={() => setTab("depositos")} className="shrink-0">
           Depósitos ({deposits.length})
         </Button>
       </div>
@@ -202,7 +202,7 @@ function AdminUsers() {
       {tab === "clientes" ? (
         <Card className="bg-card/50 border-border/50 overflow-hidden">
           {loading ? <p className="p-6 text-muted-foreground">Carregando...</p> : (
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto"><table className="w-full min-w-[900px] text-sm">
               <thead className="border-b border-border/50 text-xs uppercase text-muted-foreground">
                 <tr><th className="text-left p-3">Nome</th><th className="text-left p-3">E-mail</th><th className="text-left p-3">Instagram</th><th className="text-left p-3">Indicado por</th><th className="text-left p-3">Plano</th><th className="text-left p-3">Status</th><th className="text-left p-3">Último login</th><th className="text-right p-3">Ações</th></tr>
               </thead>
@@ -297,7 +297,7 @@ function AdminUsers() {
                   );
                 })}
               </tbody>
-            </table>
+            </table></div>
           )}
         </Card>
       ) : tab === "anunciantes" ? (
@@ -305,7 +305,7 @@ function AdminUsers() {
           {loading ? <p className="p-6 text-muted-foreground">Carregando...</p> : advertisers.length === 0 ? (
             <p className="p-6 text-muted-foreground">Nenhum anunciante cadastrado.</p>
           ) : (
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-sm">
               <thead className="border-b border-border/50 text-xs uppercase text-muted-foreground">
                 <tr><th className="text-left p-3">Empresa</th><th className="text-left p-3">Contato</th><th className="text-left p-3">E-mail</th><th className="text-left p-3">Status</th><th className="text-left p-3">Último login</th><th className="text-right p-3">Ações</th></tr>
               </thead>
@@ -324,7 +324,7 @@ function AdminUsers() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           )}
         </Card>
       ) : tab === "saques" ? (
@@ -332,7 +332,7 @@ function AdminUsers() {
           {loading ? <p className="p-6 text-muted-foreground">Carregando...</p> : withdrawals.length === 0 ? (
             <p className="p-6 text-muted-foreground">Nenhuma solicitação de saque ainda.</p>
           ) : (
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto"><table className="w-full min-w-[520px] text-sm">
               <thead className="border-b border-border/50 text-xs uppercase text-muted-foreground">
                 <tr><th className="text-left p-3">Cliente</th><th className="text-left p-3">Valor</th><th className="text-left p-3">Data</th><th className="text-left p-3">Hora</th><th className="text-left p-3">Status</th></tr>
               </thead>
@@ -351,7 +351,7 @@ function AdminUsers() {
                   );
                 })}
               </tbody>
-            </table>
+            </table></div>
           )}
         </Card>
       ) : (
@@ -359,7 +359,7 @@ function AdminUsers() {
           {loading ? <p className="p-6 text-muted-foreground">Carregando...</p> : deposits.length === 0 ? (
             <p className="p-6 text-muted-foreground">Nenhum depósito registrado ainda.</p>
           ) : (
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-sm">
               <thead className="border-b border-border/50 text-xs uppercase text-muted-foreground">
                 <tr><th className="text-left p-3">Usuário</th><th className="text-left p-3">Método</th><th className="text-left p-3">Valor</th><th className="text-left p-3">Data</th><th className="text-left p-3">Hora</th><th className="text-left p-3">Status</th><th className="text-right p-3">Ações</th></tr>
               </thead>
@@ -384,7 +384,7 @@ function AdminUsers() {
                   );
                 })}
               </tbody>
-            </table>
+            </table></div>
           )}
         </Card>
       )}

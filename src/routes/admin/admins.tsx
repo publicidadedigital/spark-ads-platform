@@ -142,7 +142,7 @@ function AdminAdmins() {
         ) : rows.length === 0 ? (
           <p className="p-6 text-muted-foreground">Nenhum admin encontrado.</p>
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto"><table className="w-full min-w-[520px] text-sm">
             <thead className="border-b border-border/50 text-xs uppercase text-muted-foreground">
               <tr>
                 <th className="text-left p-3">Nome</th>
@@ -172,7 +172,7 @@ function AdminAdmins() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         )}
       </Card>
 

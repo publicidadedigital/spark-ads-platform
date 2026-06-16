@@ -4,7 +4,8 @@ import { createFileRoute, Outlet, Link, useNavigate, useLocation } from "@tansta
 import { useEffect } from "react";
 import { useAuth } from "@/lib/supabase/auth";
 import { Button } from "@/components/ui/button";
-import { LogOut, Users, Megaphone, CheckSquare, Package, ShieldAlert, ShieldCheck, Bug, Send, DollarSign, Lock, RefreshCw, Trophy, Building2, CreditCard, Zap } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { LogOut, Users, Megaphone, CheckSquare, Package, ShieldAlert, ShieldCheck, Bug, Send, DollarSign, Lock, RefreshCw, Trophy, Building2, CreditCard, Zap, Menu } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({ component: AdminLayout });
 
@@ -68,34 +69,50 @@ function AdminLayout() {
     <div className="min-h-screen bg-noir-gradient">
       <header className="border-b border-border/50 bg-background/80">
         <div className="container mx-auto flex items-center justify-between px-4 py-3">
-          <Link to="/admin" className="flex items-center gap-2">
-            <Logo className="h-8 w-auto max-w-[180px]" textClassName="text-base" />
-            <span className="text-primary text-xs font-bold tracking-wider">ADMIN</span>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden"><Menu className="h-5 w-5" /></Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-64 p-0 pt-6">
+                <AdminNav pathname={loc.pathname} />
+              </SheetContent>
+            </Sheet>
+            <Link to="/admin" className="flex items-center gap-2">
+              <Logo className="h-8 w-auto max-w-[140px]" textClassName="text-base" />
+              <span className="text-primary text-xs font-bold tracking-wider">ADMIN</span>
+            </Link>
+          </div>
 
           <div className="flex items-center gap-3">
             <ExchangeRateTicker />
             <Button variant="ghost" size="sm" onClick={() => { signOut(); navigate({ to: "/admin/login" }); }}>
-              <LogOut className="h-4 w-4 mr-2" /> Sair
+              <LogOut className="h-4 w-4 mr-2" /><span className="hidden sm:inline">Sair</span>
             </Button>
           </div>
         </div>
       </header>
       <div className="container mx-auto px-4 py-6 grid md:grid-cols-[220px_1fr] gap-6">
-        <aside>
-          <nav className="space-y-1">
-            {nav.map(({ to, label, icon: Icon, exact }) => {
-              const active = exact ? loc.pathname === to : loc.pathname.startsWith(to);
-              return (
-                <Link key={to} to={to as any} className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition ${
-                  active ? "bg-gold/10 text-gold border border-gold/30" : "text-muted-foreground hover:bg-card hover:text-foreground"
-                }`}><Icon className="h-4 w-4" />{label}</Link>
-              );
-            })}
-          </nav>
+        <aside className="hidden md:block">
+          <AdminNav pathname={loc.pathname} />
         </aside>
         <main className="min-w-0"><Outlet /></main>
       </div>
     </div>
+  );
+}
+
+function AdminNav({ pathname }: { pathname: string }) {
+  return (
+    <nav className="space-y-1 px-3">
+      {nav.map(({ to, label, icon: Icon, exact }) => {
+        const active = exact ? pathname === to : pathname.startsWith(to);
+        return (
+          <Link key={to} to={to as any} className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition ${
+            active ? "bg-gold/10 text-gold border border-gold/30" : "text-muted-foreground hover:bg-card hover:text-foreground"
+          }`}><Icon className="h-4 w-4" />{label}</Link>
+        );
+      })}
+    </nav>
   );
 }

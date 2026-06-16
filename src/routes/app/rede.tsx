@@ -242,27 +242,59 @@ function RedePage() {
               {loading ? (
                 <p className="text-sm text-muted-foreground">Carregando rede...</p>
               ) : (
-                <div className="mx-auto min-w-[760px] max-w-6xl">
-                  <div className="flex flex-col items-center">
-                    <RootNode name={profile?.nome ?? "Você"} directCount={directCount} />
-                    <div className="h-8 w-px border-l border-dashed border-primary/50" />
-                    {network.roots.length === 0 ? (
+                <>
+                  <div className="hidden md:block">
+                    <div className="mx-auto min-w-[760px] max-w-6xl">
+                      <div className="flex flex-col items-center">
+                        <RootNode name={profile?.nome ?? "Você"} directCount={directCount} />
+                        <div className="h-8 w-px border-l border-dashed border-primary/50" />
+                        {network.roots.length === 0 ? (
+                          <EmptyTree />
+                        ) : (
+                          <div className="flex w-full items-start justify-center gap-6">
+                            {network.roots.map((member) => (
+                              <Branch
+                                key={member.id}
+                                member={member}
+                                childrenByParent={network.childrenByParent}
+                                expanded={expanded}
+                                onToggle={(id) => toggleExpanded(id, setExpanded)}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="md:hidden space-y-3">
+                    {members.length === 0 ? (
                       <EmptyTree />
                     ) : (
-                      <div className="flex w-full items-start justify-center gap-6">
-                        {network.roots.map((member) => (
-                          <Branch
-                            key={member.id}
-                            member={member}
-                            childrenByParent={network.childrenByParent}
-                            expanded={expanded}
-                            onToggle={(id) => toggleExpanded(id, setExpanded)}
-                          />
-                        ))}
-                      </div>
+                      members.map((member) => {
+                        const style = levelStyles[Math.min(4, member.nivel)] ?? levelStyles[4];
+                        const directReferrals = (network.childrenByParent.get(member.id) ?? []).length;
+                        return (
+                          <div key={member.id} className={`flex items-center gap-3 rounded-lg border ${style.border} bg-background/80 p-3`}>
+                            <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${style.dot} text-sm font-bold`}>
+                              {(member.nome ?? "U").slice(0, 1).toUpperCase()}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="truncate text-sm font-semibold">{member.nome ?? "Usuário"}</div>
+                              {member.pacote_nome && (
+                                <div className="flex items-center gap-1">
+                                  <Zap className="h-3 w-3 shrink-0 text-amber-400" />
+                                  <span className="truncate text-[11px] text-amber-300">{member.pacote_nome}</span>
+                                </div>
+                              )}
+                              <div className="text-xs text-muted-foreground">{directReferrals} direto(s)</div>
+                            </div>
+                            <Badge variant="outline" className={style.badge}>{style.label}</Badge>
+                          </div>
+                        );
+                      })
                     )}
                   </div>
-                </div>
+                </>
               )}
             </div>
           </Card>

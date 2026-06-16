@@ -96,7 +96,7 @@ function AdminLayout() {
         <aside className="hidden md:block">
           <AdminNav pathname={loc.pathname} />
         </aside>
-        <main className="min-w-0"><Outlet /></main>
+        <main className="min-w-0 w-full overflow-hidden"><Outlet /></main>
       </div>
     </div>
   );

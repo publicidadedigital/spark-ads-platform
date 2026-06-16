@@ -96,21 +96,21 @@ function AdminAdmins() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <ShieldCheck className="h-6 w-6 text-gold shrink-0" /> Administradores
         </h1>
-        <p className="text-sm text-muted-foreground mt-1 max-w-prose">
+        <p className="text-sm text-muted-foreground mt-1">
           Promova usuários para admin pelo e-mail. Admins têm acesso total ao painel:
           aprovar/bloquear usuários, gerenciar campanhas, validar provas e configurar pacotes.
         </p>
       </div>
 
-      {/* Main grid: form + capabilities side by side on xl */}
-      <div className="grid gap-6 xl:grid-cols-[1fr_320px]">
-        <div className="space-y-6 min-w-0">
+      {/* Main grid: form + capabilities side by side on lg+ */}
+      <div className="grid gap-6 lg:grid-cols-[1fr_280px] items-start">
+        <div className="min-w-0 space-y-6">
           {/* Promote form */}
           <Card className="bg-card/50 border-border/50 p-5 sm:p-6">
             <h2 className="font-semibold mb-4 flex items-center gap-2">
@@ -132,7 +132,7 @@ function AdminAdmins() {
               <Button
                 type="submit"
                 disabled={submitting}
-                className="w-full sm:w-auto bg-gold-gradient text-primary-foreground shrink-0"
+                className="shrink-0 bg-gold-gradient text-primary-foreground"
               >
                 {submitting ? "Promovendo..." : "Promover a admin"}
               </Button>
@@ -145,7 +145,7 @@ function AdminAdmins() {
 
           {/* Current admins table */}
           <Card className="bg-card/50 border-border/50 overflow-hidden">
-            <div className="p-4 border-b border-border/50 flex items-center justify-between">
+            <div className="p-4 border-b border-border/50 flex items-center justify-between gap-3">
               <h2 className="font-semibold">Admins atuais</h2>
               {!loading && <Badge variant="outline">{rows.length} admin(s)</Badge>}
             </div>
@@ -155,7 +155,7 @@ function AdminAdmins() {
               <p className="p-6 text-muted-foreground text-sm">Nenhum admin encontrado.</p>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[480px] text-sm">
+                <table className="w-full min-w-[520px] text-sm">
                   <thead className="border-b border-border/50 text-xs uppercase text-muted-foreground bg-muted/10">
                     <tr>
                       <th className="text-left p-3">Nome</th>
@@ -168,8 +168,8 @@ function AdminAdmins() {
                   <tbody>
                     {rows.map((r) => (
                       <tr key={r.user_id} className="border-b border-border/30 hover:bg-muted/5 transition-colors">
-                        <td className="p-3 font-medium">{r.profile?.nome ?? "—"}</td>
-                        <td className="p-3 text-muted-foreground text-xs sm:text-sm truncate max-w-[160px]">
+                        <td className="p-3 font-medium whitespace-nowrap">{r.profile?.nome ?? "—"}</td>
+                        <td className="p-3 text-muted-foreground text-xs sm:text-sm max-w-[180px] truncate">
                           {r.profile?.email ?? r.user_id.slice(0, 8)}
                         </td>
                         <td className="p-3 hidden sm:table-cell text-muted-foreground">
@@ -186,8 +186,7 @@ function AdminAdmins() {
                             disabled={r.user_id === user?.id}
                             className="text-xs"
                           >
-                            <ShieldOff className="h-3 w-3 mr-1 shrink-0" />
-                            <span className="hidden xs:inline">Remover</span>
+                            <ShieldOff className="h-3 w-3 mr-1 shrink-0" /> Remover
                           </Button>
                         </td>
                       </tr>
@@ -204,27 +203,19 @@ function AdminAdmins() {
           <h2 className="font-semibold mb-3 flex items-center gap-2">
             <Info className="h-4 w-4 text-gold" /> O que um admin pode fazer
           </h2>
-          <ul className="text-sm text-muted-foreground space-y-2.5">
-            <li className="flex gap-2">
-              <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold/60 mt-1.5" />
-              <span><strong className="text-foreground">Usuários:</strong> aprovar cadastros, bloquear contas e revisar perfis.</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold/60 mt-1.5" />
-              <span><strong className="text-foreground">Campanhas:</strong> criar, editar e ativar/desativar campanhas.</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold/60 mt-1.5" />
-              <span><strong className="text-foreground">Provas:</strong> validar prints e liberar bonificações.</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold/60 mt-1.5" />
-              <span><strong className="text-foreground">Pacotes:</strong> configurar planos, valores e regras de renovação.</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold/60 mt-1.5" />
-              <span><strong className="text-foreground">Administradores:</strong> promover ou revogar acesso admin.</span>
-            </li>
+          <ul className="text-sm text-muted-foreground space-y-3">
+            {[
+              { label: "Usuários", desc: "Aprovar cadastros, bloquear contas e revisar perfis." },
+              { label: "Campanhas", desc: "Criar, editar e ativar/desativar campanhas." },
+              { label: "Provas", desc: "Validar prints e liberar bonificações." },
+              { label: "Pacotes", desc: "Configurar planos, valores e regras de renovação." },
+              { label: "Administradores", desc: "Promover ou revogar acesso admin." },
+            ].map(({ label, desc }) => (
+              <li key={label} className="flex gap-2.5">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold/60" />
+                <span><strong className="text-foreground">{label}:</strong> {desc}</span>
+              </li>
+            ))}
           </ul>
         </Card>
       </div>

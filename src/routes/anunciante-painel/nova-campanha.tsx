@@ -82,7 +82,10 @@ function NovaCampanha() {
 
   function handleFile(f: File | null) {
     setFile(f);
-    setPreview(f ? URL.createObjectURL(f) : null);
+    if (!f) { setPreview(null); return; }
+    const reader = new FileReader();
+    reader.onload = (e) => setPreview(e.target?.result as string);
+    reader.readAsDataURL(f);
   }
 
   function onFileInput(e: React.ChangeEvent<HTMLInputElement>) {

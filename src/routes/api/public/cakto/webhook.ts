@@ -56,12 +56,102 @@ function normalizeName(value: string) {
     .trim();
 }
 
+const ADVERTISER_PACKAGE_MAP: Record<string, number> = {
+  semanal: 7,
+  quinzenal: 15,
+  mensal: 30,
+};
+
+function isAdvertiserProduct(productName: string): boolean {
+  return normalizeName(productName).includes("anunciante");
+}
+
+function advertiserDurationFromProduct(productName: string): number | null {
+  const n = normalizeName(productName);
+  for (const [key, days] of Object.entries(ADVERTISER_PACKAGE_MAP)) {
+    if (n.includes(key)) return days;
+  }
+  return null;
+}
+
+async function reconcileAdvertiserPurchase(admin: ReturnType<typeof getAdminClient>, event: CaktoWebhookEvent, body: unknown) {
+  if (!event.customerEmail) {
+    await recordSystemErrorLog(admin, {
+      module: "cakto-webhook",
+      errorType: "advertiser_purchase_missing_email",
+      description: "Webhook Cakto de anunciante aprovado sem e-mail do comprador.",
+      probableReason: "Payload da Cakto nao trouxe customer.email.",
+      recommendedAction: "Ativar o anunciante manualmente.",
+      severity: "critico",
+      metadata: { body },
+    });
+    return json({ ok: true, ignored: true, reason: "missing_customer_email" });
+  }
+
+  if (event.providerPaymentId) {
+    const { data: existing } = await admin
+      .from("advertiser_payment_orders")
+      .select("id")
+      .eq("provider_payment_id", event.providerPaymentId)
+      .maybeSingle();
+    if (existing) return json({ ok: true, idempotent: true });
+  }
+
+  const { data: advertiser } = await admin
+    .from("advertiser_profiles")
+    .select("id, status")
+    .ilike("email", event.customerEmail)
+    .maybeSingle();
+
+  if (!advertiser) {
+    await recordSystemErrorLog(admin, {
+      module: "cakto-webhook",
+      errorType: "advertiser_not_found",
+      description: `Compra de anunciante aprovada, mas nenhum perfil encontrado para o e-mail ${event.customerEmail}.`,
+      probableReason: "Anunciante nao possui cadastro na plataforma.",
+      recommendedAction: "Verificar cadastro e ativar manualmente.",
+      severity: "critico",
+      metadata: { body, customerEmail: event.customerEmail },
+    });
+    return json({ ok: true, ignored: true, reason: "advertiser_not_found" });
+  }
+
+  const durationDays = event.productName ? advertiserDurationFromProduct(event.productName) : null;
+  const { data: pkg } = durationDays
+    ? await admin.from("advertising_packages").select("id, price_usd").eq("duration_days", durationDays).eq("status", "ativo").maybeSingle()
+    : { data: null };
+
+  await admin
+    .from("advertiser_profiles")
+    .update({ status: "ativo", updated_at: new Date().toISOString() })
+    .eq("id", advertiser.id);
+
+  await admin.from("advertiser_payment_orders").insert({
+    advertiser_profile_id: advertiser.id,
+    advertising_package_id: pkg?.id ?? null,
+    provider: "cakto",
+    method: "cakto_static_link",
+    status: "approved",
+    external_id: event.providerPaymentId ?? `cakto_adv_${advertiser.id}_${Date.now()}`,
+    provider_payment_id: event.providerPaymentId,
+    amount_usd: pkg?.price_usd ?? null,
+    paid_at: new Date().toISOString(),
+    raw_response: { webhook: body, parsed: event },
+  });
+
+  return json({ ok: true, status: "approved", advertiser: true, advertiserId: advertiser.id });
+}
+
 /**
  * Compras feitas pelos links estaticos do Cakto (escritorio virtual) nao tem
  * payment_orders associado. Reconciliamos pelo e-mail do comprador + nome do
  * produto, criando o ciclo e delegando a ativacao ao payments-webhook.
  */
 async function reconcileStaticPurchase(admin: ReturnType<typeof getAdminClient>, event: CaktoWebhookEvent, body: unknown) {
+  if (event.productName && isAdvertiserProduct(event.productName)) {
+    return reconcileAdvertiserPurchase(admin, event, body);
+  }
+
   if (!event.customerEmail || !event.productName) {
     await recordSystemErrorLog(admin, {
       module: "cakto-webhook",

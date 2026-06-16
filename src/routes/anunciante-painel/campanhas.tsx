@@ -14,6 +14,7 @@ type Campaign = {
   id: string;
   title: string;
   media_url: string;
+  media_type: string;
   status: string;
   rejection_reason: string | null;
   created_at: string;
@@ -24,7 +25,7 @@ function AdvertiserCampaigns() {
   const { supabase, user } = useAuth();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [shareCounts, setShareCounts] = useState<Record<string, number>>({});
-  const [hasApprovedPayment, setHasApprovedPayment] = useState(false);
+  const [availableSlots, setAvailableSlots] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -44,21 +45,19 @@ function AdvertiserCampaigns() {
       const [{ data }, { data: payments }] = await Promise.all([
         supabase
           .from("advertiser_campaigns")
-          .select("id,title,media_url,status,rejection_reason,created_at,order:order_id(price_usd,estimated_views,package:advertising_package_id(name,duration_days))")
+          .select("id,title,media_url,media_type,status,rejection_reason,created_at,order:order_id(price_usd,estimated_views,package:advertising_package_id(name,duration_days))")
           .eq("advertiser_id", prof.id)
           .order("created_at", { ascending: false }),
         supabase
           .from("advertiser_payment_orders")
           .select("id")
           .eq("advertiser_profile_id", prof.id)
-          .eq("status", "approved")
-          .limit(1),
+          .eq("status", "approved"),
       ]);
-
-      setHasApprovedPayment((payments ?? []).length > 0);
 
       const list = (data ?? []) as unknown as Campaign[];
       setCampaigns(list);
+      setAvailableSlots(Math.max(0, (payments ?? []).length - list.length));
 
       const ids = list.map((c) => c.id);
       if (ids.length > 0) {
@@ -86,7 +85,7 @@ function AdvertiserCampaigns() {
           <h1 className="text-2xl font-bold">Minhas Campanhas</h1>
           <p className="text-sm text-muted-foreground">Acompanhe o status, plano e desempenho das suas campanhas</p>
         </div>
-        {hasApprovedPayment ? (
+        {availableSlots > 0 ? (
           <Link to="/anunciante-painel/nova-campanha" search={{ packageId: "" }}>
             <Button className="bg-gold-gradient text-primary-foreground">
               <PlusCircle className="mr-2 h-4 w-4" /> Nova campanha
@@ -95,11 +94,17 @@ function AdvertiserCampaigns() {
         ) : (
           <Link to="/anunciante-painel/" search={{ tab: "pagamentos" }}>
             <Button variant="outline" className="border-amber-400/30 text-amber-300">
-              Ative um pacote para criar campanhas
+              Contrate um pacote para criar uma nova campanha
             </Button>
           </Link>
         )}
       </div>
+
+      {campaigns.length > 0 && availableSlots === 0 && (
+        <Card className="border-amber-400/30 bg-amber-500/10 p-3 text-sm text-amber-300">
+          Você já utilizou todas as campanhas disponíveis para os pacotes contratados. Contrate um novo pacote para criar outra campanha.
+        </Card>
+      )}
 
       {campaigns.length === 0 ? (
         <Card className="border-primary/15 bg-card/50 p-8 text-center text-muted-foreground">
@@ -126,7 +131,13 @@ function AdvertiserCampaigns() {
                   <tr key={c.id} className="border-b border-border/35 last:border-0">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <img src={c.media_url} alt="" className="h-10 w-10 rounded-md object-cover" />
+                        <div className="h-10 w-10 shrink-0 overflow-hidden rounded-md bg-muted">
+                          {c.media_type === "video" ? (
+                            <video src={c.media_url} muted playsInline className="h-full w-full object-cover" />
+                          ) : (
+                            <img src={c.media_url} alt="" className="h-full w-full object-cover" />
+                          )}
+                        </div>
                         <div className="min-w-0">
                           <div className="max-w-[220px] truncate font-medium">{c.title}</div>
                           {c.status === "reprovada" && c.rejection_reason && (

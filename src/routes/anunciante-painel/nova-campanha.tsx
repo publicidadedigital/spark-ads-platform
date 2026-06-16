@@ -45,6 +45,7 @@ function NovaCampanha() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [availableSlots, setAvailableSlots] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -58,23 +59,22 @@ function NovaCampanha() {
       setPackages(list);
       setProfile(prof);
 
-      if (selectedPackageId) {
-        setPackageId(selectedPackageId);
-      } else if (prof?.id) {
-        // Pre-select the package from the most recent approved payment
-        const { data: payment } = await supabase
-          .from("advertiser_payment_orders")
-          .select("advertising_package_id")
-          .eq("advertiser_profile_id", prof.id)
-          .eq("status", "approved")
-          .order("paid_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        if (payment?.advertising_package_id) {
-          setPackageId(payment.advertising_package_id);
+      if (prof?.id) {
+        const [{ data: payments }, { data: campaigns }] = await Promise.all([
+          supabase.from("advertiser_payment_orders").select("id,advertising_package_id,paid_at").eq("advertiser_profile_id", prof.id).eq("status", "approved").order("paid_at", { ascending: false }),
+          supabase.from("advertiser_campaigns").select("id").eq("advertiser_id", prof.id),
+        ]);
+        setAvailableSlots(Math.max(0, (payments ?? []).length - (campaigns ?? []).length));
+
+        if (selectedPackageId) {
+          setPackageId(selectedPackageId);
+        } else if (payments?.[0]?.advertising_package_id) {
+          setPackageId(payments[0].advertising_package_id);
         } else if (list[0]) {
           setPackageId(list[0].id);
         }
+      } else if (selectedPackageId) {
+        setPackageId(selectedPackageId);
       }
       setLoading(false);
     })();
@@ -183,6 +183,20 @@ function NovaCampanha() {
         <p className="text-sm text-muted-foreground">
           Seu cadastro de anunciante ainda esta sendo analisado pela nossa equipe. Voce podera criar campanhas assim que sua conta for ativada.
         </p>
+      </Card>
+    );
+  }
+
+  if (profile && availableSlots === 0) {
+    return (
+      <Card className="border-amber-400/30 bg-amber-500/10 p-8 text-center">
+        <h1 className="text-xl font-bold mb-2">Limite de campanhas atingido</h1>
+        <p className="text-sm text-muted-foreground mb-4">
+          Você já utilizou todas as campanhas disponíveis para os pacotes contratados. Contrate um novo pacote para criar outra campanha.
+        </p>
+        <Link to="/anunciante-painel/" search={{ tab: "pagamentos" }}>
+          <Button className="bg-gold-gradient text-primary-foreground">Contratar pacote</Button>
+        </Link>
       </Card>
     );
   }

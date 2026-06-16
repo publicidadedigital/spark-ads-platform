@@ -78,7 +78,8 @@ function RedePage() {
   const { supabase, user } = useAuth();
   const [profile, setProfile] = useState<{ id: string; nome: string | null } | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
-  const [bonusTotal, setBonusTotal] = useState(0);
+  const [bonusLiberado, setBonusLiberado] = useState(0);
+  const [bonusAguardando, setBonusAguardando] = useState(0);
   const [expanded, setExpanded] = useState<Set<string>>(new Set(["root"]));
   const [loading, setLoading] = useState(true);
 
@@ -98,14 +99,13 @@ function RedePage() {
 
       setProfile(prof);
 
-      const [{ data: refs }, { data: bonuses }] = await Promise.all([
+      const [{ data: refs }, { data: wallet }] = await Promise.all([
         supabase.rpc("get_user_network", { root_id: prof.id }),
         supabase
-          .from("bonuses")
-          .select("valor")
+          .from("wallet_balances")
+          .select("saldo_disponivel,saldo_a_liberar")
           .eq("user_id", prof.id)
-          .eq("status", "liberado")
-          .in("tipo", ["adesao", "renovacao", "residual"]),
+          .maybeSingle(),
       ]);
 
       const parsed = (refs ?? []).map((row: any) => ({
@@ -121,7 +121,8 @@ function RedePage() {
       })) as Member[];
 
       setMembers(parsed);
-      setBonusTotal((bonuses ?? []).reduce((sum: number, b: any) => sum + Number(b.valor ?? 0), 0));
+      setBonusLiberado(Number(wallet?.saldo_disponivel ?? 0));
+      setBonusAguardando(Number(wallet?.saldo_a_liberar ?? 0));
       setExpanded(new Set(["root", ...parsed.filter((m) => m.nivel === 1).slice(0, 4).map((m) => m.id)]));
       setLoading(false);
     })();
@@ -187,7 +188,12 @@ function RedePage() {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <MetricCard icon={Users} label="Equipe total" value={totalCount.toString()} sub="pessoas" />
-        <MetricCard icon={Sparkles} label="Bônus de rede" value={`$ ${bonusTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}`} sub="indicação + equipe liberados" />
+        <MetricCard
+          icon={Sparkles}
+          label="Bônus de rede"
+          value={`$ ${bonusLiberado.toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
+          sub={bonusAguardando > 0 ? `+ $ ${bonusAguardando.toLocaleString("en-US", { minimumFractionDigits: 2 })} aguardando` : "indicação + equipe liberados"}
+        />
         <MetricCard icon={User} label="Diretos" value={directCount.toString()} sub="pessoas" />
         <MetricCard icon={Star} label="Maior nível alcançado" value={highestLevel ? `Nível ${highestLevel}` : "Nível 0"} sub="na sua rede" />
         <MetricCard icon={TrendingUp} label="Crescimento semanal" value={`+${countRecent(members, 7)}`} sub="novos membros" />

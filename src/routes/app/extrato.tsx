@@ -17,6 +17,7 @@ import {
 } from "recharts";
 import {
   CalendarDays,
+  Clock,
   Crown,
   DollarSign,
   Download,
@@ -51,6 +52,7 @@ type Bonus = {
   status: string;
   nivel: number | null;
   created_at: string;
+  release_at?: string | null;
 };
 
 type Category = {
@@ -113,23 +115,24 @@ function ExtratoPage() {
           .limit(160),
         supabase
           .from("bonuses")
-          .select("id,tipo,valor,status,nivel,created_at")
+          .select("id,tipo,valor,status,nivel,created_at,balance_holds(release_at)")
           .eq("user_id", prof.id)
           .order("created_at", { ascending: false })
           .limit(160),
         supabase
-          .from("user_cycles")
-          .select("saldo_bonificacoes")
+          .from("wallet_balances")
+          .select("saldo_disponivel")
           .eq("user_id", prof.id)
-          .eq("status", "ativo")
-          .order("started_at", { ascending: false })
-          .limit(1)
           .maybeSingle(),
       ]);
 
       setTx((walletRows ?? []) as Transaction[]);
-      setBonuses((bonusRows ?? []) as Bonus[]);
-      setCycleBalance(Number(cycle?.saldo_bonificacoes ?? 0));
+      const bonusesWithRelease = (bonusRows ?? []).map((b: any) => ({
+        ...b,
+        release_at: b.balance_holds?.[0]?.release_at ?? null,
+      }));
+      setBonuses(bonusesWithRelease as Bonus[]);
+      setCycleBalance(Number(cycle?.saldo_disponivel ?? 0));
       setLoading(false);
     })();
   }, [supabase, user]);
@@ -267,6 +270,51 @@ function ExtratoPage() {
             </div>
           </Card>
 
+          {bonuses.filter((b) => b.status === "pendente").length > 0 && (
+            <Card className="border-amber-400/25 bg-card/50 p-5">
+              <h2 className="font-semibold mb-1 flex items-center gap-2">
+                <Clock className="h-4 w-4 text-amber-300" /> Bonus aguardando liberacao (7 dias)
+              </h2>
+              <p className="text-xs text-muted-foreground mb-4">Esses bonus entram para saque apos o periodo de retencao.</p>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[560px] text-sm">
+                  <thead className="text-xs text-muted-foreground border-b border-border/50">
+                    <tr>
+                      <th className="px-3 py-2 text-left">Data</th>
+                      <th className="px-3 py-2 text-left">Tipo</th>
+                      <th className="px-3 py-2 text-left">Valor</th>
+                      <th className="px-3 py-2 text-left">Liberacao</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bonuses.filter((b) => b.status === "pendente").map((b) => {
+                      const days = b.release_at ? Math.max(0, Math.ceil((new Date(b.release_at).getTime() - Date.now()) / 86400000)) : null;
+                      const tipoLabel: Record<string, string> = { adesao: "Bonus de adesao", renovacao: "Bonus de renovacao", residual: "Bonus residual" };
+                      return (
+                        <tr key={b.id} className="border-b border-border/30 last:border-0">
+                          <td className="px-3 py-2 text-muted-foreground">{formatDateTime(b.created_at)}</td>
+                          <td className="px-3 py-2">{tipoLabel[b.tipo] ?? b.tipo}{b.nivel ? ` (Nv ${b.nivel})` : ""}</td>
+                          <td className="px-3 py-2 font-semibold text-amber-300">+ {formatMoney(moneyValue(b.valor))}</td>
+                          <td className="px-3 py-2">
+                            {days === null ? (
+                              <Badge className="border-amber-400/30 bg-amber-500/15 text-amber-300">Pendente</Badge>
+                            ) : days === 0 ? (
+                              <Badge className="border-success/30 bg-success/15 text-success">Liberando...</Badge>
+                            ) : (
+                              <Badge className="border-amber-400/30 bg-amber-500/15 text-amber-300">
+                                <Clock className="h-3 w-3 mr-1" />{days}d restantes
+                              </Badge>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          )}
+
           <Card className="border-primary/15 bg-card/50 p-5">
             <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <h2 className="font-semibold">Historico de movimentacoes</h2>
@@ -339,7 +387,7 @@ function ExtratoPage() {
           <DistributionCard categories={stats.categories} total={stats.categoryTotal} />
           <BestDayCard tx={tx} />
           <InsightsCard stats={stats} tx={tx} />
-          <NextReleaseCard pending={stats.pending} />
+          <NextReleaseCard pending={stats.pending} bonuses={bonuses} />
         </aside>
       </div>
     </div>
@@ -360,10 +408,11 @@ function buildStats(tx: Transaction[], bonuses: Bonus[], balanceFallback: number
   };
 
   bonuses.forEach((bonus) => {
+    if (bonus.status === "cancelado") return;
     const value = moneyValue(bonus.valor);
-    if (bonus.tipo === "diario") categoryTotals.residual += value;
-    else if (bonus.tipo === "indicacao" && Number(bonus.nivel ?? 1) <= 1) categoryTotals.indicacao_direta += value;
-    else if (bonus.tipo === "indicacao" || bonus.tipo === "equipe") categoryTotals.indicacao_indireta += value;
+    if (bonus.tipo === "diario" || bonus.tipo === "residual") categoryTotals.residual += value;
+    else if (bonus.tipo === "adesao" && Number(bonus.nivel ?? 1) <= 1) categoryTotals.indicacao_direta += value;
+    else if (bonus.tipo === "adesao" || bonus.tipo === "renovacao") categoryTotals.indicacao_indireta += value;
     else if (bonus.tipo === "mensalidade") categoryTotals.royalties += value;
   });
 
@@ -525,8 +574,12 @@ function InsightsCard({ stats, tx }: { stats: ReturnType<typeof buildStats>; tx:
   );
 }
 
-function NextReleaseCard({ pending }: { pending: number }) {
+function NextReleaseCard({ pending, bonuses }: { pending: number; bonuses: Bonus[] }) {
   const value = pending || 0;
+  const nextBonus = bonuses
+    .filter((b) => b.status === "pendente" && b.release_at)
+    .sort((a, b) => new Date(a.release_at!).getTime() - new Date(b.release_at!).getTime())[0];
+  const nextDate = nextBonus?.release_at ? new Date(nextBonus.release_at) : null;
   return (
     <Card className="border-primary/15 bg-card/50 p-5">
       <h3 className="font-semibold">Proxima liberacao</h3>
@@ -536,10 +589,14 @@ function NextReleaseCard({ pending }: { pending: number }) {
         </div>
         <div>
           <p className="text-2xl font-bold">{formatMoney(value)}</p>
-          <p className="text-xs text-muted-foreground">Valor em processamento</p>
+          <p className="text-xs text-muted-foreground">Valor aguardando retencao de 7 dias</p>
         </div>
       </div>
-      <p className="mt-4 text-xs text-muted-foreground">{value > 0 ? "Aguardando processamento de liberação" : "Nenhum valor pendente"}</p>
+      <p className="mt-4 text-xs text-muted-foreground">
+        {nextDate
+          ? `Proxima liberacao: ${nextDate.toLocaleDateString("pt-BR")} (${Math.max(0, Math.ceil((nextDate.getTime() - Date.now()) / 86400000))}d)`
+          : value > 0 ? "Aguardando processamento" : "Nenhum valor pendente"}
+      </p>
     </Card>
   );
 }

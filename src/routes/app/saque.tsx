@@ -11,7 +11,7 @@ import { requestWithdrawal } from "@/lib/withdrawals/withdrawal.functions";
 import { getTwoFactorStatus } from "@/lib/security/totp.functions";
 import { TwoFactorReminderBanner } from "@/components/TwoFactorSetup";
 import { MIN_WITHDRAWAL_USD, MAX_WITHDRAWAL_USD } from "@/lib/business/rules";
-import { Info, Wallet } from "lucide-react";
+import { Clock, Info, Wallet, XCircle } from "lucide-react";
 
 export const Route = createFileRoute("/app/saque")({ component: SaquePage });
 
@@ -45,10 +45,26 @@ const statusStyles: Record<string, string> = {
   cancelado: "border-destructive/30 bg-destructive/15 text-destructive",
 };
 
+type BalanceHold = {
+  id: string;
+  valor: number | string;
+  release_at: string;
+  status: string;
+  created_at: string;
+};
+
+function daysUntil(iso: string): number {
+  const diff = new Date(iso).getTime() - Date.now();
+  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+}
+
 function SaquePage() {
   const { supabase, user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [balance, setBalance] = useState(0);
+  const [saldoAguardando, setSaldoAguardando] = useState(0);
+  const [saldoCancelado, setSaldoCancelado] = useState(0);
+  const [holds, setHolds] = useState<BalanceHold[]>([]);
   const [cpf, setCpf] = useState<string | null>(null);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
   const [requests, setRequests] = useState<WithdrawalRequest[]>([]);
@@ -78,15 +94,23 @@ function SaquePage() {
         .catch(() => {});
     }
 
-    const [{ data: cycle }, { data: withdrawals }] = await Promise.all([
+    const [{ data: wallet }, { data: holdsData }, { data: canceledBonuses }, { data: withdrawals }] = await Promise.all([
       supabase
-        .from("user_cycles")
-        .select("saldo_bonificacoes")
+        .from("wallet_balances")
+        .select("saldo_disponivel,saldo_a_liberar")
         .eq("user_id", prof.id)
-        .eq("status", "ativo")
-        .order("started_at", { ascending: false })
-        .limit(1)
         .maybeSingle(),
+      supabase
+        .from("balance_holds")
+        .select("id,valor,release_at,status,created_at")
+        .eq("user_id", prof.id)
+        .eq("status", "pendente")
+        .order("release_at", { ascending: true }),
+      supabase
+        .from("bonuses")
+        .select("valor")
+        .eq("user_id", prof.id)
+        .eq("status", "cancelado"),
       supabase
         .from("withdrawal_requests")
         .select("id,created_at,amount_usd,method,destination_key,status,admin_notes")
@@ -95,7 +119,10 @@ function SaquePage() {
         .limit(20),
     ]);
 
-    setBalance(Number(cycle?.saldo_bonificacoes ?? 0));
+    setBalance(Number(wallet?.saldo_disponivel ?? 0));
+    setSaldoAguardando(Number(wallet?.saldo_a_liberar ?? 0));
+    setSaldoCancelado((canceledBonuses ?? []).reduce((s: number, b: any) => s + Number(b.valor ?? 0), 0));
+    setHolds((holdsData ?? []) as BalanceHold[]);
     setRequests((withdrawals ?? []) as WithdrawalRequest[]);
     setLoading(false);
   }
@@ -107,20 +134,81 @@ function SaquePage() {
   return (
     <div className="space-y-4">
       <Card className="border-primary/15 bg-card/50 p-4 md:p-5">
-        <div>
-          <h1 className="text-3xl font-bold tracking-normal">Saque</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Solicite a retirada do seu saldo disponivel e acompanhe suas solicitacoes.</p>
-        </div>
-        <div className="mt-4 flex items-center gap-3 rounded-lg border border-primary/15 bg-background/45 p-4">
-          <div className="rounded-lg bg-primary/15 p-2 text-primary">
-            <Wallet className="h-6 w-6" />
+        <h1 className="text-3xl font-bold tracking-normal">Saque</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Solicite a retirada do seu saldo disponivel e acompanhe suas solicitacoes.</p>
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <div className="flex items-center gap-3 rounded-lg border border-primary/20 bg-background/45 p-4">
+            <div className="rounded-lg bg-primary/15 p-2 text-primary shrink-0">
+              <Wallet className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground">Disponivel para saque</p>
+              <p className="text-xl font-bold text-success">{formatMoney(balance)}</p>
+            </div>
           </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Saldo disponivel para saque</p>
-            <p className="text-2xl font-bold">{formatMoney(balance)}</p>
+          <div className="flex items-center gap-3 rounded-lg border border-amber-400/25 bg-amber-500/10 p-4">
+            <div className="rounded-lg bg-amber-500/20 p-2 text-amber-300 shrink-0">
+              <Clock className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground">Aguardando liberacao (7d)</p>
+              <p className="text-xl font-bold text-amber-300">{formatMoney(saldoAguardando)}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 rounded-lg border border-destructive/25 bg-destructive/10 p-4">
+            <div className="rounded-lg bg-destructive/20 p-2 text-destructive shrink-0">
+              <XCircle className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground">Cancelados</p>
+              <p className="text-xl font-bold text-destructive">{formatMoney(saldoCancelado)}</p>
+            </div>
           </div>
         </div>
       </Card>
+
+      {holds.length > 0 && (
+        <Card className="border-amber-400/25 bg-card/50 p-5">
+          <h2 className="font-semibold mb-1 flex items-center gap-2">
+            <Clock className="h-4 w-4 text-amber-300" /> Aguardando liberacao
+          </h2>
+          <p className="text-xs text-muted-foreground mb-4">Bonuses ficam retidos 7 dias. Apos esse prazo sao liberados automaticamente para saque.</p>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[440px] text-sm">
+              <thead className="text-xs text-muted-foreground border-b border-border/50">
+                <tr>
+                  <th className="px-3 py-2 text-left">Data do bonus</th>
+                  <th className="px-3 py-2 text-left">Valor</th>
+                  <th className="px-3 py-2 text-left">Liberacao em</th>
+                  <th className="px-3 py-2 text-left">Contagem</th>
+                </tr>
+              </thead>
+              <tbody>
+                {holds.map((hold) => {
+                  const days = daysUntil(hold.release_at);
+                  return (
+                    <tr key={hold.id} className="border-b border-border/30 last:border-0">
+                      <td className="px-3 py-2 text-muted-foreground">{formatDateTime(hold.created_at)}</td>
+                      <td className="px-3 py-2 font-semibold">{formatMoney(Number(hold.valor))}</td>
+                      <td className="px-3 py-2 text-muted-foreground">{new Date(hold.release_at).toLocaleDateString("pt-BR")}</td>
+                      <td className="px-3 py-2">
+                        {days === 0 ? (
+                          <Badge className="border-success/30 bg-success/15 text-success">Liberando...</Badge>
+                        ) : (
+                          <Badge className="border-amber-400/30 bg-amber-500/15 text-amber-300">
+                            <Clock className="h-3 w-3 mr-1" />{days}d restantes
+                          </Badge>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
         <Card className="border-primary/15 bg-card/50 p-5">
@@ -157,7 +245,7 @@ function SaquePage() {
           </div>
         </Card>
 
-        <WithdrawalRequestCard balance={balance} cpf={cpf} twoFactorEnabled={twoFactorEnabled} onSubmitted={load} />
+        <WithdrawalRequestCard balance={balance} saldoAguardando={saldoAguardando} cpf={cpf} twoFactorEnabled={twoFactorEnabled} onSubmitted={load} />
       </div>
     </div>
   );
@@ -165,11 +253,13 @@ function SaquePage() {
 
 function WithdrawalRequestCard({
   balance,
+  saldoAguardando,
   cpf,
   twoFactorEnabled,
   onSubmitted,
 }: {
   balance: number;
+  saldoAguardando: number;
   cpf: string | null;
   twoFactorEnabled: boolean;
   onSubmitted: () => void;
@@ -223,7 +313,7 @@ function WithdrawalRequestCard({
     <Card className="border-primary/15 bg-card/50 p-5 space-y-3">
       <div>
         <h3 className="font-semibold">Solicitar saque</h3>
-        <p className="text-xs text-muted-foreground">Saldo disponivel: {formatMoney(balance)}</p>
+        <p className="text-xs text-muted-foreground">Disponivel: {formatMoney(balance)}{saldoAguardando > 0 ? ` · Aguardando: ${formatMoney(saldoAguardando)}` : ""}</p>
       </div>
 
       {!twoFactorEnabled && <TwoFactorReminderBanner to="/app/seguranca" />}

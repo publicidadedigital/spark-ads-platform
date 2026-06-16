@@ -41,6 +41,12 @@ const statusMeta: Record<string, { label: string; className: string }> = {
 
 const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 
+const CAKTO_URLS: Record<number, string> = {
+  7: "https://pay.cakto.com.br/d9aminn_928121",
+  15: "https://pay.cakto.com.br/zyptdsm_928127",
+  30: "https://pay.cakto.com.br/3frwppn_928132",
+};
+
 function formatCnpj(cnpj: string | null) {
   if (!cnpj) return null;
   const digits = cnpj.replace(/\D/g, "");
@@ -196,6 +202,7 @@ function InfoCard({ icon: Icon, label, value }: { icon: typeof Building2; label:
 
 function PackageCard({ pkg, canSelect }: { pkg: Pkg; canSelect: boolean }) {
   const features = ["Compartilhamentos reais", "Alcance orgânico", "Relatório de desempenho"];
+  const caktoUrl = pkg.duration_days ? CAKTO_URLS[pkg.duration_days] : undefined;
   return (
     <Card className="flex flex-col border-border/50 bg-card/60 p-6 gap-0">
       <div className="mb-4 flex items-center justify-center rounded-2xl bg-primary/10 w-14 h-14 shrink-0">
@@ -214,11 +221,17 @@ function PackageCard({ pkg, canSelect }: { pkg: Pkg; canSelect: boolean }) {
           </li>
         ))}
       </ul>
-      <Link to="/anunciante-painel/nova-campanha" search={{ packageId: pkg.id }}>
+      {caktoUrl && canSelect ? (
+        <a href={caktoUrl} target="_blank" rel="noreferrer">
+          <Button className="w-full bg-primary text-primary-foreground">
+            Contratar agora
+          </Button>
+        </a>
+      ) : (
         <Button className="w-full bg-primary text-primary-foreground" disabled={!canSelect}>
-          Selecionar pacote
+          Contratar agora
         </Button>
-      </Link>
+      )}
     </Card>
   );
 }

@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/supabase/auth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Copy, Megaphone, QrCode, Share2, Sparkles, Building2 } from "lucide-react";
+import { Copy, Megaphone, QrCode, Share2, Sparkles, Building2, Clock, XCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/indicacao-anunciante")({ component: IndicacaoAnunciantePage });
@@ -24,6 +24,8 @@ type BonusEvent = {
   gross_amount: number;
   referrer_bonus: number;
   status: string;
+  available_at: string | null;
+  motivo: string | null;
   advertiser: { company_name: string | null } | { company_name: string | null }[] | null;
 };
 
@@ -56,6 +58,9 @@ function IndicacaoAnunciantePage() {
 
       setProfile(prof);
 
+      // Release any bonuses whose 7-day hold has elapsed
+      await supabase.rpc("release_due_advertiser_bonuses");
+
       const [{ data: ads }, { data: bonuses }] = await Promise.all([
         supabase
           .from("advertiser_profiles")
@@ -64,7 +69,7 @@ function IndicacaoAnunciantePage() {
           .order("created_at", { ascending: false }),
         supabase
           .from("advertiser_bonus_events")
-          .select("id,created_at,gross_amount,referrer_bonus,status,advertiser:advertiser_id(company_name)")
+          .select("id,created_at,gross_amount,referrer_bonus,status,available_at,motivo,advertiser:advertiser_id(company_name)")
           .eq("referrer_user_id", prof.id)
           .order("created_at", { ascending: false }),
       ]);
@@ -81,6 +86,10 @@ function IndicacaoAnunciantePage() {
 
   const totalRecebido = bonusEvents
     .filter((b) => b.status === "liberado")
+    .reduce((sum, b) => sum + Number(b.referrer_bonus ?? 0), 0);
+
+  const totalPendente = bonusEvents
+    .filter((b) => b.status === "pendente")
     .reduce((sum, b) => sum + Number(b.referrer_bonus ?? 0), 0);
 
   const copyLink = async () => {
@@ -126,10 +135,11 @@ function IndicacaoAnunciantePage() {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard icon={Building2} label="Anunciantes indicados" value={advertisers.length.toString()} sub="empresas" />
-        <MetricCard icon={Sparkles} label="Comissão recebida" value={usd.format(totalRecebido)} sub="total liberado (50%)" />
-        <MetricCard icon={Megaphone} label="Pagamentos comissionados" value={bonusEvents.length.toString()} sub="eventos" />
+        <MetricCard icon={CheckCircle2} label="Comissão liberada" value={usd.format(totalRecebido)} sub="total recebido (50%)" />
+        <MetricCard icon={Clock} label="Aguardando liberação" value={usd.format(totalPendente)} sub="em quarentena (7 dias)" />
+        <MetricCard icon={Megaphone} label="Total de eventos" value={bonusEvents.length.toString()} sub="pagamentos" />
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
@@ -166,29 +176,37 @@ function IndicacaoAnunciantePage() {
 
         <Card className="overflow-hidden border-primary/20 bg-card/50">
           <div className="border-b border-border/60 p-5">
-            <h2 className="text-lg font-semibold">Comissões recebidas</h2>
-            <p className="text-sm text-muted-foreground">50% do lucro real liberado automaticamente no pagamento</p>
+            <h2 className="text-lg font-semibold">Comissões</h2>
+            <p className="text-sm text-muted-foreground">50% do lucro real — liberado após 7 dias sem cancelamento</p>
           </div>
           <div className="p-5">
             {loading ? (
               <p className="text-sm text-muted-foreground">Carregando...</p>
             ) : bonusEvents.length === 0 ? (
-              <EmptyState text="Nenhuma comissão recebida ainda." />
+              <EmptyState text="Nenhuma comissão registrada ainda." />
             ) : (
               <div className="space-y-3">
                 {bonusEvents.map((b) => {
                   const advertiser = Array.isArray(b.advertiser) ? b.advertiser[0] : b.advertiser;
+                  const daysLeft = b.available_at
+                    ? Math.max(0, Math.ceil((new Date(b.available_at).getTime() - Date.now()) / 86_400_000))
+                    : null;
                   return (
-                    <div key={b.id} className="flex items-center justify-between gap-3 border-b border-border/40 pb-3 last:border-0 last:pb-0">
-                      <div>
+                    <div key={b.id} className="flex items-start justify-between gap-3 border-b border-border/40 pb-3 last:border-0 last:pb-0">
+                      <div className="min-w-0">
                         <p className="text-sm font-medium">{advertiser?.company_name || "Anunciante"}</p>
                         <p className="text-xs text-muted-foreground">
                           {b.created_at ? new Date(b.created_at).toLocaleDateString("pt-BR") : "-"} · Pacote {usd.format(Number(b.gross_amount ?? 0))}
                         </p>
+                        {b.motivo && (
+                          <p className="mt-1 text-xs text-muted-foreground italic">{b.motivo}</p>
+                        )}
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm font-semibold text-success">+{usd.format(Number(b.referrer_bonus ?? 0))}</p>
-                        <Badge variant="outline" className="text-xs">{b.status}</Badge>
+                      <div className="shrink-0 text-right">
+                        <p className={`text-sm font-semibold ${b.status === "cancelado" ? "text-destructive line-through" : "text-success"}`}>
+                          +{usd.format(Number(b.referrer_bonus ?? 0))}
+                        </p>
+                        <BonusStatusBadge status={b.status} daysLeft={daysLeft} />
                       </div>
                     </div>
                   );
@@ -216,6 +234,30 @@ function MetricCard({ icon: Icon, label, value, sub }: any) {
         </div>
       </div>
     </Card>
+  );
+}
+
+function BonusStatusBadge({ status, daysLeft }: { status: string; daysLeft: number | null }) {
+  if (status === "liberado") {
+    return (
+      <Badge className="mt-1 border-success/30 bg-success/15 text-success hover:bg-success/15">
+        <CheckCircle2 className="mr-1 h-3 w-3" /> Liberado
+      </Badge>
+    );
+  }
+  if (status === "cancelado") {
+    return (
+      <Badge className="mt-1 border-destructive/30 bg-destructive/15 text-destructive hover:bg-destructive/15">
+        <XCircle className="mr-1 h-3 w-3" /> Cancelado
+      </Badge>
+    );
+  }
+  // pendente
+  return (
+    <Badge className="mt-1 border-amber-400/30 bg-amber-500/15 text-amber-300 hover:bg-amber-500/15">
+      <Clock className="mr-1 h-3 w-3" />
+      {daysLeft !== null && daysLeft > 0 ? `Libera em ${daysLeft}d` : "Processando"}
+    </Badge>
   );
 }
 

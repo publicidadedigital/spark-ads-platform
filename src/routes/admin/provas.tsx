@@ -15,7 +15,7 @@ export const Route = createFileRoute("/admin/provas")({
 
 function hoursAgo(createdAt: string) {
   const h = Math.floor((Date.now() - new Date(createdAt).getTime()) / 3600000);
-  if (h < 24) return { label: `${h}h de publicação`, warn: true };
+  if (h < 23) return { label: `${h}h de publicação`, warn: true };
   const d = Math.floor(h / 24);
   return { label: `${d}d ${h % 24}h online`, warn: false };
 }
@@ -43,7 +43,7 @@ function AdminProvas() {
     if (!supabase) return;
     const { warn } = hoursAgo(item.created_at);
     if (warn) {
-      toast.warning("Atenção: publicação com menos de 24h. Aprovando assim mesmo.");
+      toast.warning("Atenção: publicação com menos de 23h. Aprovando assim mesmo.");
     }
     const { error } = await supabase.from("campaign_shares")
       .update({ status: "aprovada", reviewed_by: user?.id, reviewed_at: new Date().toISOString() })
@@ -102,7 +102,7 @@ function AdminProvas() {
         <div>
           <h1 className="text-2xl font-bold">Provas pendentes</h1>
           <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-            <Bot className="h-3 w-3" /> Publicações com 24h+ online e verificadas automaticamente são aprovadas a cada 30 min pelo sistema.
+            <Bot className="h-3 w-3" /> Publicações com 23h+ online e verificadas automaticamente são aprovadas a cada 30 min pelo sistema.
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={runAutoApprove} className="gap-2">
@@ -128,7 +128,7 @@ function AdminProvas() {
                 <div className="mt-2 flex flex-wrap gap-2">
                   {timeInfo.warn ? (
                     <Badge className="border-amber-400/30 bg-amber-500/15 text-amber-300">
-                      <Clock className="mr-1 h-3 w-3" /> ⏱ {timeInfo.label} — aguardando 24h
+                      <Clock className="mr-1 h-3 w-3" /> ⏱ {timeInfo.label} — aguardando 23h
                     </Badge>
                   ) : (
                     <Badge className="border-success/30 bg-success/15 text-success">

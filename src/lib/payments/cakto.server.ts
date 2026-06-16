@@ -177,13 +177,18 @@ export async function createCaktoCheckout(input: CaktoCheckoutInput): Promise<Ca
 
 export function verifyCaktoWebhook(rawBody: string, headers: Headers) {
   const token = process.env.CAKTO_WEBHOOK_TOKEN;
+  const secret = process.env.CAKTO_WEBHOOK_SECRET;
+
+  // Fail-closed: at least one of token or secret must be configured.
+  // If neither is set the environment is misconfigured — reject everything.
+  if (!token && !secret) return false;
+
   if (token) {
     const receivedToken = headers.get("x-cakto-token") ?? headers.get("x-webhook-token") ?? headers.get("authorization")?.replace(/^Bearer\s+/i, "");
     if (receivedToken !== token) return false;
   }
 
-  const secret = process.env.CAKTO_WEBHOOK_SECRET;
-  if (!secret) return true;
+  if (!secret) return true; // token-only mode: token matched above, that's sufficient
 
   const signature = headers.get("x-cakto-signature") ?? headers.get("x-webhook-signature") ?? headers.get("x-signature");
   if (signature) {

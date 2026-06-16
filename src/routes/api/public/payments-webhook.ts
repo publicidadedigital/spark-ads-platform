@@ -6,8 +6,9 @@
  *
  * Seguranca:
  *  - Verifica HMAC SHA-256 do corpo bruto contra o header `x-webhook-signature`,
- *    usando a env `PAYMENTS_WEBHOOK_SECRET`. Em modo dev (secret ausente)
- *    a verificacao e pulada - NAO faca isso em producao.
+ *    usando a env `PAYMENTS_WEBHOOK_SECRET`.
+ *    OBRIGATÓRIO: se PAYMENTS_WEBHOOK_SECRET nao estiver configurada, TODAS as
+ *    requisicoes sao rejeitadas (fail-closed). Configure a env em producao.
  *
  * Payload esperado (JSON):
  *  {
@@ -48,7 +49,9 @@ function json(body: unknown, status = 200) {
 
 function verifySignature(rawBody: string, signature: string | null): boolean {
   const secret = process.env.PAYMENTS_WEBHOOK_SECRET;
-  if (!secret) return true;
+  // Fail-closed: if secret is not configured, reject ALL requests.
+  // A missing secret means the environment is misconfigured — never allow through.
+  if (!secret) return false;
   if (!signature) return false;
   const expected = createHmac("sha256", secret).update(rawBody).digest("hex");
   const a = Buffer.from(signature);

@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/supabase/auth";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard, Megaphone, Receipt, Users, RefreshCw,
-  LogOut, Menu, ShieldCheck, Wallet, Building2, UserCircle,
+  LogOut, Menu, ShieldCheck, Wallet, Building2, UserCircle, Package,
 } from "lucide-react";
 import {
   Sheet, SheetContent, SheetTrigger,
@@ -16,6 +16,7 @@ export const Route = createFileRoute("/app")({ component: AppLayout });
 
 const nav = [
   { to: "/app", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { to: "/app/pacotes", label: "Pacotes", icon: Package },
   { to: "/app/campanhas", label: "Campanhas", icon: Megaphone },
   { to: "/app/extrato", label: "Extrato", icon: Receipt },
   { to: "/app/saque", label: "Saque", icon: Wallet },

@@ -176,6 +176,37 @@ function Dashboard() {
   if (loading) return <p className="text-muted-foreground">Carregando dashboard...</p>;
   if (!s) return <EmptyState />;
 
+  // Blocked: no active package
+  if (!s.cycle) {
+    return (
+      <div className="space-y-4">
+        <Card className="border-border/50 bg-card/60 p-6">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h1 className="text-2xl font-bold">Olá, {firstName(s.nome)}!</h1>
+              <p className="mt-1 text-sm text-muted-foreground">Bem-vindo à Viral Hub.</p>
+            </div>
+            <StatusBadge status={s.status} />
+          </div>
+        </Card>
+        <div className="flex min-h-[50vh] items-center justify-center">
+          <Card className="max-w-md w-full text-center bg-card/60 border-border/50 p-8 space-y-4">
+            <div className="flex items-center justify-center rounded-full bg-primary/10 w-16 h-16 mx-auto">
+              <Grid2X2 className="h-8 w-8 text-primary" />
+            </div>
+            <h2 className="text-xl font-bold">Ative um pacote para acessar o dashboard</h2>
+            <p className="text-sm text-muted-foreground">
+              Para participar das campanhas, ganhar bônus diários e acessar todos os recursos, você precisa ter um pacote ativo.
+            </p>
+            <Link to="/app/pacotes">
+              <Button className="w-full bg-primary text-primary-foreground">Ver pacotes disponíveis</Button>
+            </Link>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   const restantes = Math.max(0, s.metaDia - s.sharesHoje);
   const cyclePercent = Math.min(100, Math.round((s.cycle?.percentual ?? 0) / 2));
   const nextPrize = nextAchievement(s.points);

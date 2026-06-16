@@ -221,7 +221,14 @@ function AdminCampanhasAnunciantes() {
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">{c.advertiser?.company_name}</td>
                       <td className="px-4 py-3">{c.order?.package?.name ?? "-"}</td>
-                      <td className="px-4 py-3"><StatusBadge status={c.status} /></td>
+                      <td className="px-4 py-3">
+                        <StatusBadge status={c.status} />
+                        {c.status === "ativa" && c.approved_at && c.order?.package?.duration_days && (
+                          <p className="mt-1 text-[11px] text-muted-foreground">
+                            Termina em {new Date(new Date(c.approved_at).getTime() + c.order.package.duration_days * 86400000).toLocaleDateString("pt-BR")}
+                          </p>
+                        )}
+                      </td>
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap gap-2">
                           {c.status === "ativa" && (

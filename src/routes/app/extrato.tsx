@@ -25,6 +25,7 @@ import {
   Search,
   Share2,
   ShieldCheck,
+  XCircle,
   TrendingUp,
   Trophy,
   Upload,
@@ -232,6 +233,10 @@ function ExtratoPage() {
           <SummaryCard
             category={{ key: "aguardando", label: "Aguardando (7d)", total: saldoAguardando, color: "#f5b51b", icon: Clock }}
             sub="Em periodo de retencao"
+          />
+          <SummaryCard
+            category={{ key: "cancelado", label: "Cancelados", total: bonuses.filter((b) => b.status === "cancelado").reduce((s, b) => s + moneyValue(b.valor), 0), color: "#ff453a", icon: XCircle }}
+            sub="Bonus cancelados"
           />
         </div>
       </Card>

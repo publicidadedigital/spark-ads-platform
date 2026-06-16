@@ -233,7 +233,7 @@ function NovaCampanha() {
             >
               {preview ? (
                 file?.type.startsWith("video/") ? (
-                  <video src={preview} controls className="h-full w-full object-cover max-h-64" />
+                  <video key={preview} src={preview} controls playsInline className="h-full w-full object-cover max-h-64" />
                 ) : (
                   <img src={preview} alt="preview" className="h-full w-full object-cover" />
                 )
@@ -347,7 +347,7 @@ function NovaCampanha() {
               <div className="aspect-square bg-muted/30 flex items-center justify-center overflow-hidden">
                 {preview ? (
                   file?.type.startsWith("video/") ? (
-                    <video src={preview} className="h-full w-full object-cover" muted />
+                    <video key={preview} src={preview} playsInline muted className="h-full w-full object-cover" />
                   ) : (
                     <img src={preview} alt="preview" className="h-full w-full object-cover" />
                   )

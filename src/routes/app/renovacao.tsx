@@ -26,6 +26,8 @@ type PackageRow = {
   valor: number | string;
   descricao: string | null;
   status: string;
+  daily_bonus: number | string | null;
+  bonusable_amount: number | string | null;
 };
 
 type Profile = {
@@ -83,7 +85,7 @@ function RenovacaoPage() {
 
       const { data: pks } = await supabase
         .from("packages")
-        .select("id,nome,valor,descricao,status")
+        .select("id,nome,valor,descricao,status,daily_bonus,bonusable_amount")
         .eq("status", "ativo")
         .order("valor");
       setPackages(uniquePackages((pks ?? []) as PackageRow[]));
@@ -107,7 +109,8 @@ function RenovacaoPage() {
   const cyclePercentRaw = Number(cycle?.percentual_atual ?? 0);
   const cycleProgress = Math.min(100, Math.max(0, Math.round((cyclePercentRaw / cycleGoalPercent) * 100)));
   const currentValue = moneyValue(currentPackage?.valor);
-  const cycleGoal = currentValue * (cycleGoalPercent / 100);
+  const bonusableAmount = moneyValue((currentPackage as any)?.bonusable_amount) || currentValue;
+  const cycleGoal = bonusableAmount * (cycleGoalPercent / 100);
   const cycleTotal = Number(cycle?.saldo_bonificacoes ?? 0);
   const missingValue = Math.max(0, cycleGoal - cycleTotal);
   const startedAt = cycle?.started_at ? new Date(cycle.started_at) : null;
@@ -318,6 +321,9 @@ function ActionCard({
 
 function PackageCard({ pkg, index, current, goalPercent, onChoose }: { pkg: PackageRow; index: number; current: boolean; goalPercent: number; onChoose: () => void }) {
   const value = moneyValue(pkg.valor);
+  const bonusable = moneyValue(pkg.bonusable_amount) || value;
+  const maxReturn = bonusable * (goalPercent / 100);
+  const dailyBonus = moneyValue(pkg.daily_bonus);
   const tones = ["gray", "blue", "violet", "gold"] as const;
   return (
     <Card className={`cursor-pointer border-primary/15 bg-background/35 p-4 transition hover:border-primary/45 ${current ? "border-primary/70 bg-primary/10" : ""}`} onClick={onChoose}>
@@ -329,14 +335,14 @@ function PackageCard({ pkg, index, current, goalPercent, onChoose }: { pkg: Pack
             {current && <Badge className="bg-primary/20 text-primary hover:bg-primary/20">Atual</Badge>}
           </div>
           <p className="mt-1 text-xl font-bold">{formatMoney(value)}</p>
-          <p className="mt-2 text-sm text-muted-foreground">Retorno máximo: {formatMoney(value * (goalPercent / 100))}</p>
+          <p className="mt-2 text-sm text-muted-foreground">Retorno máximo: {formatMoney(maxReturn)}</p>
           <p className="text-sm text-muted-foreground">{goalPercent}% de meta</p>
         </div>
       </div>
       <div className="mt-4 border-t border-border/45 pt-3 text-sm text-muted-foreground">
         <div className="flex gap-2">
           <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" />
-          <span>Bônus diário a partir de {formatMoney(Math.max(15, value / 24))}</span>
+          <span>Bônus diário por publicação: {dailyBonus > 0 ? formatMoney(dailyBonus) : "—"}</span>
         </div>
       </div>
     </Card>

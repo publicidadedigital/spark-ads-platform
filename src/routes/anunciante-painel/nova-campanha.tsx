@@ -241,7 +241,7 @@ function NovaCampanha() {
             >
               {preview ? (
                 file && isVideo(file) ? (
-                  <video key={preview} src={preview} controls playsInline className="h-full w-full object-cover max-h-64" />
+                  <video key={preview} src={preview} autoPlay loop playsInline muted className="h-full w-full object-cover max-h-64" />
                 ) : (
                   <img src={preview} alt="preview" className="h-full w-full object-cover" />
                 )
@@ -396,7 +396,7 @@ function NovaCampanha() {
               <div className="relative rounded-2xl overflow-hidden border border-border/60 bg-black" style={{ aspectRatio: "9/16" }}>
                 {preview ? (
                   file && isVideo(file) ? (
-                    <video key={preview} src={preview} playsInline muted className="absolute inset-0 h-full w-full object-cover" />
+                    <video key={preview} src={preview} autoPlay loop playsInline muted className="absolute inset-0 h-full w-full object-cover" />
                   ) : (
                     <img src={preview} alt="stories preview" className="absolute inset-0 h-full w-full object-cover" />
                   )

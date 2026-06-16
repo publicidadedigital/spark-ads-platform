@@ -119,11 +119,11 @@ function AdminPagamentos() {
       </div>
 
       {tab === "clientes" ? (
-        <Card className="bg-card/50 border-border/50 overflow-auto">
+        <Card className="bg-card/50 border-border/50 overflow-hidden">
           {loading ? <p className="p-6 text-muted-foreground">Carregando...</p> : clients.length === 0 ? (
             <p className="p-6 text-muted-foreground">Nenhum pagamento de cliente.</p>
           ) : (
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto"><table className="w-full min-w-[680px] text-sm">
               <thead className="border-b border-border/50 text-xs uppercase text-muted-foreground">
                 <tr>
                   <th className="text-left p-3">Cliente</th>
@@ -155,15 +155,15 @@ function AdminPagamentos() {
                   );
                 })}
               </tbody>
-            </table>
+            </table></div>
           )}
         </Card>
       ) : (
-        <Card className="bg-card/50 border-border/50 overflow-auto">
+        <Card className="bg-card/50 border-border/50 overflow-hidden">
           {loading ? <p className="p-6 text-muted-foreground">Carregando...</p> : advertisers.length === 0 ? (
             <p className="p-6 text-muted-foreground">Nenhum pagamento de anunciante ainda.</p>
           ) : (
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto"><table className="w-full min-w-[760px] text-sm">
               <thead className="border-b border-border/50 text-xs uppercase text-muted-foreground">
                 <tr>
                   <th className="text-left p-3">Empresa</th>
@@ -205,7 +205,7 @@ function AdminPagamentos() {
                   );
                 })}
               </tbody>
-            </table>
+            </table></div>
           )}
         </Card>
       )}

@@ -104,7 +104,7 @@ function RedePage() {
           .select("valor")
           .eq("user_id", prof.id)
           .eq("status", "liberado")
-          .in("tipo", ["indicacao", "equipe"]),
+          .in("tipo", ["adesao", "renovacao", "residual"]),
       ]);
 
       const parsed = (refs ?? []).map((row: any) => ({

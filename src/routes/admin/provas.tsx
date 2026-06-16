@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Clock, ExternalLink, Zap } from "lucide-react";
+import { Clock, ExternalLink, Zap, Bot, RefreshCw } from "lucide-react";
 
 export const Route = createFileRoute("/admin/provas")({
   validateSearch: (s) => ({ campaignId: (s.campaignId as string) || "" }),
@@ -88,9 +88,27 @@ function AdminProvas() {
     load();
   }
 
+  async function runAutoApprove() {
+    if (!supabase) return;
+    const { error } = await supabase.rpc("auto_approve_validated_shares");
+    if (error) return toast.error(error.message);
+    toast.success("Aprovação automática executada");
+    load();
+  }
+
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Provas pendentes</h1>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">Provas pendentes</h1>
+          <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+            <Bot className="h-3 w-3" /> Publicações com 24h+ online e verificadas automaticamente são aprovadas a cada 30 min pelo sistema.
+          </p>
+        </div>
+        <Button variant="outline" size="sm" onClick={runAutoApprove} className="gap-2">
+          <RefreshCw className="h-4 w-4" /> Rodar aprovação automática agora
+        </Button>
+      </div>
       {items.length === 0 ? (
         <Card className="p-8 bg-card/50 border-border/50 text-center text-muted-foreground">Sem provas pendentes.</Card>
       ) : items.map((s) => {
@@ -118,6 +136,11 @@ function AdminProvas() {
                     </Badge>
                   )}
                   <Badge variant="outline">{s.status}</Badge>
+                  {s.auto_validate_status === "live" && !timeInfo.warn && s.validation_status !== "suspeito" && (
+                    <Badge className="border-primary/30 bg-primary/15 text-primary">
+                      <Bot className="mr-1 h-3 w-3" /> Será auto-aprovada em breve
+                    </Badge>
+                  )}
                   {s.validation_status === "suspeito" && (
                     <Badge className="border-destructive/30 bg-destructive/15 text-destructive hover:bg-destructive/15">
                       Suspeito: {s.validation_reason}

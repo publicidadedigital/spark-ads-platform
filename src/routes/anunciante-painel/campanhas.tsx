@@ -57,7 +57,8 @@ function AdvertiserCampaigns() {
 
       const list = (data ?? []) as unknown as Campaign[];
       setCampaigns(list);
-      setAvailableSlots(Math.max(0, (payments ?? []).length - list.length));
+      const activeCount = list.filter((c) => c.status !== "reprovada").length;
+      setAvailableSlots(Math.max(0, (payments ?? []).length - activeCount));
 
       const ids = list.map((c) => c.id);
       if (ids.length > 0) {

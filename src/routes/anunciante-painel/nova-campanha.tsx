@@ -62,9 +62,10 @@ function NovaCampanha() {
       if (prof?.id) {
         const [{ data: payments }, { data: campaigns }] = await Promise.all([
           supabase.from("advertiser_payment_orders").select("id,advertising_package_id,paid_at").eq("advertiser_profile_id", prof.id).eq("status", "approved").order("paid_at", { ascending: false }),
-          supabase.from("advertiser_campaigns").select("id").eq("advertiser_id", prof.id),
+          supabase.from("advertiser_campaigns").select("id,status").eq("advertiser_id", prof.id),
         ]);
-        setAvailableSlots(Math.max(0, (payments ?? []).length - (campaigns ?? []).length));
+        const activeCount = (campaigns ?? []).filter((c: any) => c.status !== "reprovada").length;
+        setAvailableSlots(Math.max(0, (payments ?? []).length - activeCount));
 
         if (selectedPackageId) {
           setPackageId(selectedPackageId);

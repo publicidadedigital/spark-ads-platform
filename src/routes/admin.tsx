@@ -67,8 +67,8 @@ function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-noir-gradient">
-      <header className="border-b border-border/50 bg-background/80">
-        <div className="container mx-auto flex items-center justify-between px-4 py-3">
+      <header className="border-b border-border/50 bg-background/80 sticky top-0 z-40 backdrop-blur">
+        <div className="w-full max-w-screen-2xl mx-auto flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
             <Sheet>
               <SheetTrigger asChild>
@@ -92,7 +92,7 @@ function AdminLayout() {
           </div>
         </div>
       </header>
-      <div className="container mx-auto px-4 py-6 grid md:grid-cols-[220px_1fr] gap-6">
+      <div className="w-full max-w-screen-2xl mx-auto px-4 py-6 grid md:grid-cols-[220px_1fr] gap-6">
         <aside className="hidden md:block">
           <AdminNav pathname={loc.pathname} />
         </aside>

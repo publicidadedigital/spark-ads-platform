@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { ShieldCheck, ShieldOff, UserPlus } from "lucide-react";
+import { ShieldCheck, ShieldOff, UserPlus, Info } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/admins")({ component: AdminAdmins });
@@ -97,95 +97,137 @@ function AdminAdmins() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
-          <ShieldCheck className="h-6 w-6 text-gold" /> Administradores
+          <ShieldCheck className="h-6 w-6 text-gold shrink-0" /> Administradores
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">
+        <p className="text-sm text-muted-foreground mt-1 max-w-prose">
           Promova usuários para admin pelo e-mail. Admins têm acesso total ao painel:
           aprovar/bloquear usuários, gerenciar campanhas, validar provas e configurar pacotes.
         </p>
       </div>
 
-      <Card className="bg-card/50 border-border/50 p-6">
-        <h2 className="font-semibold mb-3 flex items-center gap-2">
-          <UserPlus className="h-4 w-4 text-gold" /> Promover novo admin
-        </h2>
-        <form onSubmit={promote} className="flex flex-col sm:flex-row gap-3 items-end">
-          <div className="flex-1 w-full">
-            <Label htmlFor="email">E-mail do usuário</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="usuario@exemplo.com"
-              required
-            />
-          </div>
-          <Button type="submit" disabled={submitting} className="bg-gold-gradient text-primary-foreground">
-            {submitting ? "Promovendo..." : "Promover a admin"}
-          </Button>
-        </form>
-        <p className="text-xs text-muted-foreground mt-2">
-          O usuário precisa estar cadastrado na plataforma. Após a promoção, ele deve sair e
-          entrar novamente para o acesso ser ativado.
-        </p>
-      </Card>
+      {/* Main grid: form + capabilities side by side on xl */}
+      <div className="grid gap-6 xl:grid-cols-[1fr_320px]">
+        <div className="space-y-6 min-w-0">
+          {/* Promote form */}
+          <Card className="bg-card/50 border-border/50 p-5 sm:p-6">
+            <h2 className="font-semibold mb-4 flex items-center gap-2">
+              <UserPlus className="h-4 w-4 text-gold" /> Promover novo admin
+            </h2>
+            <form onSubmit={promote} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <div className="flex-1 min-w-0">
+                <Label htmlFor="email">E-mail do usuário</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="usuario@exemplo.com"
+                  className="w-full"
+                  required
+                />
+              </div>
+              <Button
+                type="submit"
+                disabled={submitting}
+                className="w-full sm:w-auto bg-gold-gradient text-primary-foreground shrink-0"
+              >
+                {submitting ? "Promovendo..." : "Promover a admin"}
+              </Button>
+            </form>
+            <p className="text-xs text-muted-foreground mt-3">
+              O usuário precisa estar cadastrado na plataforma. Após a promoção, ele deve sair e
+              entrar novamente para o acesso ser ativado.
+            </p>
+          </Card>
 
-      <Card className="bg-card/50 border-border/50 overflow-hidden">
-        <div className="p-4 border-b border-border/50">
-          <h2 className="font-semibold">Admins atuais</h2>
+          {/* Current admins table */}
+          <Card className="bg-card/50 border-border/50 overflow-hidden">
+            <div className="p-4 border-b border-border/50 flex items-center justify-between">
+              <h2 className="font-semibold">Admins atuais</h2>
+              {!loading && <Badge variant="outline">{rows.length} admin(s)</Badge>}
+            </div>
+            {loading ? (
+              <p className="p-6 text-muted-foreground text-sm">Carregando...</p>
+            ) : rows.length === 0 ? (
+              <p className="p-6 text-muted-foreground text-sm">Nenhum admin encontrado.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[480px] text-sm">
+                  <thead className="border-b border-border/50 text-xs uppercase text-muted-foreground bg-muted/10">
+                    <tr>
+                      <th className="text-left p-3">Nome</th>
+                      <th className="text-left p-3">E-mail</th>
+                      <th className="text-left p-3 hidden sm:table-cell">Instagram</th>
+                      <th className="text-left p-3">Papel</th>
+                      <th className="text-right p-3">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((r) => (
+                      <tr key={r.user_id} className="border-b border-border/30 hover:bg-muted/5 transition-colors">
+                        <td className="p-3 font-medium">{r.profile?.nome ?? "—"}</td>
+                        <td className="p-3 text-muted-foreground text-xs sm:text-sm truncate max-w-[160px]">
+                          {r.profile?.email ?? r.user_id.slice(0, 8)}
+                        </td>
+                        <td className="p-3 hidden sm:table-cell text-muted-foreground">
+                          {r.profile?.instagram ? `@${r.profile.instagram}` : "—"}
+                        </td>
+                        <td className="p-3">
+                          <Badge className="bg-gold/20 text-gold border-gold/40">{r.role}</Badge>
+                        </td>
+                        <td className="p-3 text-right">
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => revoke(r.user_id)}
+                            disabled={r.user_id === user?.id}
+                            className="text-xs"
+                          >
+                            <ShieldOff className="h-3 w-3 mr-1 shrink-0" />
+                            <span className="hidden xs:inline">Remover</span>
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Card>
         </div>
-        {loading ? (
-          <p className="p-6 text-muted-foreground">Carregando...</p>
-        ) : rows.length === 0 ? (
-          <p className="p-6 text-muted-foreground">Nenhum admin encontrado.</p>
-        ) : (
-          <div className="overflow-x-auto"><table className="w-full min-w-[520px] text-sm">
-            <thead className="border-b border-border/50 text-xs uppercase text-muted-foreground">
-              <tr>
-                <th className="text-left p-3">Nome</th>
-                <th className="text-left p-3">E-mail</th>
-                <th className="text-left p-3">Instagram</th>
-                <th className="text-left p-3">Papel</th>
-                <th className="text-right p-3">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => (
-                <tr key={r.user_id} className="border-b border-border/30">
-                  <td className="p-3">{r.profile?.nome ?? "—"}</td>
-                  <td className="p-3 text-muted-foreground">{r.profile?.email ?? r.user_id.slice(0, 8)}</td>
-                  <td className="p-3">{r.profile?.instagram ? `@${r.profile.instagram}` : "—"}</td>
-                  <td className="p-3"><Badge className="bg-gold/20 text-gold border-gold/40">{r.role}</Badge></td>
-                  <td className="p-3 text-right">
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => revoke(r.user_id)}
-                      disabled={r.user_id === user?.id}
-                    >
-                      <ShieldOff className="h-3 w-3 mr-1" /> Remover
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table></div>
-        )}
-      </Card>
 
-      <Card className="bg-card/30 border-border/30 p-6">
-        <h2 className="font-semibold mb-3">O que um admin pode fazer</h2>
-        <ul className="text-sm text-muted-foreground space-y-2 list-disc list-inside">
-          <li><strong className="text-foreground">Usuários:</strong> aprovar cadastros, bloquear contas e revisar perfis.</li>
-          <li><strong className="text-foreground">Campanhas:</strong> criar, editar e ativar/desativar campanhas.</li>
-          <li><strong className="text-foreground">Provas:</strong> validar prints e liberar bonificações.</li>
-          <li><strong className="text-foreground">Pacotes:</strong> configurar planos, valores e regras de renovação.</li>
-          <li><strong className="text-foreground">Administradores:</strong> promover ou revogar acesso admin.</li>
-        </ul>
-      </Card>
+        {/* Capabilities sidebar */}
+        <Card className="bg-card/30 border-border/30 p-5 self-start">
+          <h2 className="font-semibold mb-3 flex items-center gap-2">
+            <Info className="h-4 w-4 text-gold" /> O que um admin pode fazer
+          </h2>
+          <ul className="text-sm text-muted-foreground space-y-2.5">
+            <li className="flex gap-2">
+              <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold/60 mt-1.5" />
+              <span><strong className="text-foreground">Usuários:</strong> aprovar cadastros, bloquear contas e revisar perfis.</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold/60 mt-1.5" />
+              <span><strong className="text-foreground">Campanhas:</strong> criar, editar e ativar/desativar campanhas.</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold/60 mt-1.5" />
+              <span><strong className="text-foreground">Provas:</strong> validar prints e liberar bonificações.</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold/60 mt-1.5" />
+              <span><strong className="text-foreground">Pacotes:</strong> configurar planos, valores e regras de renovação.</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold/60 mt-1.5" />
+              <span><strong className="text-foreground">Administradores:</strong> promover ou revogar acesso admin.</span>
+            </li>
+          </ul>
+        </Card>
+      </div>
     </div>
   );
 }

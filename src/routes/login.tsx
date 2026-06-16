@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { translateAuthError } from "@/lib/supabase/auth-errors";
+import { Mail } from "lucide-react";
 
 export const Route = createFileRoute("/login")({
   validateSearch: (s) => ({
@@ -24,6 +25,9 @@ function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showResend, setShowResend] = useState(false);
+  const [resendEmail, setResendEmail] = useState("");
+  const [resendLoading, setResendLoading] = useState(false);
 
   useEffect(() => {
     if (search.email_confirmed === "1") {
@@ -37,6 +41,7 @@ function LoginPage() {
         server_error: "Nao foi possivel confirmar o e-mail agora.",
       };
       toast.error(messageByReason[search.reason] || "Nao foi possivel confirmar o e-mail.");
+      setShowResend(true);
     }
   }, [search.email_confirmed, search.reason]);
 
@@ -47,7 +52,12 @@ function LoginPage() {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setLoading(false);
-      return toast.error(translateAuthError(error.message));
+      toast.error(translateAuthError(error.message));
+      if (error.message.toLowerCase().includes("confirm") || error.message.toLowerCase().includes("verif")) {
+        setResendEmail(email);
+        setShowResend(true);
+      }
+      return;
     }
 
     const authUserId = data.user?.id;
@@ -81,6 +91,27 @@ function LoginPage() {
     navigate({ to: "/app" });
   }
 
+  async function handleResend(e: React.FormEvent) {
+    e.preventDefault();
+    if (!resendEmail) return;
+    setResendLoading(true);
+    try {
+      const res = await fetch("/api/public/email-confirmation/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: resendEmail }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Erro ao reenviar");
+      toast.success("E-mail de confirmação reenviado! Verifique sua caixa de entrada.");
+      setShowResend(false);
+    } catch (err: any) {
+      toast.error(err.message || "Não foi possível reenviar o e-mail.");
+    } finally {
+      setResendLoading(false);
+    }
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-noir-gradient px-4">
       <Card className="w-full max-w-md p-8 bg-card/80 border-border/50">
@@ -90,6 +121,7 @@ function LoginPage() {
 
         <h1 className="text-2xl font-bold text-center mb-2">Entrar</h1>
         <p className="text-sm text-muted-foreground text-center mb-6">Acesse sua conta</p>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="email">E-mail</Label>
@@ -103,8 +135,36 @@ function LoginPage() {
             {loading ? "Entrando..." : "Entrar"}
           </Button>
         </form>
+
+        {showResend && (
+          <div className="mt-5 rounded-lg border border-amber-400/30 bg-amber-500/10 p-4 space-y-3">
+            <p className="text-sm text-amber-200 font-medium flex items-center gap-2">
+              <Mail className="h-4 w-4 shrink-0" /> Não recebeu o e-mail de confirmação?
+            </p>
+            <form onSubmit={handleResend} className="flex gap-2">
+              <Input
+                type="email"
+                placeholder="Seu e-mail de cadastro"
+                value={resendEmail}
+                onChange={(e) => setResendEmail(e.target.value)}
+                required
+                className="flex-1 h-8 text-sm"
+              />
+              <Button type="submit" size="sm" variant="outline" disabled={resendLoading} className="border-amber-400/40 text-amber-200 hover:bg-amber-500/20">
+                {resendLoading ? "Enviando..." : "Reenviar"}
+              </Button>
+            </form>
+          </div>
+        )}
+
         <p className="text-sm text-center text-muted-foreground mt-6">
           Nao tem conta? <Link to="/cadastro" className="text-gold hover:underline">Cadastre-se</Link>
+        </p>
+        <p className="text-sm text-center text-muted-foreground mt-2">
+          Nao recebeu o e-mail?{" "}
+          <button type="button" className="text-gold hover:underline" onClick={() => { setShowResend((v) => !v); setResendEmail(email); }}>
+            Reenviar confirmação
+          </button>
         </p>
         <p className="text-sm text-center text-muted-foreground mt-2">
           E anunciante? <Link to="/anunciante-login" className="text-gold hover:underline">Entrar como anunciante</Link>

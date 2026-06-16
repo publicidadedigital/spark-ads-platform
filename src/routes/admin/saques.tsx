@@ -8,11 +8,23 @@ import { markApprovedWithdrawalsPaidBatch, markWithdrawalPaid, reviewWithdrawal 
 import { getTwoFactorStatus } from "@/lib/security/totp.functions";
 import { TwoFactorReminderBanner } from "@/components/TwoFactorSetup";
 import { createFileRoute } from "@tanstack/react-router";
-import { CheckCircle2, RefreshCcw, Send, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, Megaphone, RefreshCcw, Send, XCircle } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/saques")({ component: AdminWithdrawalsPage });
+
+type AdvertiserBonus = {
+  id: string;
+  created_at: string;
+  referrer_bonus: number;
+  gross_amount: number;
+  status: string;
+  available_at: string | null;
+  motivo: string | null;
+  referrer: { nome: string | null; email: string | null } | null;
+  advertiser: { company_name: string | null } | null;
+};
 
 type Withdrawal = {
   id: string;
@@ -33,8 +45,12 @@ const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" 
 function AdminWithdrawalsPage() {
   const { supabase } = useAuth();
   const [items, setItems] = useState<Withdrawal[]>([]);
+  const [bonuses, setBonuses] = useState<AdvertiserBonus[]>([]);
   const [loading, setLoading] = useState(true);
+  const [bonusLoading, setBonusLoading] = useState(true);
   const [status, setStatus] = useState("todos");
+  const [bonusStatus, setBonusStatus] = useState("todos");
+  const [cancelMotivo, setCancelMotivo] = useState<Record<string, string>>({});
   const [reference, setReference] = useState("");
   const [totpCode, setTotpCode] = useState("");
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
@@ -62,6 +78,35 @@ function AdminWithdrawalsPage() {
     if (error) toast.error(error.message);
     setItems((data ?? []) as Withdrawal[]);
     setLoading(false);
+  }
+
+  async function loadBonuses() {
+    setBonusLoading(true);
+    await supabase.rpc("release_due_advertiser_bonuses");
+    const { data, error } = await supabase
+      .from("advertiser_bonus_events")
+      .select("id,created_at,referrer_bonus,gross_amount,status,available_at,motivo,referrer:referrer_user_id(nome,email),advertiser:advertiser_id(company_name)")
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (error) toast.error(error.message);
+    setBonuses((data ?? []) as unknown as AdvertiserBonus[]);
+    setBonusLoading(false);
+  }
+
+  async function releaseBonus(id: string) {
+    const { error } = await supabase.rpc("admin_release_advertiser_bonus", { p_bonus_id: id });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Comissão liberada com sucesso");
+    loadBonuses();
+  }
+
+  async function cancelBonus(id: string) {
+    const motivo = cancelMotivo[id]?.trim() || "Cancelado pelo administrador";
+    const { error } = await supabase.rpc("admin_cancel_advertiser_bonus", { p_bonus_id: id, p_motivo: motivo });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Comissão cancelada");
+    setCancelMotivo((prev) => { const n = { ...prev }; delete n[id]; return n; });
+    loadBonuses();
   }
 
   function requireTotp() {
@@ -125,7 +170,7 @@ function AdminWithdrawalsPage() {
     }
   }
 
-  useEffect(() => { load(); loadTwoFactor(); }, []);
+  useEffect(() => { load(); loadBonuses(); loadTwoFactor(); }, []);
 
   return (
     <div className="space-y-6">
@@ -207,6 +252,111 @@ function AdminWithdrawalsPage() {
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      {/* ── Comissões de Indicação de Anunciante ── */}
+      <div>
+        <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg border border-primary/40 bg-primary/15 p-2 text-primary">
+              <Megaphone className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold">Comissões de Indicação de Anunciante</h2>
+              <p className="text-sm text-muted-foreground">50% do lucro real · liberação manual ou após 7 dias sem cancelamento</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <select
+              className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+              value={bonusStatus}
+              onChange={(e) => setBonusStatus(e.target.value)}
+            >
+              <option value="todos">Todos</option>
+              <option value="pendente">Pendente</option>
+              <option value="liberado">Liberado</option>
+              <option value="cancelado">Cancelado</option>
+            </select>
+            <Button variant="outline" size="sm" onClick={loadBonuses} disabled={bonusLoading}>
+              <RefreshCcw className="mr-2 h-4 w-4" /> Atualizar
+            </Button>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {bonusLoading ? (
+            <Card><CardContent className="p-6 text-muted-foreground">Carregando comissões...</CardContent></Card>
+          ) : bonuses.filter((b) => bonusStatus === "todos" || b.status === bonusStatus).length === 0 ? (
+            <Card><CardContent className="p-6 text-muted-foreground">Nenhuma comissão encontrada.</CardContent></Card>
+          ) : bonuses
+              .filter((b) => bonusStatus === "todos" || b.status === bonusStatus)
+              .map((b) => {
+                const referrer = Array.isArray(b.referrer) ? b.referrer[0] : b.referrer;
+                const advertiser = Array.isArray(b.advertiser) ? b.advertiser[0] : b.advertiser;
+                const daysLeft = b.available_at
+                  ? Math.max(0, Math.ceil((new Date(b.available_at).getTime() - Date.now()) / 86_400_000))
+                  : null;
+                return (
+                  <Card key={b.id} className="border-border/70">
+                    <CardContent className="grid gap-4 p-5 lg:grid-cols-[1fr_auto] lg:items-start">
+                      <div className="space-y-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          {b.status === "liberado" && (
+                            <Badge className="border-success/30 bg-success/15 text-success hover:bg-success/15">
+                              <CheckCircle2 className="mr-1 h-3 w-3" /> Liberado
+                            </Badge>
+                          )}
+                          {b.status === "cancelado" && (
+                            <Badge className="border-destructive/30 bg-destructive/15 text-destructive hover:bg-destructive/15">
+                              <XCircle className="mr-1 h-3 w-3" /> Cancelado
+                            </Badge>
+                          )}
+                          {b.status === "pendente" && (
+                            <Badge className="border-amber-400/30 bg-amber-500/15 text-amber-300 hover:bg-amber-500/15">
+                              <Clock className="mr-1 h-3 w-3" />
+                              {daysLeft !== null && daysLeft > 0 ? `Libera em ${daysLeft}d` : "Pronto para liberar"}
+                            </Badge>
+                          )}
+                          <span className="text-xs text-muted-foreground">{new Date(b.created_at).toLocaleString("pt-BR")}</span>
+                        </div>
+                        <h3 className="text-xl font-semibold text-success">{usd.format(Number(b.referrer_bonus ?? 0))}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Indicador: <span className="font-medium text-foreground">{referrer?.nome ?? "–"}</span>
+                          {referrer?.email && <span className="ml-1 text-xs">({referrer.email})</span>}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Anunciante: <span className="font-medium text-foreground">{advertiser?.company_name ?? "–"}</span>
+                          {" · "}Pacote: {usd.format(Number(b.gross_amount ?? 0))}
+                        </p>
+                        {b.motivo && (
+                          <p className="text-sm italic text-muted-foreground">{b.motivo}</p>
+                        )}
+                        {b.status === "pendente" && (
+                          <div className="flex items-center gap-2 pt-1">
+                            <Input
+                              placeholder="Motivo do cancelamento (opcional)"
+                              value={cancelMotivo[b.id] ?? ""}
+                              onChange={(e) => setCancelMotivo((prev) => ({ ...prev, [b.id]: e.target.value }))}
+                              className="h-8 max-w-xs text-xs"
+                            />
+                          </div>
+                        )}
+                      </div>
+                      {b.status === "pendente" && (
+                        <div className="flex flex-wrap gap-2 lg:justify-end">
+                          <Button size="sm" onClick={() => releaseBonus(b.id)} className="bg-success/20 text-success hover:bg-success/30 border border-success/30">
+                            <CheckCircle2 className="mr-2 h-4 w-4" /> Liberar agora
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => cancelBonus(b.id)} className="border-destructive/40 text-destructive hover:bg-destructive/10">
+                            <XCircle className="mr-2 h-4 w-4" /> Cancelar
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+        </div>
       </div>
     </div>
   );

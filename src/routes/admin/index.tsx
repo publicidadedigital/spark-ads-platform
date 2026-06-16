@@ -257,9 +257,10 @@ function AdminUsers() {
                           className="group flex items-center gap-1 text-left"
                           onClick={() => { setEditingIndicador(u.id); const ind = Array.isArray(u.indicador) ? u.indicador[0] : u.indicador; setIndicadorSearch(ind?.nome ?? ""); setIndicadorResults([]); }}
                         >
-                          <span className="text-xs text-muted-foreground group-hover:text-foreground">
-                            {(() => { const ind = Array.isArray(u.indicador) ? u.indicador[0] : u.indicador; return ind?.nome ?? "—"; })()}
-                          </span>
+                          {(() => { const ind = Array.isArray(u.indicador) ? u.indicador[0] : u.indicador; const nome = ind?.nome; return nome
+                            ? <span className="text-xs text-muted-foreground group-hover:text-foreground">{nome}</span>
+                            : <span className="text-xs italic text-muted-foreground/50 group-hover:text-muted-foreground">Definir indicador</span>;
+                          })()}
                           <Pencil className="h-3 w-3 shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100" />
                         </button>
                       )}

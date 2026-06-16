@@ -131,7 +131,7 @@ function CadastroPage() {
 
     if (availabilityError) {
       setLoading(false);
-      return toast.error(availabilityError.message);
+      return toast.error("Erro ao verificar disponibilidade. Tente novamente.");
     }
 
     if (availability?.email_taken) {

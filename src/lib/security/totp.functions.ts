@@ -3,7 +3,7 @@ import { z } from "zod";
 import { authenticator } from "otplib";
 import QRCode from "qrcode";
 import { getAdminClient } from "@/lib/supabase/admin.server";
-import { ISSUER, requireUser } from "@/lib/security/totp.server";
+import { ISSUER, requireUser, encryptSecret, decryptSecret } from "@/lib/security/totp.server";
 
 export const getTwoFactorStatus = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ accessToken: z.string().min(10) }).parse(input))
@@ -31,7 +31,7 @@ export const setupTwoFactor = createServerFn({ method: "POST" })
 
     const { error } = await admin
       .from("two_factor_auth")
-      .upsert({ auth_user_id: user.id, secret, enabled: false, confirmed_at: null }, { onConflict: "auth_user_id" });
+      .upsert({ auth_user_id: user.id, secret: encryptSecret(secret), enabled: false, confirmed_at: null }, { onConflict: "auth_user_id" });
 
     if (error) throw new Error(error.message);
 
@@ -55,7 +55,7 @@ export const confirmTwoFactor = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     if (!row) throw new Error("Gere o QR Code antes de confirmar.");
 
-    if (!authenticator.verify({ token: data.code, secret: row.secret })) {
+    if (!authenticator.verify({ token: data.code, secret: decryptSecret(row.secret) })) {
       throw new Error("Código inválido. Verifique o aplicativo autenticador e tente novamente.");
     }
 
@@ -87,7 +87,7 @@ export const disableTwoFactor = createServerFn({ method: "POST" })
       throw new Error("Configure a autenticação em dois fatores (Google Authenticator) antes de confirmar saques.");
     }
 
-    if (!data.code || !authenticator.verify({ token: data.code, secret: row.secret })) {
+    if (!data.code || !authenticator.verify({ token: data.code, secret: decryptSecret(row.secret) })) {
       throw new Error("Código de autenticação inválido.");
     }
 

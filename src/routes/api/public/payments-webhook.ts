@@ -118,7 +118,7 @@ export const Route = createFileRoute("/api/public/payments-webhook")({
             severity: "alto",
             metadata: { rawBody },
           });
-          return json({ error: "Invalid payload", details: e?.message }, 400);
+          return json({ error: "Invalid payload" }, 400);
         }
 
         const admin = getAdminClient();
@@ -137,7 +137,7 @@ export const Route = createFileRoute("/api/public/payments-webhook")({
             recommendedAction: "Verificar integridade da tabela user_cycles e metadata enviado pelo checkout.",
             severity: "critico",
           });
-          return json({ error: cycleErr.message }, 500);
+          return json({ error: "Internal server error" }, 500);
         }
 
         if (!cycle) {
@@ -172,7 +172,7 @@ export const Route = createFileRoute("/api/public/payments-webhook")({
               recommendedAction: "Verificar permissoes e schema da tabela user_cycles.",
               severity: "alto",
             });
-            return json({ error: error.message }, 500);
+            return json({ error: "Internal server error" }, 500);
           }
           return json({ ok: true, status: "failed" });
         }
@@ -219,7 +219,7 @@ export const Route = createFileRoute("/api/public/payments-webhook")({
             recommendedAction: "Verificar colunas de user_cycles e status permitido.",
             severity: "critico",
           });
-          return json({ error: updateResult.error.message }, 500);
+          return json({ error: "Internal server error" }, 500);
         }
 
         const { error: profileError } = await admin
@@ -281,7 +281,7 @@ export const Route = createFileRoute("/api/public/payments-webhook")({
             recommendedAction: "Verificar wallet_transactions e reconciliar manualmente o pagamento.",
             severity: "critico",
           });
-          return json({ error: txResult.error.message }, 500);
+          return json({ error: "Internal server error" }, 500);
         }
 
         await awardPackagePoints(admin, {

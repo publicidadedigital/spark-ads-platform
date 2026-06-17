@@ -180,7 +180,7 @@ function AdminFinanceiro() {
 
       {/* Entradas */}
       <div>
-        <SectionTitle title="Entradas (pacotes de clientes)" sub={`Pagamentos de pacotes — ${periodDesc}`} />
+        <SectionTitle title="Entradas (pacotes de associados)" sub={`Pagamentos de pacotes — ${periodDesc}`} />
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard icon={CheckCircle2} label="Entradas concluídas" value={usd.format(data.entradasConcluidas)} tone="green" sub="Pagamentos aprovados" />
           <MetricCard icon={Clock} label="Entradas pendentes" value={usd.format(data.entradasPendentes)} tone="amber" sub="Aguardando confirmação" />
@@ -191,7 +191,7 @@ function AdminFinanceiro() {
 
       {/* Saques */}
       <div>
-        <SectionTitle title="Saques de clientes" sub={`Retiradas solicitadas — ${periodDesc}`} />
+        <SectionTitle title="Saques de associados" sub={`Retiradas solicitadas — ${periodDesc}`} />
         <div className="grid gap-4 sm:grid-cols-2">
           <MetricCard icon={TrendingDown} label="Saques concluídos" value={usd.format(data.saquesConcluidos)} tone="red" sub="Pagamentos realizados" />
           <MetricCard icon={Clock} label="Saques pendentes" value={usd.format(data.saquesPendentes)} tone="amber" sub="Solicitado / em análise / aprovado" />

@@ -197,7 +197,7 @@ function AdvertiserDashboard() {
             Esta conta não possui um cadastro de anunciante.
           </p>
           <div className="flex gap-2 justify-center">
-            <Link to="/app"><Button variant="outline">Ir para o painel do cliente</Button></Link>
+            <Link to="/app"><Button variant="outline">Ir para o painel do associado</Button></Link>
             <Button variant="ghost" onClick={() => { signOut(); navigate({ to: "/login" }); }}>
               <LogOut className="h-4 w-4 mr-2" /> Sair
             </Button>

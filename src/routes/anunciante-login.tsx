@@ -43,7 +43,7 @@ function AnuncianteLoginPage() {
 
     await supabase.auth.signOut();
     setLoading(false);
-    toast.error("Esta conta nao e de anunciante. Acesse o login de clientes.");
+    toast.error("Esta conta nao e de anunciante. Acesse o login de associados.");
   }
 
   return (
@@ -72,7 +72,7 @@ function AnuncianteLoginPage() {
           Nao tem conta? <Link to="/cadastro" search={{ tipo: "anunciante", ref: "" }} className="text-gold hover:underline">Crie sua conta PJ</Link>
         </p>
         <p className="text-sm text-center text-muted-foreground mt-2">
-          E cliente da Viral Hub? <Link to="/login" className="text-gold hover:underline">Entrar como cliente</Link>
+          E associado da Viral Hub? <Link to="/login" className="text-gold hover:underline">Entrar como associado</Link>
         </p>
       </Card>
     </div>

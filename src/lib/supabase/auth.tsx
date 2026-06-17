@@ -24,7 +24,7 @@ const Ctx = createContext<AuthCtx>({
 
 export async function checkAdmin(sb: SupabaseClient, userId: string) {
   const [{ data: legacy }, { data: modern }] = await Promise.all([
-    sb.from("user_roles").select("role").eq("user_id", userId).in("role", ["admin", "super_admin"]).maybeSingle(),
+    sb.from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle(),
     sb.from("admin_roles").select("status").eq("auth_user_id", userId).eq("status", "ativo").maybeSingle(),
   ]);
   return !!legacy || !!modern;

@@ -83,7 +83,7 @@ function AdminUsers() {
     const [{ data }, { data: adminRoles }, { data: legacyAdmins }, { data: adv }, { data: withdrawalRows }, { data: depositRows }, { data: cycleRows }, { data: advOrders }, { data: advPackages }, { data: advIndicadores }] = await Promise.all([
       supabase.from("users_profile").select("*,package:pacote_ativo_id(nome,valor),indicador:indicador_id(id,nome)").order("created_at", { ascending: false }).limit(200),
       supabase.from("admin_roles").select("auth_user_id").eq("status", "ativo"),
-      supabase.from("user_roles").select("user_id").in("role", ["admin", "super_admin"]),
+      supabase.from("user_roles").select("user_id").eq("role", "admin"),
       supabase.from("advertiser_profiles").select("*").order("created_at", { ascending: false }).limit(200),
       supabase
         .from("withdrawal_requests")

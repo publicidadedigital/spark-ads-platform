@@ -2,14 +2,15 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/supabase/auth";
 import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ShieldCheck, Zap, PackageOpen, Pencil, Check, X, RefreshCcw } from "lucide-react";
+import { ShieldCheck, Zap, PackageOpen, Pencil, Check, X, RefreshCcw, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { getTwoFactorStatus } from "@/lib/security/totp.functions";
 import { TwoFactorReminderBanner } from "@/components/TwoFactorSetup";
-import { getUsersLastLogin } from "@/lib/admin/users.functions";
+import { getUsersLastLogin, deleteUser } from "@/lib/admin/users.functions";
 import { activateDepositManually } from "@/lib/payments/admin-deposits.functions";
 
 export const Route = createFileRoute("/admin/")({ component: AdminUsers });
@@ -73,6 +74,8 @@ function AdminUsers() {
   const [advPackagesList, setAdvPackagesList] = useState<{ id: string; name: string }[]>([]);
   const [activatingAdv, setActivatingAdv] = useState<string | null>(null);
   const [selectedAdvPkg, setSelectedAdvPkg] = useState<Record<string, string>>({});
+  const [userToDelete, setUserToDelete] = useState<{ authUserId: string; label: string } | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   async function load() {
     if (!supabase) return;
@@ -212,6 +215,24 @@ function AdminUsers() {
     load();
   }
 
+  async function confirmDeleteUser() {
+    if (!supabase || !userToDelete) return;
+    setDeleting(true);
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const accessToken = session.session?.access_token;
+      if (!accessToken) throw new Error("Sessao expirada");
+      await deleteUser({ data: { accessToken, authUserId: userToDelete.authUserId } });
+      toast.success("Usuário excluído com sucesso");
+      setUserToDelete(null);
+      load();
+    } catch (error: any) {
+      toast.error(error.message ?? "Erro ao excluir usuário");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   function lastLoginLabel(authUserId: string | null | undefined) {
     if (!authUserId) return "—";
     const value = lastLogins[authUserId];
@@ -338,6 +359,11 @@ function AdminUsers() {
                     <td className="p-3 text-right space-x-1">
                       {u.status !== "ativo" && <Button size="sm" variant="outline" onClick={() => setStatus(u.id, "ativo")}>Aprovar</Button>}
                       {u.status !== "bloqueado" && <Button size="sm" variant="destructive" onClick={() => setStatus(u.id, "bloqueado")}>Bloquear</Button>}
+                      {u.auth_user_id && (
+                        <Button size="sm" variant="outline" className="border-destructive/40 text-destructive hover:bg-destructive/10" onClick={() => setUserToDelete({ authUserId: u.auth_user_id, label: u.nome ?? u.email })}>
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
                     </td>
                   </tr>
                   );
@@ -412,6 +438,11 @@ function AdminUsers() {
                       <td className="p-3 text-right space-x-1">
                         {a.status !== "ativo" && <Button size="sm" variant="outline" onClick={() => setAdvertiserStatus(a.id, "ativo")}>Aprovar</Button>}
                         {a.status !== "bloqueado" && <Button size="sm" variant="destructive" onClick={() => setAdvertiserStatus(a.id, "bloqueado")}>Bloquear</Button>}
+                        {a.auth_user_id && (
+                          <Button size="sm" variant="outline" className="border-destructive/40 text-destructive hover:bg-destructive/10" onClick={() => setUserToDelete({ authUserId: a.auth_user_id, label: a.company_name ?? a.email })}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
                       </td>
                     </tr>
                   );
@@ -481,6 +512,21 @@ function AdminUsers() {
           )}
         </Card>
       )}
+
+      <Dialog open={!!userToDelete} onOpenChange={(open) => { if (!open) setUserToDelete(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Excluir usuário</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja excluir <strong>{userToDelete?.label}</strong>? Essa ação é permanente: todos os dados do usuário serão removidos do Supabase e, se ele quiser, poderá se cadastrar novamente com o mesmo e-mail.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setUserToDelete(null)} disabled={deleting}>Não, cancelar</Button>
+            <Button variant="destructive" onClick={confirmDeleteUser} disabled={deleting}>{deleting ? "Excluindo..." : "Sim, excluir"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -8,7 +8,7 @@ async function requireAdmin(accessToken: string) {
   if (userErr || !userRes?.user) throw new Error("Sessao invalida");
 
   const [{ data: legacyRole, error: legacyErr }, { data: modernRole, error: modernErr }] = await Promise.all([
-    admin.from("user_roles").select("role").eq("user_id", userRes.user.id).in("role", ["admin", "super_admin"]).maybeSingle(),
+    admin.from("user_roles").select("role").eq("user_id", userRes.user.id).eq("role", "admin").maybeSingle(),
     admin.from("admin_roles").select("status").eq("auth_user_id", userRes.user.id).eq("status", "ativo").maybeSingle(),
   ]);
 

@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { translateAuthError } from "@/lib/supabase/auth-errors";
+import { checkEmailExists } from "@/lib/auth/email-check.functions";
 
 export const Route = createFileRoute("/anunciante-login")({ component: AnuncianteLoginPage });
 
@@ -24,6 +25,17 @@ function AnuncianteLoginPage() {
     setLoading(true);
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
+      if (/invalid login credentials/i.test(error.message)) {
+        try {
+          const { exists } = await checkEmailExists({ data: { email } });
+          if (!exists) {
+            setLoading(false);
+            return toast.error("Conta não existe, favor realizar o cadastro.");
+          }
+        } catch {
+          // segue com a mensagem genérica abaixo se a verificação falhar
+        }
+      }
       setLoading(false);
       return toast.error(translateAuthError(error.message));
     }

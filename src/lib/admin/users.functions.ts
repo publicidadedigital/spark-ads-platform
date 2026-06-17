@@ -40,3 +40,19 @@ export const getUsersLastLogin = createServerFn({ method: "POST" })
 
     return { lastLogins };
   });
+
+export const deleteUser = createServerFn({ method: "POST" })
+  .inputValidator((input) => z.object({ accessToken: z.string().min(10), authUserId: z.string().uuid() }).parse(input))
+  .handler(async ({ data }) => {
+    await requireAdmin(data.accessToken);
+
+    const admin = getAdminClient();
+
+    const { error: cleanupError } = await admin.rpc("admin_predelete_user_cleanup", { p_auth_user_id: data.authUserId });
+    if (cleanupError) throw new Error(cleanupError.message);
+
+    const { error: deleteError } = await admin.auth.admin.deleteUser(data.authUserId);
+    if (deleteError) throw new Error(deleteError.message);
+
+    return { success: true };
+  });

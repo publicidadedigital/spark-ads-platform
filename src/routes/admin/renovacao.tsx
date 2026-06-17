@@ -97,7 +97,7 @@ function AdminRenovacao() {
         <p className="text-xs font-semibold uppercase tracking-[0.35em] text-primary">Admin</p>
         <h1 className="text-2xl font-bold">Renovação</h1>
         <p className="text-sm text-muted-foreground">
-          Configurações exibidas na página de renovação do cliente (duração do ciclo, meta e bônus de renovação por indicação).
+          Configurações exibidas na página de renovação do associado (duração do ciclo, meta e bônus de renovação por indicação).
         </p>
       </div>
 

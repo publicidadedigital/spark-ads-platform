@@ -232,7 +232,7 @@ function AdminUsers() {
 
       <div className="flex gap-2 overflow-x-auto pb-1">
         <Button size="sm" shrink-0 variant={tab === "clientes" ? "default" : "outline"} onClick={() => setTab("clientes")} className="shrink-0">
-          Clientes ({users.length})
+          Associados ({users.length})
         </Button>
         <Button size="sm" variant={tab === "anunciantes" ? "default" : "outline"} onClick={() => setTab("anunciantes")} className="shrink-0">
           Anunciantes ({advertisers.length})
@@ -427,7 +427,7 @@ function AdminUsers() {
           ) : (
             <div className="overflow-x-auto"><table className="w-full min-w-[520px] text-sm">
               <thead className="border-b border-border/50 text-xs uppercase text-muted-foreground">
-                <tr><th className="text-left p-3">Cliente</th><th className="text-left p-3">Valor</th><th className="text-left p-3">Data</th><th className="text-left p-3">Hora</th><th className="text-left p-3">Status</th></tr>
+                <tr><th className="text-left p-3">Associado</th><th className="text-left p-3">Valor</th><th className="text-left p-3">Data</th><th className="text-left p-3">Hora</th><th className="text-left p-3">Status</th></tr>
               </thead>
               <tbody>
                 {withdrawals.map((w) => {

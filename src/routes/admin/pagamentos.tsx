@@ -111,7 +111,7 @@ function AdminPagamentos() {
 
       <div className="flex gap-2 flex-wrap">
         <Button size="sm" variant={tab === "clientes" ? "default" : "outline"} onClick={() => setTab("clientes")}>
-          Clientes ({clients.length}){pendingClients > 0 && <span className="ml-2 rounded-full bg-amber-500 text-black text-xs px-1.5">{pendingClients}</span>}
+          Associados ({clients.length}){pendingClients > 0 && <span className="ml-2 rounded-full bg-amber-500 text-black text-xs px-1.5">{pendingClients}</span>}
         </Button>
         <Button size="sm" variant={tab === "anunciantes" ? "default" : "outline"} onClick={() => setTab("anunciantes")}>
           Anunciantes ({advertisers.length}){pendingAdvertisers > 0 && <span className="ml-2 rounded-full bg-amber-500 text-black text-xs px-1.5">{pendingAdvertisers}</span>}
@@ -121,12 +121,12 @@ function AdminPagamentos() {
       {tab === "clientes" ? (
         <Card className="bg-card/50 border-border/50 overflow-hidden">
           {loading ? <p className="p-6 text-muted-foreground">Carregando...</p> : clients.length === 0 ? (
-            <p className="p-6 text-muted-foreground">Nenhum pagamento de cliente.</p>
+            <p className="p-6 text-muted-foreground">Nenhum pagamento de associado.</p>
           ) : (
             <div className="overflow-x-auto"><table className="w-full min-w-[680px] text-sm">
               <thead className="border-b border-border/50 text-xs uppercase text-muted-foreground">
                 <tr>
-                  <th className="text-left p-3">Cliente</th>
+                  <th className="text-left p-3">Associado</th>
                   <th className="text-left p-3">E-mail</th>
                   <th className="text-left p-3">Método</th>
                   <th className="text-left p-3">Valor</th>

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/supabase/auth";
+import { useLanguage } from "@/lib/i18n/context";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -43,39 +44,43 @@ type Member = ReferralProfile & {
   referralCreatedAt: string | null;
 };
 
-const levelStyles: Record<number, { dot: string; border: string; glow: string; badge: string; label: string }> = {
-  1: {
-    dot: "from-primary to-blue-400",
-    border: "border-primary/70",
-    glow: "shadow-[0_0_28px_rgba(37,99,235,0.28)]",
-    badge: "bg-primary/20 text-primary border-primary/40",
-    label: "Nível 1",
-  },
-  2: {
-    dot: "from-violet-600 to-fuchsia-400",
-    border: "border-violet-500/70",
-    glow: "shadow-[0_0_28px_rgba(124,58,237,0.24)]",
-    badge: "bg-violet-500/20 text-violet-300 border-violet-400/40",
-    label: "Nível 2",
-  },
-  3: {
-    dot: "from-emerald-600 to-green-300",
-    border: "border-emerald-500/70",
-    glow: "shadow-[0_0_28px_rgba(16,185,129,0.22)]",
-    badge: "bg-emerald-500/20 text-emerald-300 border-emerald-400/40",
-    label: "Nível 3",
-  },
-  4: {
-    dot: "from-amber-500 to-yellow-300",
-    border: "border-amber-400/70",
-    glow: "shadow-[0_0_28px_rgba(245,158,11,0.24)]",
-    badge: "bg-amber-500/20 text-amber-300 border-amber-400/40",
-    label: "Nível 4+",
-  },
-};
+function getLevelStyles(t: (key: string) => string): Record<number, { dot: string; border: string; glow: string; badge: string; label: string }> {
+  return {
+    1: {
+      dot: "from-primary to-blue-400",
+      border: "border-primary/70",
+      glow: "shadow-[0_0_28px_rgba(37,99,235,0.28)]",
+      badge: "bg-primary/20 text-primary border-primary/40",
+      label: `${t("network.level")} 1`,
+    },
+    2: {
+      dot: "from-violet-600 to-fuchsia-400",
+      border: "border-violet-500/70",
+      glow: "shadow-[0_0_28px_rgba(124,58,237,0.24)]",
+      badge: "bg-violet-500/20 text-violet-300 border-violet-400/40",
+      label: `${t("network.level")} 2`,
+    },
+    3: {
+      dot: "from-emerald-600 to-green-300",
+      border: "border-emerald-500/70",
+      glow: "shadow-[0_0_28px_rgba(16,185,129,0.22)]",
+      badge: "bg-emerald-500/20 text-emerald-300 border-emerald-400/40",
+      label: `${t("network.level")} 3`,
+    },
+    4: {
+      dot: "from-amber-500 to-yellow-300",
+      border: "border-amber-400/70",
+      glow: "shadow-[0_0_28px_rgba(245,158,11,0.24)]",
+      badge: "bg-amber-500/20 text-amber-300 border-amber-400/40",
+      label: `${t("network.level")} 4+`,
+    },
+  };
+}
 
 function RedePage() {
   const { supabase, user } = useAuth();
+  const { t } = useLanguage();
+  const levelStyles = useMemo(() => getLevelStyles(t), [t]);
   const [profile, setProfile] = useState<{ id: string; nome: string | null } | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [bonusLiberado, setBonusLiberado] = useState(0);
@@ -148,13 +153,13 @@ function RedePage() {
   const copyLink = async () => {
     if (!link) return;
     await navigator.clipboard.writeText(link);
-    toast.success("Link copiado");
+    toast.success(t("network.linkCopied"));
   };
 
   const shareLink = async () => {
     if (!link) return;
     if (navigator.share) {
-      await navigator.share({ title: "Viralink", text: "Entre na minha rede Viralink", url: link });
+      await navigator.share({ title: t("network.shareTitle"), text: t("network.shareText"), url: link });
       return;
     }
     await copyLink();
@@ -168,35 +173,35 @@ function RedePage() {
             <div className="rounded-lg border border-primary/40 bg-primary/15 p-2 text-primary shadow-gold">
               <Network className="h-5 w-5" />
             </div>
-            <h1 className="text-3xl font-bold tracking-normal">Minha Rede</h1>
+            <h1 className="text-3xl font-bold tracking-normal">{t("network.title")}</h1>
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">Sua equipe está crescendo</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t("network.subtitle")}</p>
         </div>
 
         <div className="flex flex-wrap gap-2">
           <Button onClick={shareLink} className="bg-gold-gradient text-primary-foreground">
-            <Share2 className="mr-2 h-4 w-4" /> Compartilhar link
+            <Share2 className="mr-2 h-4 w-4" /> {t("network.shareLink")}
           </Button>
           <Button variant="outline" onClick={copyLink}>
-            <Copy className="mr-2 h-4 w-4" /> Copiar link
+            <Copy className="mr-2 h-4 w-4" /> {t("network.copyLink")}
           </Button>
           <Button variant="outline" onClick={copyLink}>
-            <QrCode className="mr-2 h-4 w-4" /> QR Code
+            <QrCode className="mr-2 h-4 w-4" /> {t("network.qrCode")}
           </Button>
         </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <MetricCard icon={Users} label="Equipe total" value={totalCount.toString()} sub="pessoas" />
+        <MetricCard icon={Users} label={t("network.totalTeam")} value={totalCount.toString()} sub={t("network.people")} />
         <MetricCard
           icon={Sparkles}
-          label="Bônus de rede"
+          label={t("network.networkBonus")}
           value={`$ ${bonusLiberado.toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
-          sub={bonusAguardando > 0 ? `+ $ ${bonusAguardando.toLocaleString("en-US", { minimumFractionDigits: 2 })} aguardando` : "indicação + equipe liberados"}
+          sub={bonusAguardando > 0 ? t("network.waitingBonus").replace("{n}", bonusAguardando.toLocaleString("en-US", { minimumFractionDigits: 2 })) : t("network.referralAndTeamReleased")}
         />
-        <MetricCard icon={User} label="Diretos" value={directCount.toString()} sub="pessoas" />
-        <MetricCard icon={Star} label="Maior nível alcançado" value={highestLevel ? `Nível ${highestLevel}` : "Nível 0"} sub="na sua rede" />
-        <MetricCard icon={TrendingUp} label="Crescimento semanal" value={`+${countRecent(members, 7)}`} sub="novos membros" />
+        <MetricCard icon={User} label={t("network.direct")} value={directCount.toString()} sub={t("network.people")} />
+        <MetricCard icon={Star} label={t("network.highestLevel")} value={highestLevel ? `${t("network.level")} ${highestLevel}` : t("network.levelZero")} sub={t("network.inYourNetwork")} />
+        <MetricCard icon={TrendingUp} label={t("network.weeklyGrowth")} value={`+${countRecent(members, 7)}`} sub={t("network.newMembers")} />
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_304px]">
@@ -206,20 +211,20 @@ function RedePage() {
               <div>
                 <div className="mb-2 flex items-center justify-between gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">Progresso da equipe</p>
-                    <p className="font-semibold">Nível atual: <span className="text-primary">{nextTier.current}</span></p>
+                    <p className="text-sm text-muted-foreground">{t("network.teamProgress")}</p>
+                    <p className="font-semibold">{t("network.currentLevel")} <span className="text-primary">{nextTier.current}</span></p>
                   </div>
                   <span className="text-sm font-semibold text-primary">{nextTier.percent}%</span>
                 </div>
                 <Progress value={nextTier.percent} className="h-3 bg-primary/10" />
               </div>
               <div className="space-y-2 text-sm text-muted-foreground">
-                <p className="font-medium text-foreground">Faltam:</p>
-                <p className="flex items-center gap-2"><User className="h-4 w-4 text-primary" /> +{nextTier.missingDirect} membros diretos</p>
-                <p className="flex items-center gap-2"><Users className="h-4 w-4 text-primary" /> +{nextTier.missingTeam} membros na equipe</p>
+                <p className="font-medium text-foreground">{t("network.missing")}</p>
+                <p className="flex items-center gap-2"><User className="h-4 w-4 text-primary" /> +{nextTier.missingDirect} {t("network.missingDirectMembers")}</p>
+                <p className="flex items-center gap-2"><Users className="h-4 w-4 text-primary" /> +{nextTier.missingTeam} {t("network.missingTeamMembers")}</p>
               </div>
               <div className="rounded-lg border border-amber-400/30 bg-amber-500/10 p-4">
-                <p className="text-xs text-muted-foreground">Próximo nível</p>
+                <p className="text-xs text-muted-foreground">{t("network.nextLevel")}</p>
                 <div className="mt-1 flex items-center gap-2 text-amber-300">
                   <Crown className="h-5 w-5" />
                   <span className="text-lg font-bold">{nextTier.next}</span>
@@ -231,14 +236,14 @@ function RedePage() {
           <Card className="overflow-hidden border-primary/20 bg-card/50">
             <div className="flex flex-col gap-3 border-b border-border/60 p-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="text-lg font-semibold">Sua rede</h2>
+                <h2 className="text-lg font-semibold">{t("network.yourNetwork")}</h2>
                 <p className="text-sm text-muted-foreground">
-                  {totalCount === 0 ? "Nenhum membro ainda" : `${totalCount} membro(s) · até nível ${highestLevel || 0}`}
+                  {totalCount === 0 ? t("network.noMembersYet") : t("network.membersUpToLevel").replace("{n}", String(totalCount)).replace("{level}", String(highestLevel || 0))}
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="outline" className="border-primary/40 bg-primary/10 text-primary">
-                  Nível máximo {highestLevel || 0}
+                  {t("network.maxLevel").replace("{n}", String(highestLevel || 0))}
                 </Badge>
                 {totalCount > 0 && (
                   <Button
@@ -249,7 +254,7 @@ function RedePage() {
                       return allOpen ? new Set(["root"]) : new Set(["root", ...members.map((m) => m.id)]);
                     })}
                   >
-                    <ChevronDown className="mr-1.5 h-3.5 w-3.5" /> Expandir tudo / Recolher
+                    <ChevronDown className="mr-1.5 h-3.5 w-3.5" /> {t("network.expandAllCollapse")}
                   </Button>
                 )}
               </div>
@@ -258,7 +263,7 @@ function RedePage() {
             <div className="p-4">
               {loading ? (
                 <div className="flex items-center gap-2 py-8 text-sm text-muted-foreground">
-                  <RefreshCw className="h-4 w-4 animate-spin" /> Carregando rede...
+                  <RefreshCw className="h-4 w-4 animate-spin" /> {t("network.loadingNetwork")}
                 </div>
               ) : members.length === 0 ? (
                 <EmptyTree />
@@ -281,13 +286,13 @@ function RedePage() {
 
           <Card className="grid gap-4 border-primary/20 bg-card/50 p-5 md:grid-cols-2">
             <div>
-              <h3 className="mb-4 font-semibold">Bônus por nível de rede</h3>
+              <h3 className="mb-4 font-semibold">{t("network.bonusByLevel")}</h3>
               <div className="space-y-2">
                 {[
-                  { level: 1, label: "Nível 1 (diretos)", rate: "20%", dot: levelStyles[1].dot },
-                  { level: 2, label: "Nível 2", rate: "10%", dot: levelStyles[2].dot },
-                  { level: 3, label: "Nível 3", rate: "3%", dot: levelStyles[3].dot },
-                  { level: 4, label: "Nível 4 e 5", rate: "3%", dot: levelStyles[4].dot },
+                  { level: 1, label: t("network.level1Direct"), rate: "20%", dot: levelStyles[1].dot },
+                  { level: 2, label: t("network.level2"), rate: "10%", dot: levelStyles[2].dot },
+                  { level: 3, label: t("network.level3"), rate: "3%", dot: levelStyles[3].dot },
+                  { level: 4, label: t("network.level4and5"), rate: "3%", dot: levelStyles[4].dot },
                 ].map((item) => (
                   <div key={item.level} className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2 text-muted-foreground">
@@ -297,11 +302,11 @@ function RedePage() {
                     <span className="font-semibold text-primary">{item.rate}</span>
                   </div>
                 ))}
-                <p className="pt-1 text-xs text-muted-foreground">Sobre o bônus diário do indicado ao completar 5 publicações</p>
+                <p className="pt-1 text-xs text-muted-foreground">{t("network.aboutDailyBonus")}</p>
               </div>
             </div>
             <div>
-              <h3 className="mb-4 font-semibold">Legenda de cores</h3>
+              <h3 className="mb-4 font-semibold">{t("network.colorLegend")}</h3>
               <div className="space-y-2">
                 {[1, 2, 3, 4].map((level) => (
                   <div key={level} className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -382,13 +387,14 @@ function getTierProgress(total: number, direct: number) {
 }
 
 function RootNode({ name, directCount }: { name: string; directCount: number }) {
+  const { t } = useLanguage();
   return (
     <div className="flex flex-col items-center text-center">
       <div className="flex h-16 w-16 items-center justify-center rounded-full border border-primary/60 bg-primary/20 text-2xl font-bold text-primary shadow-gold">
         {(name || "V").slice(0, 1).toUpperCase()}
       </div>
-      <div className="mt-2 font-semibold">{name || "Você"} <span className="text-muted-foreground">(Você)</span></div>
-      <div className="text-xs text-muted-foreground">Nível 0 • {directCount} direto(s)</div>
+      <div className="mt-2 font-semibold">{name || t("network.you")} <span className="text-muted-foreground">({t("network.you")})</span></div>
+      <div className="text-xs text-muted-foreground">{t("network.levelZero")} • {directCount} {t("network.directCount")}</div>
     </div>
   );
 }
@@ -426,18 +432,25 @@ function Branch({
               ))}
             </div>
           ) : (
-            <button
-              type="button"
-              onClick={() => onToggle(member.id)}
-              className="rounded-lg border border-border/70 bg-background/70 px-4 py-3 text-sm text-muted-foreground transition hover:border-primary/50 hover:text-foreground"
-            >
-              +{children.length} outro(s)
-              <div className="text-xs">Nível {Math.min(10, member.nivel + 1)}</div>
-            </button>
+            <BranchCollapsedButton member={member} childrenCount={children.length} onToggle={onToggle} />
           )}
         </>
       )}
     </div>
+  );
+}
+
+function BranchCollapsedButton({ member, childrenCount, onToggle }: { member: Member; childrenCount: number; onToggle: (id: string) => void }) {
+  const { t } = useLanguage();
+  return (
+    <button
+      type="button"
+      onClick={() => onToggle(member.id)}
+      className="rounded-lg border border-border/70 bg-background/70 px-4 py-3 text-sm text-muted-foreground transition hover:border-primary/50 hover:text-foreground"
+    >
+      +{childrenCount} {t("network.directCount")}
+      <div className="text-xs">{t("network.level")} {Math.min(10, member.nivel + 1)}</div>
+    </button>
   );
 }
 
@@ -452,6 +465,8 @@ function NodeCard({
   isOpen: boolean;
   onToggle: () => void;
 }) {
+  const { t } = useLanguage();
+  const levelStyles = getLevelStyles(t);
   const style = levelStyles[Math.min(4, member.nivel)] ?? levelStyles[4];
 
   return (
@@ -461,15 +476,15 @@ function NodeCard({
           {(member.nome ?? "U").slice(0, 1).toUpperCase()}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-semibold">{member.nome ?? "Usuário"}</div>
-          <div className="text-xs text-muted-foreground">Nível {member.nivel}</div>
+          <div className="truncate text-sm font-semibold">{member.nome ?? t("network.user")}</div>
+          <div className="text-xs text-muted-foreground">{t("network.level")} {member.nivel}</div>
         </div>
         {childCount > 0 && (
           <button
             type="button"
             onClick={onToggle}
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/70 bg-card/80 text-primary transition hover:border-primary/60 hover:bg-primary/10"
-            aria-label={isOpen ? "Recolher ramo" : "Expandir ramo"}
+            aria-label={isOpen ? t("network.collapseBranch") : t("network.expandBranch")}
           >
             {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </button>
@@ -477,7 +492,7 @@ function NodeCard({
       </div>
       <div className="mt-3 flex items-center justify-between gap-2">
         <Badge variant="outline" className={style.badge}>{style.label}</Badge>
-        <span className="text-xs text-muted-foreground">{childCount} direto(s)</span>
+        <span className="text-xs text-muted-foreground">{childCount} {t("network.directCount")}</span>
       </div>
       {member.pacote_nome && (
         <div className="mt-2 flex items-center gap-1">
@@ -502,6 +517,8 @@ function TreeNode({
   onToggle: (id: string) => void;
   depth: number;
 }) {
+  const { t } = useLanguage();
+  const levelStyles = getLevelStyles(t);
   const children = childrenByParent.get(member.id) ?? [];
   const isOpen = expanded.has(member.id);
   const hasChildren = children.length > 0;
@@ -531,7 +548,7 @@ function TreeNode({
               ? `border-border/60 bg-card hover:border-primary/60 hover:bg-primary/10 cursor-pointer`
               : "border-transparent cursor-default opacity-0"
           }`}
-          aria-label={isOpen ? "Recolher" : "Expandir"}
+          aria-label={isOpen ? t("network.collapse") : t("network.expand")}
         >
           {hasChildren && (isOpen
             ? <ChevronDown className="h-3.5 w-3.5 text-primary" />
@@ -552,7 +569,7 @@ function TreeNode({
           {/* Info */}
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="truncate text-sm font-semibold">{member.nome ?? "Usuário"}</span>
+              <span className="truncate text-sm font-semibold">{member.nome ?? t("network.user")}</span>
               {member.pacote_nome && (
                 <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-300 shrink-0">
                   <Zap className="h-2.5 w-2.5" />{member.pacote_nome}
@@ -563,10 +580,10 @@ function TreeNode({
               <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${style.badge}`}>{style.label}</Badge>
               {hasChildren && (
                 <span className="text-[10px] text-muted-foreground">
-                  {children.length} direto{children.length !== 1 ? "s" : ""}{totalDesc > children.length ? ` · ${totalDesc} na rede` : ""}
+                  {children.length} {t("network.directCount")}{totalDesc > children.length ? ` · ${totalDesc} ${t("network.networkCount")}` : ""}
                 </span>
               )}
-              {!hasChildren && <span className="text-[10px] text-muted-foreground">Sem indicados</span>}
+              {!hasChildren && <span className="text-[10px] text-muted-foreground">{t("network.noReferrals")}</span>}
             </div>
           </div>
 
@@ -619,6 +636,7 @@ function MetricCard({ icon: Icon, label, value, sub }: any) {
 }
 
 function RewardCard({ tier, percent, missing }: { tier: string; percent: number; missing: number }) {
+  const { t } = useLanguage();
   return (
     <Card className="border-amber-400/25 bg-card/55 p-5">
       <div className="flex items-center gap-4">
@@ -626,9 +644,9 @@ function RewardCard({ tier, percent, missing }: { tier: string; percent: number;
           <Trophy className="h-9 w-9" />
         </div>
         <div className="min-w-0">
-          <p className="text-xs text-muted-foreground">Próxima recompensa</p>
+          <p className="text-xs text-muted-foreground">{t("network.nextReward")}</p>
           <p className="text-xl font-bold text-amber-300">{tier}</p>
-          <p className="text-xs text-muted-foreground">Faltam {missing} pessoa(s)</p>
+          <p className="text-xs text-muted-foreground">{t("network.missingPeople").replace("{n}", String(missing))}</p>
         </div>
       </div>
       <div className="mt-4 flex items-center gap-3">
@@ -640,22 +658,23 @@ function RewardCard({ tier, percent, missing }: { tier: string; percent: number;
 }
 
 function RankingCard({ builders }: { builders: { member: Member; total: number }[] }) {
+  const { t } = useLanguage();
   return (
     <Card className="border-primary/15 bg-card/55 p-5">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="font-semibold">Top Construtores</h3>
-        <Badge variant="outline" className="border-primary/30 text-primary">Rede</Badge>
+        <h3 className="font-semibold">{t("network.topBuilders")}</h3>
+        <Badge variant="outline" className="border-primary/30 text-primary">{t("network.networkBadge")}</Badge>
       </div>
       <div className="space-y-3">
         {builders.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Sem construtores ainda.</p>
+          <p className="text-sm text-muted-foreground">{t("network.noBuildersYet")}</p>
         ) : builders.map(({ member, total }, index) => (
           <div key={member.id} className="flex items-center justify-between gap-3 border-b border-border/40 pb-3 last:border-0 last:pb-0">
             <div className="flex items-center gap-3">
               <Medal className={`h-5 w-5 ${index === 0 ? "text-amber-300" : "text-muted-foreground"}`} />
               <div>
-                <div className="text-sm font-medium">{member.nome ?? "Usuário"}</div>
-                <div className="text-xs text-muted-foreground">Nível {member.nivel}</div>
+                <div className="text-sm font-medium">{member.nome ?? t("network.user")}</div>
+                <div className="text-xs text-muted-foreground">{t("network.level")} {member.nivel}</div>
               </div>
             </div>
             <span className="text-sm text-muted-foreground">+{total}</span>
@@ -667,17 +686,18 @@ function RankingCard({ builders }: { builders: { member: Member; total: number }
 }
 
 function Achievements({ total, direct, highestLevel, percent }: { total: number; direct: number; highestLevel: number; percent: number }) {
+  const { t } = useLanguage();
   const items = [
-    { label: "Primeira indicação", done: direct >= 1, value: direct >= 1 ? 100 : 0 },
-    { label: "Equipe com 10 membros", done: total >= 10, value: Math.min(100, total * 10) },
-    { label: "Equipe com 50 membros", done: total >= 50, value: Math.min(100, total * 2) },
-    { label: "Nível Ouro", done: highestLevel >= 4, value: percent },
+    { label: t("network.firstReferral"), done: direct >= 1, value: direct >= 1 ? 100 : 0 },
+    { label: t("network.teamWith10"), done: total >= 10, value: Math.min(100, total * 10) },
+    { label: t("network.teamWith50"), done: total >= 50, value: Math.min(100, total * 2) },
+    { label: t("network.goldLevel"), done: highestLevel >= 4, value: percent },
   ];
 
   return (
     <Card className="border-primary/15 bg-card/55 p-5">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="font-semibold">Conquistas</h3>
+        <h3 className="font-semibold">{t("network.achievements")}</h3>
         <Sparkles className="h-4 w-4 text-primary" />
       </div>
       <div className="space-y-4">
@@ -690,7 +710,7 @@ function Achievements({ total, direct, highestLevel, percent }: { total: number;
                 </span>
                 {item.label}
               </div>
-              <span className={item.done ? "text-xs text-success" : "text-xs text-muted-foreground"}>{item.done ? "Concluída" : `${item.value}%`}</span>
+              <span className={item.done ? "text-xs text-success" : "text-xs text-muted-foreground"}>{item.done ? t("network.completed") : `${item.value}%`}</span>
             </div>
             {!item.done && <Progress value={item.value} className="h-1.5 bg-primary/10" />}
           </div>
@@ -710,16 +730,19 @@ function StatusLegend({ icon: Icon, label }: any) {
 }
 
 function EmptyTree() {
+  const { t } = useLanguage();
   return (
     <div className="rounded-lg border border-dashed border-primary/30 bg-background/60 px-8 py-10 text-center">
       <Users className="mx-auto mb-3 h-8 w-8 text-primary" />
-      <h3 className="font-semibold">Sua árvore começa no primeiro indicado</h3>
-      <p className="mt-1 text-sm text-muted-foreground">Compartilhe seu link para iniciar a rede.</p>
+      <h3 className="font-semibold">{t("network.treeStartsHere")}</h3>
+      <p className="mt-1 text-sm text-muted-foreground">{t("network.shareLinkToStart")}</p>
     </div>
   );
 }
 
 function MobileFlatList({ members, network }: { members: Member[]; network: ReturnType<typeof buildNetwork> }) {
+  const { t } = useLanguage();
+  const levelStyles = getLevelStyles(t);
   const [filterNivel, setFilterNivel] = useState<number | null>(null);
   const maxNivel = members.reduce((max, m) => Math.max(max, m.nivel), 0);
   const filtered = filterNivel ? members.filter((m) => m.nivel === filterNivel) : members;
@@ -735,7 +758,7 @@ function MobileFlatList({ members, network }: { members: Member[]; network: Retu
             onClick={() => setFilterNivel(null)}
             className={`rounded-full border px-3 py-1 text-xs transition ${filterNivel === null ? "border-primary bg-primary/20 text-primary" : "border-border text-muted-foreground"}`}
           >
-            Todos ({members.length})
+            {t("network.all").replace("{n}", String(members.length))}
           </button>
           {Array.from({ length: maxNivel }, (_, i) => i + 1).map((n) => {
             const count = members.filter((m) => m.nivel === n).length;
@@ -747,7 +770,7 @@ function MobileFlatList({ members, network }: { members: Member[]; network: Retu
                 onClick={() => setFilterNivel(filterNivel === n ? null : n)}
                 className={`rounded-full border px-3 py-1 text-xs transition ${filterNivel === n ? `${style.badge} border-current` : "border-border text-muted-foreground"}`}
               >
-                Nível {n} ({count})
+                {t("network.level")} {n} ({count})
               </button>
             );
           })}
@@ -762,14 +785,14 @@ function MobileFlatList({ members, network }: { members: Member[]; network: Retu
               {(member.nome ?? "U").slice(0, 1).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-semibold">{member.nome ?? "Usuário"}</div>
+              <div className="truncate text-sm font-semibold">{member.nome ?? t("network.user")}</div>
               {member.pacote_nome && (
                 <div className="flex items-center gap-1">
                   <Zap className="h-3 w-3 shrink-0 text-amber-400" />
                   <span className="truncate text-[11px] text-amber-300">{member.pacote_nome}</span>
                 </div>
               )}
-              <div className="text-xs text-muted-foreground">{directReferrals} direto(s)</div>
+              <div className="text-xs text-muted-foreground">{directReferrals} {t("network.directCount")}</div>
             </div>
             <Badge variant="outline" className={style.badge}>{style.label}</Badge>
           </div>

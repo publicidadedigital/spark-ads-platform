@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/supabase/auth";
+import { useLanguage } from "@/lib/i18n/context";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,20 +30,24 @@ type Tab = "pacotes" | "historico";
 
 const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 
-const paymentStatusMeta: Record<string, { label: string; className: string }> = {
-  approved: { label: "Aprovado", className: "border-success/30 bg-success/15 text-success" },
-  pending: { label: "Aguardando pagamento", className: "border-amber-400/30 bg-amber-500/15 text-amber-300" },
-  failed: { label: "Falhou", className: "border-destructive/30 bg-destructive/15 text-destructive" },
-  expired: { label: "Expirado", className: "border-destructive/30 bg-destructive/15 text-destructive" },
-  cancelled: { label: "Cancelado", className: "border-destructive/30 bg-destructive/15 text-destructive" },
-};
+function getPaymentStatusMeta(t: (key: string) => string): Record<string, { label: string; className: string }> {
+  return {
+    approved: { label: t("packages.statusApproved"), className: "border-success/30 bg-success/15 text-success" },
+    pending: { label: t("packages.statusPending"), className: "border-amber-400/30 bg-amber-500/15 text-amber-300" },
+    failed: { label: t("packages.statusFailed"), className: "border-destructive/30 bg-destructive/15 text-destructive" },
+    expired: { label: t("packages.statusExpired"), className: "border-destructive/30 bg-destructive/15 text-destructive" },
+    cancelled: { label: t("packages.statusCancelled"), className: "border-destructive/30 bg-destructive/15 text-destructive" },
+  };
+}
 
-const FEATURES = [
-  "Acesso às campanhas de compartilhamento",
-  "Bônus diários por publicações aprovadas",
-  "Painel de acompanhamento em tempo real",
-  "Programa de indicações e rede",
-];
+function getFeatures(t: (key: string) => string): string[] {
+  return [
+    t("packages.featureCampaigns"),
+    t("packages.featureDailyBonus"),
+    t("packages.featureDashboard"),
+    t("packages.featureReferral"),
+  ];
+}
 
 function fmtDate(iso: string) {
   const d = new Date(iso);
@@ -50,6 +55,9 @@ function fmtDate(iso: string) {
 }
 
 function PacotesPage() {
+  const { t } = useLanguage();
+  const paymentStatusMeta = getPaymentStatusMeta(t);
+  const FEATURES = getFeatures(t);
   const { supabase, user } = useAuth();
   const [tab, setTab] = useState<Tab>("pacotes");
   const [packages, setPackages] = useState<Pkg[]>([]);
@@ -110,31 +118,31 @@ function PacotesPage() {
     }
   }
 
-  if (loading) return <p className="text-muted-foreground">Carregando...</p>;
+  if (loading) return <p className="text-muted-foreground">{t("packages.loading")}</p>;
 
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-2xl font-bold">Pacotes</h1>
-        <p className="text-sm text-muted-foreground mt-1">Ative um pacote para participar das campanhas e ganhar bônus.</p>
+        <h1 className="text-2xl font-bold">{t("packages.title")}</h1>
+        <p className="text-sm text-muted-foreground mt-1">{t("packages.subtitle")}</p>
       </div>
 
       {activePackageName && (
         <Card className="border-success/30 bg-success/5 p-4 flex items-center gap-3">
           <CheckCircle2 className="h-5 w-5 text-success shrink-0" />
           <div>
-            <p className="font-semibold text-success text-sm">Pacote ativo: {activePackageName}</p>
-            <p className="text-xs text-muted-foreground">Você já tem acesso às campanhas de compartilhamento.</p>
+            <p className="font-semibold text-success text-sm">{t("packages.activePackage").replace("{name}", activePackageName)}</p>
+            <p className="text-xs text-muted-foreground">{t("packages.activeAccess")}</p>
           </div>
         </Card>
       )}
 
       <div className="flex gap-2">
         <Button size="sm" variant={tab === "pacotes" ? "default" : "outline"} onClick={() => setTab("pacotes")}>
-          <Package className="mr-2 h-4 w-4" /> Pacotes disponíveis
+          <Package className="mr-2 h-4 w-4" /> {t("packages.availablePackages")}
         </Button>
         <Button size="sm" variant={tab === "historico" ? "default" : "outline"} onClick={() => setTab("historico")}>
-          <CreditCard className="mr-2 h-4 w-4" /> Histórico de pagamentos {payments.length > 0 && <span className="ml-1 opacity-70 text-xs">({payments.length})</span>}
+          <CreditCard className="mr-2 h-4 w-4" /> {t("packages.paymentHistory")} {payments.length > 0 && <span className="ml-1 opacity-70 text-xs">({payments.length})</span>}
         </Button>
       </div>
 
@@ -159,24 +167,24 @@ function PacotesPage() {
                   ))}
                 </ul>
                 <p className="text-xs text-amber-300 mb-4 rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-2">
-                  Após o pagamento, seu acesso é liberado automaticamente.
+                  {t("packages.afterPayment")}
                 </p>
                 {isActive ? (
                   <Button className="w-full" disabled>
-                    <CheckCircle2 className="mr-2 h-4 w-4" /> Pacote atual
+                    <CheckCircle2 className="mr-2 h-4 w-4" /> {t("packages.currentPackage")}
                   </Button>
                 ) : checkoutUrl ? (
                   <a href={checkoutUrl} target="_blank" rel="noreferrer">
-                    <Button className="w-full bg-primary text-primary-foreground">Contratar agora</Button>
+                    <Button className="w-full bg-primary text-primary-foreground">{t("packages.hireNow")}</Button>
                   </a>
                 ) : (
-                  <Button className="w-full" disabled>Indisponível</Button>
+                  <Button className="w-full" disabled>{t("packages.unavailable")}</Button>
                 )}
               </Card>
             );
           })}
           {packages.length === 0 && (
-            <p className="col-span-full text-sm text-muted-foreground">Nenhum pacote disponível no momento.</p>
+            <p className="col-span-full text-sm text-muted-foreground">{t("packages.noPackagesAvailable")}</p>
           )}
         </div>
       )}
@@ -186,17 +194,17 @@ function PacotesPage() {
           {payments.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
               <Clock className="mx-auto h-8 w-8 mb-3 opacity-40" />
-              <p>Nenhum pagamento registrado ainda.</p>
+              <p>{t("packages.noPaymentsYet")}</p>
             </div>
           ) : (
             <table className="w-full text-sm">
               <thead className="border-b border-border/50 text-xs uppercase text-muted-foreground">
                 <tr>
-                  <th className="text-left p-3">Data e Hora</th>
-                  <th className="text-left p-3">Pacote</th>
-                  <th className="text-left p-3">Valor</th>
-                  <th className="text-left p-3">Método</th>
-                  <th className="text-left p-3">Status</th>
+                  <th className="text-left p-3">{t("packages.dateTime")}</th>
+                  <th className="text-left p-3">{t("packages.package")}</th>
+                  <th className="text-left p-3">{t("packages.value")}</th>
+                  <th className="text-left p-3">{t("packages.method")}</th>
+                  <th className="text-left p-3">{t("packages.status")}</th>
                 </tr>
               </thead>
               <tbody>

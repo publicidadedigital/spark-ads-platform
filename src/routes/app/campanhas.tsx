@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/supabase/auth";
+import { useLanguage } from "@/lib/i18n/context";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -77,6 +78,7 @@ const DAILY_GOAL = 5;
 
 function CampanhasPage() {
   const { supabase, user } = useAuth();
+  const { t } = useLanguage();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [advertiserCampaigns, setAdvertiserCampaigns] = useState<AdvertiserCampaign[]>([]);
   const [advertiserShares, setAdvertiserShares] = useState<Share[]>([]);
@@ -175,7 +177,7 @@ function CampanhasPage() {
   const totalGanho = monthBonuses.reduce((sum, bonus) => sum + Number(bonus.valor ?? 0), 0);
   const currentStreak = approvedCount;
 
-  if (loading) return <p className="text-muted-foreground">Carregando campanhas...</p>;
+  if (loading) return <p className="text-muted-foreground">{t("campaigns.loading")}</p>;
 
   if (!cycleId) {
     return (
@@ -184,12 +186,12 @@ function CampanhasPage() {
           <div className="flex items-center justify-center rounded-full bg-primary/10 w-16 h-16 mx-auto">
             <Megaphone className="h-8 w-8 text-primary" />
           </div>
-          <h2 className="text-xl font-bold">Ative seu pacote para participar</h2>
+          <h2 className="text-xl font-bold">{t("campaigns.activateTitle")}</h2>
           <p className="text-sm text-muted-foreground">
-            Para acessar as campanhas de compartilhamento e ganhar bônus diários, você precisa ter um pacote ativo.
+            {t("campaigns.activateDesc")}
           </p>
           <Link to="/app">
-            <Button className="w-full bg-primary text-primary-foreground">Ver pacotes disponíveis</Button>
+            <Button className="w-full bg-primary text-primary-foreground">{t("campaigns.viewAvailablePackages")}</Button>
           </Link>
         </Card>
       </div>
@@ -203,30 +205,30 @@ function CampanhasPage() {
           <Card className="border-primary/15 bg-card/50 p-4 md:p-5">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div>
-                <h1 className="text-3xl font-bold tracking-normal">Campanhas</h1>
+                <h1 className="text-3xl font-bold tracking-normal">{t("campaigns.title")}</h1>
                 <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-                  Compartilhe {DAILY_GOAL} publicidades por dia no seu Instagram e ganhe bonus.
+                  {t("campaigns.subtitle").replace("{n}", String(DAILY_GOAL))}
                   <CircleHelp className="h-4 w-4" />
                 </p>
               </div>
               <Button variant="outline" className="border-primary/30 bg-primary/10 text-primary hover:bg-primary/15">
-                <CircleHelp className="mr-2 h-4 w-4" /> Como funciona
+                <CircleHelp className="mr-2 h-4 w-4" /> {t("campaigns.howItWorksBtn")}
               </Button>
             </div>
 
             <div className="mt-6 grid gap-3 md:grid-cols-2 min-[1400px]:grid-cols-4">
-              <MetricCard label="Publicidades aprovadas hoje" value={`${approvedCount} / ${DAILY_GOAL}`} sub={`Restam ${remaining} para completar`} icon={Megaphone} />
-              <MetricCard label="Bonus do dia" value={formatMoney(dailyBonus)} sub={`Ao completar ${DAILY_GOAL} publicacoes`} icon={Wallet} tone="success" />
-              <MetricCard label="Aprovadas hoje" value={`${approvedCount} / ${DAILY_GOAL}`} sub={approvedCount >= DAILY_GOAL ? "Meta concluída!" : `Faltam ${remaining}`} icon={Flame} tone="warning" />
-              <MetricCard label="Total ganho" value={formatMoney(totalGanho)} sub="Este mes" icon={Sparkles} tone="success" />
+              <MetricCard label={t("campaigns.approvedToday")} value={`${approvedCount} / ${DAILY_GOAL}`} sub={t("campaigns.remainingToComplete").replace("{n}", String(remaining))} icon={Megaphone} />
+              <MetricCard label={t("campaigns.dailyBonus")} value={formatMoney(dailyBonus)} sub={t("campaigns.uponCompleting").replace("{n}", String(DAILY_GOAL))} icon={Wallet} tone="success" />
+              <MetricCard label={t("campaigns.approvedTodayShort")} value={`${approvedCount} / ${DAILY_GOAL}`} sub={approvedCount >= DAILY_GOAL ? t("campaigns.goalCompleted") : t("campaigns.missing").replace("{n}", String(remaining))} icon={Flame} tone="warning" />
+              <MetricCard label={t("campaigns.totalEarned")} value={formatMoney(totalGanho)} sub={t("campaigns.thisMonth")} icon={Sparkles} tone="success" />
             </div>
           </Card>
 
           <Card className="border-violet-500/35 bg-[radial-gradient(circle_at_right,rgba(245,181,27,0.22),transparent_28%),linear-gradient(90deg,rgba(88,28,135,0.55),rgba(2,6,23,0.55))] p-5">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
               <div className="shrink-0">
-                <h2 className="font-semibold">Complete as {DAILY_GOAL} publicidades diarias</h2>
-                <p className="mt-1 text-sm text-muted-foreground">e garanta seu bonus completo!</p>
+                <h2 className="font-semibold">{t("campaigns.completeDailyAds").replace("{n}", String(DAILY_GOAL))}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">{t("campaigns.ensureFullBonus")}</p>
               </div>
               <div className="flex flex-wrap items-center justify-center gap-1">
                 {Array.from({ length: DAILY_GOAL }, (_, index) => {
@@ -247,7 +249,7 @@ function CampanhasPage() {
               <div className="flex shrink-0 items-center justify-center gap-3 border-t border-primary/20 pt-4 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
                 <Trophy className="h-12 w-12 text-amber-300 drop-shadow-[0_0_16px_rgba(245,181,27,0.45)]" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Bônus diário</p>
+                  <p className="text-sm text-muted-foreground">{t("campaigns.dailyBonusLabel")}</p>
                   <p className="text-2xl font-bold text-amber-300">{formatMoney(dailyBonus)}</p>
                 </div>
               </div>
@@ -256,8 +258,8 @@ function CampanhasPage() {
 
           <section>
             <div className="mb-3">
-              <h2 className="text-xl font-semibold">Publicidades disponiveis</h2>
-              <p className="text-sm text-muted-foreground">Escolha uma publicidade, compartilhe no seu Instagram e envie o link para validacao.</p>
+              <h2 className="text-xl font-semibold">{t("campaigns.availableAds")}</h2>
+              <p className="text-sm text-muted-foreground">{t("campaigns.chooseAdDesc")}</p>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
@@ -274,7 +276,7 @@ function CampanhasPage() {
               ))}
               {campaigns.length === 0 && (
                 <Card className="col-span-full border-primary/15 bg-card/50 p-8 text-center text-muted-foreground">
-                  Nenhuma campanha ativa no momento.
+                  {t("campaigns.noActiveCampaigns")}
                 </Card>
               )}
             </div>
@@ -283,23 +285,23 @@ function CampanhasPage() {
           <Card className="border-primary/15 bg-card/50 p-5">
             <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
-                <h2 className="text-xl font-semibold">Minhas publicacoes de hoje</h2>
-                <p className="text-sm text-muted-foreground">Acompanhe o status das suas publicacoes enviadas.</p>
+                <h2 className="text-xl font-semibold">{t("campaigns.myPostsToday")}</h2>
+                <p className="text-sm text-muted-foreground">{t("campaigns.trackStatus")}</p>
               </div>
               <Button variant="outline" onClick={refresh}>
-                <RefreshCw className="mr-2 h-4 w-4" /> Atualizar
+                <RefreshCw className="mr-2 h-4 w-4" /> {t("campaigns.update")}
               </Button>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[820px] text-sm">
                 <thead className="text-xs text-muted-foreground">
                   <tr className="border-b border-border/50">
-                    <th className="px-3 py-3 text-left font-medium">#</th>
-                    <th className="px-3 py-3 text-left font-medium">Publicidade</th>
-                    <th className="px-3 py-3 text-left font-medium">Link enviado</th>
-                    <th className="px-3 py-3 text-left font-medium">Status</th>
-                    <th className="px-3 py-3 text-left font-medium">Enviado em</th>
-                    <th className="px-3 py-3 text-left font-medium">Bonus</th>
+                    <th className="px-3 py-3 text-left font-medium">{t("campaigns.colNumber")}</th>
+                    <th className="px-3 py-3 text-left font-medium">{t("campaigns.colAd")}</th>
+                    <th className="px-3 py-3 text-left font-medium">{t("campaigns.colLinkSent")}</th>
+                    <th className="px-3 py-3 text-left font-medium">{t("campaigns.colStatus")}</th>
+                    <th className="px-3 py-3 text-left font-medium">{t("campaigns.colSentAt")}</th>
+                    <th className="px-3 py-3 text-left font-medium">{t("campaigns.colBonus")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -326,8 +328,8 @@ function CampanhasPage() {
           {advertiserCampaigns.length > 0 && (
             <section>
               <div className="mb-3">
-                <h2 className="text-xl font-semibold">Campanhas de anunciantes</h2>
-                <p className="text-sm text-muted-foreground">Divulgue campanhas de anunciantes parceiros e envie o link para validacao.</p>
+                <h2 className="text-xl font-semibold">{t("campaigns.advertiserCampaigns")}</h2>
+                <p className="text-sm text-muted-foreground">{t("campaigns.advertiserCampaignsDesc")}</p>
               </div>
               <div className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-2.5">
                 {advertiserCampaigns.map((campaign, index) => (
@@ -347,7 +349,7 @@ function CampanhasPage() {
 
           {advertiserShares.length > 0 && (
             <Card className="border-primary/15 bg-card/50 p-5">
-              <h2 className="font-semibold mb-3">Minhas submissões — status de verificação</h2>
+              <h2 className="font-semibold mb-3">{t("campaigns.mySubmissions")}</h2>
               <div className="space-y-3">
                 {advertiserShares.map((s: any) => (
                   <div key={s.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/50 bg-background/40 px-4 py-3">
@@ -355,7 +357,7 @@ function CampanhasPage() {
                       <a href={s.shared_link} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-sm text-primary truncate hover:underline max-w-xs">
                         {s.shared_link} <ExternalLink className="h-3 w-3 shrink-0" />
                       </a>
-                      <span className="text-xs text-muted-foreground">Enviado {new Date(s.created_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>
+                      <span className="text-xs text-muted-foreground">{t("campaigns.sentAt")} {new Date(s.created_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>
                     </div>
                     <ClientAutoValidateBadge status={s.auto_validate_status} validateAt={s.auto_validate_at} shareStatus={s.status} />
                   </div>
@@ -383,6 +385,7 @@ function CampaignCard({ campaign, index, alreadyShared, profileId, cycleId, onSu
   cycleId: string | null;
   onSubmitted: () => void;
 }) {
+  const { t } = useLanguage();
   const color = cardColor(index);
   return (
     <Card className="overflow-hidden border-primary/15 bg-card/50">
@@ -404,12 +407,12 @@ function CampaignCard({ campaign, index, alreadyShared, profileId, cycleId, onSu
         </div>
         {alreadyShared ? (
           <Badge className="w-full justify-center border-success/30 bg-success/15 py-2 text-success hover:bg-success/15">
-            <ShieldCheck className="mr-1 h-3 w-3" /> Enviada hoje
+            <ShieldCheck className="mr-1 h-3 w-3" /> {t("campaigns.sentToday")}
           </Badge>
         ) : (
           <ShareDialog campaign={campaign} profileId={profileId} cycleId={cycleId} onSubmitted={onSubmitted}>
             <Button size="sm" variant="outline" className="w-full" style={{ borderColor: `${color}88`, color }}>
-              Usar esta publicidade
+              {t("campaigns.useThisAd")}
             </Button>
           </ShareDialog>
         )}
@@ -443,6 +446,7 @@ function AdvertiserCampaignCard({ campaign, index, alreadyShared, profileId, cyc
   cycleId: string | null;
   onSubmitted: () => void;
 }) {
+  const { t } = useLanguage();
   const color = cardColor(index);
   const ext = campaign.media_type === "video" ? "mp4" : "jpg";
   return (
@@ -465,16 +469,16 @@ function AdvertiserCampaignCard({ campaign, index, alreadyShared, profileId, cyc
           className="h-7 w-full gap-1.5 text-[11px] text-muted-foreground hover:text-foreground"
           onClick={() => downloadMedia(campaign.media_url, `${campaign.title.replace(/\s+/g, "-")}.${ext}`)}
         >
-          <Download className="h-3 w-3" /> Baixar {campaign.media_type === "video" ? "vídeo" : "imagem"}
+          <Download className="h-3 w-3" /> {t("campaigns.download")} {campaign.media_type === "video" ? t("campaigns.downloadVideo") : t("campaigns.downloadImage")}
         </Button>
         {alreadyShared ? (
           <Badge className="h-7 w-full justify-center border-success/30 bg-success/15 text-[11px] text-success hover:bg-success/15">
-            <ShieldCheck className="mr-1 h-3 w-3" /> Enviada
+            <ShieldCheck className="mr-1 h-3 w-3" /> {t("campaigns.sentBadge")}
           </Badge>
         ) : (
           <AdvertiserShareDialog campaign={campaign} profileId={profileId} cycleId={cycleId} onSubmitted={onSubmitted}>
             <Button size="sm" variant="outline" className="h-auto min-h-7 w-full whitespace-normal px-1 py-1 text-[9px] leading-[1.1]" style={{ borderColor: `${color}88`, color }}>
-              Compartilhar campanha
+              {t("campaigns.shareCampaign")}
             </Button>
           </AdvertiserShareDialog>
         )}
@@ -491,6 +495,7 @@ function AdvertiserShareDialog({ campaign, profileId, cycleId, onSubmitted, chil
   children: React.ReactNode;
 }) {
   const { supabase, user } = useAuth();
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [link, setLink] = useState("");
   const [insta, setInsta] = useState("");
@@ -499,7 +504,7 @@ function AdvertiserShareDialog({ campaign, profileId, cycleId, onSubmitted, chil
 
   async function submit() {
     if (!supabase || !user || !profileId) return;
-    if (!link.trim()) return toast.error("Informe o link do compartilhamento");
+    if (!link.trim()) return toast.error(t("campaigns.linkRequired"));
     setBusy(true);
     let proofUrl: string | null = null;
     try {
@@ -518,14 +523,14 @@ function AdvertiserShareDialog({ campaign, profileId, cycleId, onSubmitted, chil
         instagram_usado: insta.trim() || null,
       });
       if (error) throw error;
-      toast.success("Compartilhamento enviado para analise");
+      toast.success(t("campaigns.sentForAnalysisToast"));
       setOpen(false);
       setLink("");
       setInsta("");
       setFile(null);
       onSubmitted();
     } catch (e: any) {
-      toast.error(e.message || "Erro ao enviar");
+      toast.error(e.message || t("campaigns.sendError"));
     } finally {
       setBusy(false);
     }
@@ -535,29 +540,29 @@ function AdvertiserShareDialog({ campaign, profileId, cycleId, onSubmitted, chil
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent>
-        <DialogHeader><DialogTitle>Enviar link: {campaign.title}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{t("campaigns.sendLinkTitle").replace("{title}", campaign.title)}</DialogTitle></DialogHeader>
         <div className="space-y-3">
           <div className="flex items-start gap-2 rounded-lg border border-amber-400/30 bg-amber-500/10 p-3 text-sm text-amber-200">
             <Clock className="h-4 w-4 shrink-0 mt-0.5" />
-            <span>A publicação deve permanecer no ar por pelo menos <strong>24 horas</strong> após o envio. Remover antes pode resultar em rejeição e perda do bônus.</span>
+            <span>{t("campaigns.postLiveWarning").replace("{hours}", t("campaigns.postLiveHours"))}</span>
           </div>
           <div>
-            <Label>Link do post compartilhado *</Label>
-            <Input value={link} onChange={(e) => setLink(e.target.value)} placeholder="https://instagram.com/p/..." />
+            <Label>{t("campaigns.linkLabel")}</Label>
+            <Input value={link} onChange={(e) => setLink(e.target.value)} placeholder={t("campaigns.linkPlaceholder")} />
             <p className="mt-1 text-xs text-muted-foreground">
-              Link deve ser do Instagram ou X/Twitter e ainda nao pode ter sido usado em outro envio.
+              {t("campaigns.linkHelp")}
             </p>
           </div>
           <div>
-            <Label>Instagram usado</Label>
-            <Input value={insta} onChange={(e) => setInsta(e.target.value)} placeholder="@seuusuario" />
+            <Label>{t("campaigns.instagramUsed")}</Label>
+            <Input value={insta} onChange={(e) => setInsta(e.target.value)} placeholder={t("campaigns.instagramPlaceholder")} />
           </div>
           <div>
-            <Label>Print da publicacao (opcional)</Label>
+            <Label>{t("campaigns.proofOptional")}</Label>
             <Input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
           </div>
           <Button onClick={submit} disabled={busy} className="w-full bg-gold-gradient text-primary-foreground">
-            {busy ? "Enviando..." : "Enviar para analise"}
+            {busy ? t("campaigns.sending") : t("campaigns.sendForAnalysis")}
           </Button>
         </div>
       </DialogContent>
@@ -574,6 +579,7 @@ function ShareRow({ campaign, share, index, dailyBonus, profileId, cycleId, onSu
   cycleId: string | null;
   onSubmitted: () => void;
 }) {
+  const { t } = useLanguage();
   return (
     <tr className="border-b border-border/35 last:border-0">
       <td className="px-3 py-3 text-muted-foreground">{index}</td>
@@ -602,7 +608,7 @@ function ShareRow({ campaign, share, index, dailyBonus, profileId, cycleId, onSu
         ) : (
           <ShareDialog campaign={campaign} profileId={profileId} cycleId={cycleId} onSubmitted={onSubmitted}>
             <Button size="sm" variant="outline">
-              <Send className="mr-2 h-4 w-4" /> Enviar link
+              <Send className="mr-2 h-4 w-4" /> {t("campaigns.sendLink")}
             </Button>
           </ShareDialog>
         )}
@@ -619,6 +625,7 @@ function ShareDialog({ campaign, profileId, cycleId, onSubmitted, children }: {
   children: React.ReactNode;
 }) {
   const { supabase, user } = useAuth();
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [link, setLink] = useState("");
   const [insta, setInsta] = useState("");
@@ -628,7 +635,7 @@ function ShareDialog({ campaign, profileId, cycleId, onSubmitted, children }: {
 
   async function submit() {
     if (!supabase || !user || !profileId) return;
-    if (!link.trim()) return toast.error("Informe o link do compartilhamento");
+    if (!link.trim()) return toast.error(t("campaigns.linkRequired"));
     setBusy(true);
     let proofUrl: string | null = null;
     try {
@@ -647,7 +654,7 @@ function ShareDialog({ campaign, profileId, cycleId, onSubmitted, children }: {
         instagram_usado: insta.trim() || null,
       });
       if (error) throw error;
-      toast.success("Compartilhamento enviado para analise");
+      toast.success(t("campaigns.sentForAnalysisToast"));
       setOpen(false);
       setLink("");
       setInsta("");
@@ -655,7 +662,7 @@ function ShareDialog({ campaign, profileId, cycleId, onSubmitted, children }: {
       setFile(null);
       onSubmitted();
     } catch (e: any) {
-      toast.error(e.message || "Erro ao enviar");
+      toast.error(e.message || t("campaigns.sendError"));
     } finally {
       setBusy(false);
     }
@@ -665,33 +672,33 @@ function ShareDialog({ campaign, profileId, cycleId, onSubmitted, children }: {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent>
-        <DialogHeader><DialogTitle>Enviar link: {campaign.titulo}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{t("campaigns.sendLinkTitle").replace("{title}", campaign.titulo)}</DialogTitle></DialogHeader>
         <div className="space-y-3">
           <div className="flex items-start gap-2 rounded-lg border border-amber-400/30 bg-amber-500/10 p-3 text-sm text-amber-200">
             <Clock className="h-4 w-4 shrink-0 mt-0.5" />
-            <span>A publicação deve permanecer no ar por pelo menos <strong>24 horas</strong> após o envio. Remover antes pode resultar em rejeição e perda do bônus.</span>
+            <span>{t("campaigns.postLiveWarning").replace("{hours}", t("campaigns.postLiveHours"))}</span>
           </div>
           <div>
-            <Label>Link do post compartilhado *</Label>
-            <Input value={link} onChange={(e) => setLink(e.target.value)} placeholder="https://instagram.com/p/..." />
+            <Label>{t("campaigns.linkLabel")}</Label>
+            <Input value={link} onChange={(e) => setLink(e.target.value)} placeholder={t("campaigns.linkPlaceholder")} />
             <p className="mt-1 text-xs text-muted-foreground">
-              Link deve ser do Instagram ou X/Twitter e ainda nao pode ter sido usado em outro envio.
+              {t("campaigns.linkHelp")}
             </p>
           </div>
           <div>
-            <Label>Instagram usado</Label>
-            <Input value={insta} onChange={(e) => setInsta(e.target.value)} placeholder="@seuusuario" />
+            <Label>{t("campaigns.instagramUsed")}</Label>
+            <Input value={insta} onChange={(e) => setInsta(e.target.value)} placeholder={t("campaigns.instagramPlaceholder")} />
           </div>
           <div>
-            <Label>Observacao opcional</Label>
-            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Algo que ajude na validacao" />
+            <Label>{t("campaigns.optionalNote")}</Label>
+            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t("campaigns.optionalNotePlaceholder")} />
           </div>
           <div>
-            <Label>Print da publicacao (opcional)</Label>
+            <Label>{t("campaigns.proofOptional")}</Label>
             <Input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
           </div>
           <Button onClick={submit} disabled={busy} className="w-full bg-gold-gradient text-primary-foreground">
-            {busy ? "Enviando..." : "Enviar para analise"}
+            {busy ? t("campaigns.sending") : t("campaigns.sendForAnalysis")}
           </Button>
         </div>
       </DialogContent>
@@ -700,41 +707,43 @@ function ShareDialog({ campaign, profileId, cycleId, onSubmitted, children }: {
 }
 
 function ProgressPanel({ progress, approved, remaining }: { progress: number; approved: number; remaining: number }) {
+  const { t } = useLanguage();
   return (
     <Card className="border-primary/15 bg-card/50 p-5">
-      <h3 className="font-semibold">Progresso diario</h3>
+      <h3 className="font-semibold">{t("campaigns.dailyProgress")}</h3>
       <div className="mt-5 flex items-center gap-5">
         <div className="grid h-36 w-36 place-items-center rounded-full" style={{ background: `conic-gradient(#2563eb ${progress * 3.6}deg, rgba(37,99,235,0.18) 0deg)` }}>
           <div className="grid h-28 w-28 place-items-center rounded-full bg-card text-center">
             <div>
               <p className="text-3xl font-bold">{approved}<span className="text-base text-muted-foreground"> / {DAILY_GOAL}</span></p>
-              <p className="text-xs text-muted-foreground">aprovadas</p>
+              <p className="text-xs text-muted-foreground">{t("campaigns.approved")}</p>
             </div>
           </div>
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm text-muted-foreground">Faltam {remaining} publicacoes aprovadas para completar seu bonus de hoje.</p>
+          <p className="text-sm text-muted-foreground">{t("campaigns.remainingApprovedForBonus").replace("{n}", String(remaining))}</p>
           <Progress value={progress} className="mt-4 h-2 bg-primary/10" />
           <p className="mt-2 text-sm font-semibold text-primary">{progress}%</p>
         </div>
       </div>
-      <Button className="mt-5 w-full bg-primary text-primary-foreground">Ver minhas publicacoes</Button>
+      <Button className="mt-5 w-full bg-primary text-primary-foreground">{t("campaigns.viewMyPosts")}</Button>
     </Card>
   );
 }
 
 function HowItWorks() {
+  const { t } = useLanguage();
   const steps = [
-    { icon: Megaphone, title: "Escolha uma publicidade", text: "Selecione uma das opcoes disponiveis para hoje." },
-    { icon: Instagram, title: "Compartilhe no Instagram", text: "Publique no feed, stories ou reels em conta publica." },
-    { icon: Link2, title: "Envie o link", text: "Cole o link da publicacao para validacao." },
-    { icon: Clock, title: "Aguarde a validacao", text: "Nossa equipe analisara sua publicacao." },
-    { icon: Star, title: "Ganhe seu bonus", text: "Se aprovado, o bonus sera liberado automaticamente." },
+    { icon: Megaphone, title: t("campaigns.step1Title"), text: t("campaigns.step1Text") },
+    { icon: Instagram, title: t("campaigns.step2Title"), text: t("campaigns.step2Text") },
+    { icon: Link2, title: t("campaigns.step3Title"), text: t("campaigns.step3Text") },
+    { icon: Clock, title: t("campaigns.step4Title"), text: t("campaigns.step4Text") },
+    { icon: Star, title: t("campaigns.step5Title"), text: t("campaigns.step5Text") },
   ];
 
   return (
     <Card className="border-primary/15 bg-card/50 p-5">
-      <h3 className="font-semibold">Como funciona?</h3>
+      <h3 className="font-semibold">{t("campaigns.howItWorksTitle")}</h3>
       <div className="mt-5 space-y-5">
         {steps.map((step, index) => {
           const Icon = step.icon;
@@ -756,15 +765,16 @@ function HowItWorks() {
 }
 
 function RulesPanel() {
+  const { t } = useLanguage();
   const rules = [
-    "5 publicacoes aprovadas por dia (obrigatorio)",
-    "Conta do Instagram deve ser publica",
-    "Nao e permitido editar a publicacao apos o envio do link",
-    "Bonus liberado somente apos validacao das 5 publicacoes",
+    t("campaigns.rule1"),
+    t("campaigns.rule2"),
+    t("campaigns.rule3"),
+    t("campaigns.rule4"),
   ];
   return (
     <Card className="border-primary/15 bg-card/50 p-5">
-      <h3 className="font-semibold">Regras importantes</h3>
+      <h3 className="font-semibold">{t("campaigns.importantRules")}</h3>
       <div className="mt-4 space-y-3">
         {rules.map((rule) => (
           <p key={rule} className="flex gap-2 text-sm text-muted-foreground">
@@ -773,11 +783,11 @@ function RulesPanel() {
         ))}
         <div className="flex items-start gap-2 text-sm">
           <Clock className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
-          <span>A publicação deve ficar no ar por no mínimo <strong>24h</strong>. Remover antes invalida o compartilhamento.</span>
+          <span>{t("campaigns.postLiveRuleNote").replace("{hours}", t("campaigns.minHours"))}</span>
         </div>
       </div>
       <Button variant="outline" className="mt-5 w-full border-primary/30 bg-primary/10 text-primary">
-        Duvidas? Fale com nosso suporte!
+        {t("campaigns.support")}
       </Button>
     </Card>
   );
@@ -806,16 +816,17 @@ function MetricCard({ label, value, sub, icon: Icon, tone = "primary" }: any) {
 }
 
 function StatusBadge({ status }: { status: string }) {
+  const { t } = useLanguage();
   if (status === "aprovada") {
-    return <Badge className="border-success/30 bg-success/15 text-success hover:bg-success/15"><ShieldCheck className="mr-1 h-3 w-3" /> Validado</Badge>;
+    return <Badge className="border-success/30 bg-success/15 text-success hover:bg-success/15"><ShieldCheck className="mr-1 h-3 w-3" /> {t("campaigns.statusValidated")}</Badge>;
   }
   if (status === "rejeitada") {
-    return <Badge className="border-destructive/30 bg-destructive/15 text-destructive hover:bg-destructive/15">Rejeitado</Badge>;
+    return <Badge className="border-destructive/30 bg-destructive/15 text-destructive hover:bg-destructive/15">{t("campaigns.statusRejected")}</Badge>;
   }
   if (status === "pendente") {
-    return <Badge className="border-primary/30 bg-primary/15 text-primary hover:bg-primary/15"><Clock className="mr-1 h-3 w-3" /> Em analise</Badge>;
+    return <Badge className="border-primary/30 bg-primary/15 text-primary hover:bg-primary/15"><Clock className="mr-1 h-3 w-3" /> {t("campaigns.statusInAnalysis")}</Badge>;
   }
-  return <Badge className="border-amber-400/30 bg-amber-500/15 text-amber-300 hover:bg-amber-500/15">Pendente</Badge>;
+  return <Badge className="border-amber-400/30 bg-amber-500/15 text-amber-300 hover:bg-amber-500/15">{t("campaigns.statusPending")}</Badge>;
 }
 
 function cardColor(index: number) {
@@ -836,28 +847,29 @@ function formatTime(value: string) {
 }
 
 function ClientAutoValidateBadge({ status, validateAt, shareStatus }: { status?: string; validateAt?: string; shareStatus?: string }) {
+  const { t } = useLanguage();
   if (shareStatus === "aprovada" && (!status || status === "pending")) {
-    return <Badge className="border-success/30 bg-success/15 text-success"><ShieldCheck className="mr-1 h-3 w-3" /> Aprovado</Badge>;
+    return <Badge className="border-success/30 bg-success/15 text-success"><ShieldCheck className="mr-1 h-3 w-3" /> {t("campaigns.autoValidateApproved")}</Badge>;
   }
   if (shareStatus === "rejeitada") {
-    return <Badge className="border-destructive/30 bg-destructive/15 text-destructive">Rejeitado</Badge>;
+    return <Badge className="border-destructive/30 bg-destructive/15 text-destructive">{t("campaigns.statusRejected")}</Badge>;
   }
   if (!status || status === "pending") {
-    if (!validateAt) return <Badge variant="outline" className="text-muted-foreground"><Clock className="mr-1 h-3 w-3" /> Aguardando análise</Badge>;
+    if (!validateAt) return <Badge variant="outline" className="text-muted-foreground"><Clock className="mr-1 h-3 w-3" /> {t("campaigns.autoValidatePending")}</Badge>;
     const msLeft = new Date(validateAt).getTime() - Date.now();
     if (msLeft > 0) {
       const h = Math.ceil(msLeft / 3600000);
       return (
         <Badge className="border-amber-400/30 bg-amber-500/15 text-amber-300">
-          <Clock className="mr-1 h-3 w-3" /> Verificação automática em {h}h
+          <Clock className="mr-1 h-3 w-3" /> {t("campaigns.autoValidateCheckingIn").replace("{h}", String(h))}
         </Badge>
       );
     }
-    return <Badge className="border-primary/30 bg-primary/15 text-primary"><Sparkles className="mr-1 h-3 w-3" /> Verificando link...</Badge>;
+    return <Badge className="border-primary/30 bg-primary/15 text-primary"><Sparkles className="mr-1 h-3 w-3" /> {t("campaigns.autoValidateChecking")}</Badge>;
   }
-  if (status === "live") return <Badge className="border-success/30 bg-success/15 text-success"><ShieldCheck className="mr-1 h-3 w-3" /> ✓ Post verificado — ativo</Badge>;
-  if (status === "removed") return <Badge className="border-destructive/30 bg-destructive/15 text-destructive">⚠ Post removido detectado</Badge>;
-  if (status === "story_manual") return <Badge className="border-amber-400/30 bg-amber-500/15 text-amber-300"><Clock className="mr-1 h-3 w-3" /> Story: aguardando análise manual</Badge>;
-  if (status === "private") return <Badge className="border-primary/30 bg-primary/15 text-primary">Perfil privado — análise manual</Badge>;
-  return <Badge variant="outline" className="text-muted-foreground">Em análise</Badge>;
+  if (status === "live") return <Badge className="border-success/30 bg-success/15 text-success"><ShieldCheck className="mr-1 h-3 w-3" /> ✓ {t("campaigns.autoValidateLive")}</Badge>;
+  if (status === "removed") return <Badge className="border-destructive/30 bg-destructive/15 text-destructive">⚠ {t("campaigns.autoValidateRemoved")}</Badge>;
+  if (status === "story_manual") return <Badge className="border-amber-400/30 bg-amber-500/15 text-amber-300"><Clock className="mr-1 h-3 w-3" /> {t("campaigns.autoValidateStoryManual")}</Badge>;
+  if (status === "private") return <Badge className="border-primary/30 bg-primary/15 text-primary">{t("campaigns.autoValidatePrivate")}</Badge>;
+  return <Badge variant="outline" className="text-muted-foreground">{t("campaigns.autoValidateInAnalysis")}</Badge>;
 }

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/supabase/auth";
+import { useLanguage } from "@/lib/i18n/context";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -70,27 +71,18 @@ type Category = {
   icon: any;
 };
 
-const categoryMeta: Record<string, Omit<Category, "key" | "total">> = {
-  residual: { label: "Residual", color: "#00d17d", icon: DollarSign },
-  indicacao_direta: { label: "Indicacao direta", color: "#1677ff", icon: User },
-  indicacao_indireta: { label: "Indicacao indireta", color: "#8b5cf6", icon: Users },
-  royalties: { label: "Royalties", color: "#f5b51b", icon: Crown },
-  compartilhamento: { label: "Compartilhamento", color: "#06b6d4", icon: Share2 },
-};
-
-const tabs = [
-  { key: "todas", label: "Todas" },
-  { key: "residual", label: "Residual" },
-  { key: "indicacao_direta", label: "Indicacao direta" },
-  { key: "indicacao_indireta", label: "Indicacao indireta" },
-  { key: "royalties", label: "Royalties" },
-  { key: "compartilhamento", label: "Compartilhamento" },
-  { key: "saque", label: "Saque" },
-  { key: "ajustes", label: "Ajustes" },
-  { key: "estornos", label: "Estornos" },
-];
+function getCategoryMeta(t: (key: string) => string): Record<string, Omit<Category, "key" | "total">> {
+  return {
+    residual: { label: t("statement.residual"), color: "#00d17d", icon: DollarSign },
+    indicacao_direta: { label: t("statement.directReferral"), color: "#1677ff", icon: User },
+    indicacao_indireta: { label: t("statement.indirectReferral"), color: "#8b5cf6", icon: Users },
+    royalties: { label: t("statement.royalties"), color: "#f5b51b", icon: Crown },
+    compartilhamento: { label: t("statement.sharing"), color: "#06b6d4", icon: Share2 },
+  };
+}
 
 function ExtratoPage() {
+  const { t } = useLanguage();
   const { supabase, user } = useAuth();
   const [tx, setTx] = useState<Transaction[]>([]);
   const [bonuses, setBonuses] = useState<Bonus[]>([]);
@@ -169,19 +161,19 @@ function ExtratoPage() {
     })();
   }, [supabase, user]);
 
-  const stats = useMemo(() => buildStats(tx, bonuses, saldoDisponivel), [tx, bonuses, saldoDisponivel]);
+  const stats = useMemo(() => buildStats(tx, bonuses, saldoDisponivel, t), [tx, bonuses, saldoDisponivel, t]);
   const chartData = useMemo(() => buildChart(tx), [tx]);
   const period = useMemo(() => formatPeriod(tx), [tx]);
 
   const exportCsv = () => {
     const networkMap = new Map(networkBonuses.map((nb) => [nb.id, nb]));
     const rows = [
-      ["Data", "Tipo", "Nivel", "Indicado", "Valor", "Status"],
+      [t("statement.date"), t("statement.type"), t("statement.level"), t("statement.referred"), t("statement.value"), t("statement.status")],
       ...bonuses.map((b) => {
         const nb = networkMap.get(b.id);
         return [
           formatDateTime(b.created_at),
-          TIPO_LABEL[b.tipo] ?? b.tipo,
+          getTipoLabel(t)[b.tipo] ?? b.tipo,
           b.nivel != null ? `Nv ${b.nivel}` : "",
           nb?.indicadoNome ?? "",
           moneyValue(b.valor).toFixed(2),
@@ -199,25 +191,25 @@ function ExtratoPage() {
     URL.revokeObjectURL(url);
   };
 
-  if (loading) return <p className="text-muted-foreground">Carregando extrato...</p>;
+  if (loading) return <p className="text-muted-foreground">{t("statement.loading")}</p>;
 
   return (
     <div className="space-y-4">
       <Card className="border-primary/15 bg-card/50 p-4 md:p-5">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-normal">Extrato</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Acompanhe todo o historico de movimentacoes da sua conta.</p>
+            <h1 className="text-3xl font-bold tracking-normal">{t("statement.title")}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">{t("statement.subtitle")}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={exportCsv}>
-              <Upload className="mr-2 h-4 w-4" /> Exportar
+              <Upload className="mr-2 h-4 w-4" /> {t("statement.export")}
             </Button>
             <Button variant="outline">
               <CalendarDays className="mr-2 h-4 w-4" /> {period}
             </Button>
             <Button variant="outline">
-              <Filter className="mr-2 h-4 w-4" /> Filtros
+              <Filter className="mr-2 h-4 w-4" /> {t("statement.filters")}
             </Button>
           </div>
         </div>
@@ -227,16 +219,16 @@ function ExtratoPage() {
             <SummaryCard key={category.key} category={category} />
           ))}
           <SummaryCard
-            category={{ key: "saldo", label: "Saldo liberado", total: stats.balance, color: "#00d17d", icon: Wallet }}
-            sub="Disponivel para saque"
+            category={{ key: "saldo", label: t("statement.releasedBalance"), total: stats.balance, color: "#00d17d", icon: Wallet }}
+            sub={t("statement.availableForWithdrawal")}
           />
           <SummaryCard
-            category={{ key: "aguardando", label: "Aguardando (7d)", total: saldoAguardando, color: "#f5b51b", icon: Clock }}
-            sub="Em periodo de retencao"
+            category={{ key: "aguardando", label: t("statement.waiting7d"), total: saldoAguardando, color: "#f5b51b", icon: Clock }}
+            sub={t("statement.retentionPeriod")}
           />
           <SummaryCard
-            category={{ key: "cancelado", label: "Cancelados", total: bonuses.filter((b) => b.status === "cancelado").reduce((s, b) => s + moneyValue(b.valor), 0), color: "#ff453a", icon: XCircle }}
-            sub="Bonus cancelados"
+            category={{ key: "cancelado", label: t("statement.canceled"), total: bonuses.filter((b) => b.status === "cancelado").reduce((s, b) => s + moneyValue(b.valor), 0), color: "#ff453a", icon: XCircle }}
+            sub={t("statement.canceledBonuses")}
           />
         </div>
       </Card>
@@ -246,13 +238,13 @@ function ExtratoPage() {
           <Card className="border-primary/15 bg-card/50 p-5">
             <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
-                <h2 className="font-semibold">Resumo de movimentacoes</h2>
-                <p className="text-xs text-muted-foreground">Entradas, saidas e liquido do periodo</p>
+                <h2 className="font-semibold">{t("statement.movementsSummary")}</h2>
+                <p className="text-xs text-muted-foreground">{t("statement.movementsSummarySub")}</p>
               </div>
               <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
-                <LegendDot color="#00d17d" label="Entradas" />
-                <LegendDot color="#ff453a" label="Saidas" />
-                <LegendDot color="#1677ff" label="Liquido" />
+                <LegendDot color="#00d17d" label={t("statement.entries")} />
+                <LegendDot color="#ff453a" label={t("statement.exits")} />
+                <LegendDot color="#1677ff" label={t("statement.net")} />
               </div>
             </div>
             <div className="h-64">
@@ -282,18 +274,18 @@ function ExtratoPage() {
               </ResponsiveContainer>
             </div>
             <div className="mt-5 grid gap-3 border-t border-border/50 pt-4 sm:grid-cols-2 xl:grid-cols-4">
-              <MiniTotal color="#00d17d" label="Entradas" value={stats.entries} />
-              <MiniTotal color="#ff453a" label="Saidas" value={stats.exits} />
-              <MiniTotal color="#1677ff" label="Liquido" value={stats.net} />
-              <MiniTotal color="#8b5cf6" label="Transacoes" value={tx.length} plain />
+              <MiniTotal color="#00d17d" label={t("statement.entries")} value={stats.entries} />
+              <MiniTotal color="#ff453a" label={t("statement.exits")} value={stats.exits} />
+              <MiniTotal color="#1677ff" label={t("statement.net")} value={stats.net} />
+              <MiniTotal color="#8b5cf6" label={t("statement.transactions")} value={tx.length} plain />
             </div>
           </Card>
 
           <Card className="border-primary/15 bg-card/50 p-5">
             <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
-                <h2 className="font-semibold">Historico de movimentacoes</h2>
-                <p className="text-xs text-muted-foreground mt-0.5">Bonus, saques e ajustes — pendentes e liberados</p>
+                <h2 className="font-semibold">{t("statement.history")}</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">{t("statement.historySub")}</p>
               </div>
               <div className="flex gap-2">
                 <div className="relative">
@@ -301,12 +293,12 @@ function ExtratoPage() {
                   <Input
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
-                    placeholder="Buscar..."
+                    placeholder={t("statement.search")}
                     className="w-full pl-9 md:w-56"
                   />
                 </div>
                 <Button variant="outline" onClick={exportCsv}>
-                  <Download className="mr-2 h-4 w-4" /> Baixar
+                  <Download className="mr-2 h-4 w-4" /> {t("statement.download")}
                 </Button>
               </div>
             </div>
@@ -331,7 +323,8 @@ function ExtratoPage() {
   );
 }
 
-function buildStats(tx: Transaction[], bonuses: Bonus[], saldoDisponivel: number) {
+function buildStats(tx: Transaction[], bonuses: Bonus[], saldoDisponivel: number, t: (key: string) => string) {
+  const categoryMeta = getCategoryMeta(t);
   const entries = tx.filter((item) => item.tipo === "credito").reduce((sum, item) => sum + moneyValue(item.valor), 0);
   const exits = tx.filter((item) => item.tipo !== "credito").reduce((sum, item) => sum + moneyValue(item.valor), 0);
   const balance = saldoDisponivel;
@@ -419,8 +412,10 @@ function transactionCategory(item: Transaction) {
   return "residual";
 }
 
-function SummaryCard({ category, sub = "Total acumulado" }: { category: Category; sub?: string }) {
+function SummaryCard({ category, sub }: { category: Category; sub?: string }) {
+  const { t } = useLanguage();
   const Icon = category.icon;
+  const subText = sub ?? t("statement.totalAccumulated");
   return (
     <Card className="border-primary/15 bg-background/45 p-4">
       <div className="flex items-center gap-3">
@@ -430,7 +425,7 @@ function SummaryCard({ category, sub = "Total acumulado" }: { category: Category
         <div className="min-w-0">
           <p className="truncate text-xs text-muted-foreground">{category.label}</p>
           <p className="text-lg font-bold" style={{ color: category.color }}>{formatMoney(category.total)}</p>
-          <p className="text-xs text-muted-foreground">{sub}</p>
+          <p className="text-xs text-muted-foreground">{subText}</p>
         </div>
       </div>
     </Card>
@@ -438,15 +433,16 @@ function SummaryCard({ category, sub = "Total acumulado" }: { category: Category
 }
 
 function DistributionCard({ categories, total }: { categories: Category[]; total: number }) {
+  const { t } = useLanguage();
   const gradient = buildConicGradient(categories, total);
   return (
     <Card className="border-primary/15 bg-card/50 p-5">
-      <h3 className="font-semibold">Distribuicao dos ganhos</h3>
+      <h3 className="font-semibold">{t("statement.distribution")}</h3>
       <div className="mt-5 grid gap-5 sm:grid-cols-[140px_1fr] xl:grid-cols-1">
         <div className="mx-auto flex h-36 w-36 items-center justify-center rounded-full" style={{ background: gradient }}>
           <div className="flex h-24 w-24 flex-col items-center justify-center rounded-full bg-card text-center">
             <span className="text-lg font-bold">{formatMoney(total)}</span>
-            <span className="text-xs text-muted-foreground">Total</span>
+            <span className="text-xs text-muted-foreground">{t("statement.total")}</span>
           </div>
         </div>
         <div className="space-y-3">
@@ -468,15 +464,17 @@ function DistributionCard({ categories, total }: { categories: Category[]; total
   );
 }
 
-const TIPO_LABEL: Record<string, string> = {
-  diario: "Bonus diario",
-  adesao: "Bonus de adesao",
-  renovacao: "Bonus de renovacao",
-  residual: "Bonus residual",
-  mensalidade: "Royalties",
-  ajuste: "Ajuste",
-  publicidade: "Publicidade",
-};
+function getTipoLabel(t: (key: string) => string): Record<string, string> {
+  return {
+    diario: t("statement.bonusDaily"),
+    adesao: t("statement.bonusAdesao"),
+    renovacao: t("statement.bonusRenovacao"),
+    residual: t("statement.bonusResidual"),
+    mensalidade: t("statement.royalties"),
+    ajuste: t("statement.bonusAjuste"),
+    publicidade: t("statement.bonusPublicidade"),
+  };
+}
 
 function UnifiedHistory({
   bonuses,
@@ -489,6 +487,8 @@ function UnifiedHistory({
   withdrawals: Transaction[];
   search: string;
 }) {
+  const { t } = useLanguage();
+  const TIPO_LABEL = getTipoLabel(t);
   const networkMap = new Map(networkBonuses.map((nb) => [nb.id, nb]));
 
   type Row = {
@@ -541,7 +541,7 @@ function UnifiedHistory({
     });
 
   if (rows.length === 0) {
-    return <p className="py-8 text-sm text-muted-foreground">Sem movimentacoes encontradas.</p>;
+    return <p className="py-8 text-sm text-muted-foreground">{t("statement.noMovements")}</p>;
   }
 
   return (
@@ -549,12 +549,12 @@ function UnifiedHistory({
       <table className="w-full min-w-[700px] text-sm">
         <thead className="text-xs text-muted-foreground border-b border-border/50">
           <tr>
-            <th className="px-3 py-3 text-left font-medium">Data</th>
-            <th className="px-3 py-3 text-left font-medium">Tipo</th>
-            <th className="px-3 py-3 text-left font-medium hidden md:table-cell">Nível</th>
-            <th className="px-3 py-3 text-left font-medium">Indicado</th>
-            <th className="px-3 py-3 text-left font-medium">Valor</th>
-            <th className="px-3 py-3 text-left font-medium">Status</th>
+            <th className="px-3 py-3 text-left font-medium">{t("statement.date")}</th>
+            <th className="px-3 py-3 text-left font-medium">{t("statement.type")}</th>
+            <th className="px-3 py-3 text-left font-medium hidden md:table-cell">{t("statement.level")}</th>
+            <th className="px-3 py-3 text-left font-medium">{t("statement.referred")}</th>
+            <th className="px-3 py-3 text-left font-medium">{t("statement.value")}</th>
+            <th className="px-3 py-3 text-left font-medium">{t("statement.status")}</th>
           </tr>
         </thead>
         <tbody>
@@ -576,17 +576,17 @@ function UnifiedHistory({
                 </td>
                 <td className="px-3 py-2.5">
                   {row.status === "cancelado" ? (
-                    <Badge className="border-destructive/30 bg-destructive/15 text-destructive">Cancelado</Badge>
+                    <Badge className="border-destructive/30 bg-destructive/15 text-destructive">{t("statement.statusCanceled")}</Badge>
                   ) : isVencido ? (
-                    <Badge className="border-border/50 bg-muted/20 text-muted-foreground">Vencido</Badge>
+                    <Badge className="border-border/50 bg-muted/20 text-muted-foreground">{t("statement.statusOverdue")}</Badge>
                   ) : row.status === "pendente" ? (
                     <Badge className="border-amber-400/30 bg-amber-500/15 text-amber-300">
-                      <Clock className="h-3 w-3 mr-1" />{days != null && days > 0 ? `${days}d` : "Liberando"}
+                      <Clock className="h-3 w-3 mr-1" />{days != null && days > 0 ? `${days}d` : t("statement.releasing")}
                     </Badge>
                   ) : (
                     <Badge className="border-success/30 bg-success/15 text-success hover:bg-success/15">
                       <ShieldCheck className="mr-1 h-3 w-3" />
-                      {row.status === "concluido" ? "Concluido" : "Liberado"}
+                      {row.status === "concluido" ? t("statement.statusCompleted") : t("statement.statusReleased")}
                     </Badge>
                   )}
                 </td>
@@ -600,6 +600,7 @@ function UnifiedHistory({
 }
 
 function BestDayCard({ tx }: { tx: Transaction[] }) {
+  const { t } = useLanguage();
   const best = useMemo(() => {
     const byDay = new Map<string, number>();
     tx.filter((item) => item.tipo === "credito").forEach((item) => {
@@ -612,7 +613,7 @@ function BestDayCard({ tx }: { tx: Transaction[] }) {
 
   return (
     <Card className="border-primary/15 bg-card/50 p-5">
-      <h3 className="font-semibold">Melhor dia da semana</h3>
+      <h3 className="font-semibold">{t("statement.bestDay")}</h3>
       <div className="mt-5 flex items-center gap-4">
         <div className="rounded-lg bg-primary/15 p-4 text-primary shadow-gold">
           <CalendarDays className="h-8 w-8" />
@@ -620,7 +621,7 @@ function BestDayCard({ tx }: { tx: Transaction[] }) {
         <div>
           <p className="text-sm text-muted-foreground">{best.date.toLocaleDateString("pt-BR", { weekday: "long" })}</p>
           <p className="text-2xl font-bold">{formatMoney(best.total)}</p>
-          <p className="text-xs text-muted-foreground">Maior volume de ganhos</p>
+          <p className="text-xs text-muted-foreground">{t("statement.highestVolume")}</p>
         </div>
       </div>
     </Card>
@@ -628,20 +629,22 @@ function BestDayCard({ tx }: { tx: Transaction[] }) {
 }
 
 function InsightsCard({ stats, tx }: { stats: ReturnType<typeof buildStats>; tx: Transaction[] }) {
+  const { t } = useLanguage();
   const average = stats.entries && tx.length ? stats.entries / tx.filter((item) => item.tipo === "credito").length : 0;
   return (
     <Card className="border-primary/15 bg-card/50 p-5">
-      <h3 className="font-semibold">Insights do periodo</h3>
+      <h3 className="font-semibold">{t("statement.insights")}</h3>
       <div className="mt-4 space-y-4 text-sm">
-        <Insight icon={TrendingUp} text={`Voce teve ${stats.net >= 0 ? "saldo positivo" : "mais saidas"} no periodo`} value={stats.net >= 0 ? "+ positivo" : "- atencao"} />
-        <Insight icon={DollarSign} text={`Seu ticket medio de ganhos foi de ${formatMoney(average || 0)}`} />
-        <Insight icon={Users} text={`${tx.length} movimentacoes registradas no extrato`} />
+        <Insight icon={TrendingUp} text={stats.net >= 0 ? t("statement.positiveBalance") : t("statement.moreExits")} value={stats.net >= 0 ? t("statement.positive") : t("statement.attention")} />
+        <Insight icon={DollarSign} text={t("statement.averageTicket").replace("{value}", formatMoney(average || 0))} />
+        <Insight icon={Users} text={t("statement.movementsRegistered").replace("{n}", String(tx.length))} />
       </div>
     </Card>
   );
 }
 
 function NextReleaseCard({ pending, bonuses }: { pending: number; bonuses: Bonus[] }) {
+  const { t } = useLanguage();
   const value = pending || 0;
   const nextBonus = bonuses
     .filter((b) => b.status === "pendente" && b.release_at)
@@ -649,20 +652,20 @@ function NextReleaseCard({ pending, bonuses }: { pending: number; bonuses: Bonus
   const nextDate = nextBonus?.release_at ? new Date(nextBonus.release_at) : null;
   return (
     <Card className="border-primary/15 bg-card/50 p-5">
-      <h3 className="font-semibold">Proxima liberacao</h3>
+      <h3 className="font-semibold">{t("statement.nextRelease")}</h3>
       <div className="mt-5 flex items-center gap-4">
         <div className="rounded-lg bg-amber-500/15 p-3 text-amber-300">
           <Trophy className="h-8 w-8" />
         </div>
         <div>
           <p className="text-2xl font-bold">{formatMoney(value)}</p>
-          <p className="text-xs text-muted-foreground">Valor aguardando retencao de 7 dias</p>
+          <p className="text-xs text-muted-foreground">{t("statement.waitingRetention")}</p>
         </div>
       </div>
       <p className="mt-4 text-xs text-muted-foreground">
         {nextDate
-          ? `Proxima liberacao: ${nextDate.toLocaleDateString("pt-BR")} (${Math.max(0, Math.ceil((nextDate.getTime() - Date.now()) / 86400000))}d)`
-          : value > 0 ? "Aguardando processamento" : "Nenhum valor pendente"}
+          ? t("statement.nextReleaseDate").replace("{date}", nextDate.toLocaleDateString("pt-BR")).replace("{days}", String(Math.max(0, Math.ceil((nextDate.getTime() - Date.now()) / 86400000))))
+          : value > 0 ? t("statement.waitingProcessing") : t("statement.noPendingValue")}
       </p>
     </Card>
   );

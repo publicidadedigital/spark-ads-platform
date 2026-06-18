@@ -12,24 +12,27 @@ import {
 import {
   Sheet, SheetContent, SheetTrigger,
 } from "@/components/ui/sheet";
+import { useLanguage } from "@/lib/i18n/context";
+import { LanguageSwitcher } from "@/lib/i18n/LanguageSwitcher";
 
 export const Route = createFileRoute("/app")({ component: AppLayout });
 
 const nav = [
-  { to: "/app", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { to: "/app/pacotes", label: "Pacotes", icon: Package, free: true },
-  { to: "/app/campanhas", label: "Campanhas", icon: Megaphone },
-  { to: "/app/extrato", label: "Extrato", icon: Receipt },
-  { to: "/app/saque", label: "Saque", icon: Wallet },
-  { to: "/app/rede", label: "Minha Rede", icon: Users },
-  { to: "/app/indicacao-anunciante", label: "Indicação de Anunciante", icon: Building2 },
-  { to: "/app/renovacao", label: "Renovação", icon: RefreshCw },
-  { to: "/app/seguranca", label: "Segurança", icon: ShieldCheck },
-  { to: "/app/perfil", label: "Meu Perfil", icon: UserCircle },
+  { to: "/app", labelKey: "appNav.dashboard", icon: LayoutDashboard, exact: true },
+  { to: "/app/pacotes", labelKey: "appNav.pacotes", icon: Package, free: true },
+  { to: "/app/campanhas", labelKey: "appNav.campanhas", icon: Megaphone },
+  { to: "/app/extrato", labelKey: "appNav.extrato", icon: Receipt },
+  { to: "/app/saque", labelKey: "appNav.saque", icon: Wallet },
+  { to: "/app/rede", labelKey: "appNav.rede", icon: Users },
+  { to: "/app/indicacao-anunciante", labelKey: "appNav.indicarAnunciante", icon: Building2 },
+  { to: "/app/renovacao", labelKey: "appNav.renovacao", icon: RefreshCw },
+  { to: "/app/seguranca", labelKey: "appNav.seguranca", icon: ShieldCheck },
+  { to: "/app/perfil", labelKey: "appNav.perfil", icon: UserCircle },
 ];
 
 function AppLayout() {
   const { session, loading, signOut, supabase, user } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const [hasCycle, setHasCycle] = useState<boolean | null>(null);
@@ -110,8 +113,9 @@ function AppLayout() {
           </div>
           <div className="flex items-center gap-3">
             <ExchangeRateTicker />
+            <LanguageSwitcher />
             <Button variant="ghost" size="sm" onClick={() => { signOut(); navigate({ to: "/" }); }}>
-              <LogOut className="h-4 w-4 mr-2" /> Sair
+              <LogOut className="h-4 w-4 mr-2" /> {t("appNav.sair")}
             </Button>
           </div>
         </div>
@@ -155,11 +159,13 @@ function NoPacoteBlock() {
 }
 
 function SidebarContent({ pathname, hasCycle }: { pathname: string; hasCycle: boolean | null }) {
+  const { t } = useLanguage();
   return (
     <nav className="space-y-1 pt-4">
-      {nav.map(({ to, label, icon: Icon, exact, free }) => {
+      {nav.map(({ to, labelKey, icon: Icon, exact, free }) => {
         const active = exact ? pathname === to : pathname.startsWith(to);
         const locked = hasCycle === false && !free;
+        const label = t(labelKey);
         if (locked) {
           return (
             <span key={to} className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground/40 cursor-not-allowed select-none">

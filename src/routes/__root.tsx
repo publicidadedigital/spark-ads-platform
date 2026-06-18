@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-router";
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/lib/supabase/auth";
+import { LanguageProvider } from "@/lib/i18n/context";
 import { Toaster } from "@/components/ui/sonner";
 import { viralHubLogo } from "@/assets/viral-hub-logo";
 
@@ -93,10 +94,12 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Outlet />
-        <Toaster />
-      </AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <Outlet />
+          <Toaster />
+        </AuthProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }

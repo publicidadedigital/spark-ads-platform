@@ -8,6 +8,8 @@ import {
 import heroImg from "@/assets/hero-influencer.jpg";
 import teamImg from "@/assets/creators-team.jpg";
 import phoneImg from "@/assets/phone-dashboard.jpg";
+import { useLanguage } from "@/lib/i18n/context";
+import { LanguageSwitcher } from "@/lib/i18n/LanguageSwitcher";
 
 
 export const Route = createFileRoute("/")({ component: Landing });
@@ -31,6 +33,7 @@ function Landing() {
 }
 
 function Header() {
+  const { t } = useLanguage();
   return (
     <header className="border-b border-border/50 backdrop-blur-md sticky top-0 z-50 bg-background/70">
       <div className="container mx-auto flex items-center justify-between px-4 py-4">
@@ -39,14 +42,15 @@ function Header() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
-          <a href="#como-funciona" className="hover:text-foreground transition">Como funciona</a>
-          <a href="#planos" className="hover:text-foreground transition">Planos</a>
-          <Link to="/anunciante" className="hover:text-foreground transition">Anunciantes</Link>
-          <a href="#compliance" className="hover:text-foreground transition">Compliance</a>
+          <a href="#como-funciona" className="hover:text-foreground transition">{t("nav.comoFunciona")}</a>
+          <a href="#planos" className="hover:text-foreground transition">{t("nav.planos")}</a>
+          <Link to="/anunciante" className="hover:text-foreground transition">{t("nav.anunciantes")}</Link>
+          <a href="#compliance" className="hover:text-foreground transition">{t("nav.compliance")}</a>
         </nav>
         <div className="flex items-center gap-2">
-          <Link to="/login"><Button variant="ghost" size="sm">Entrar</Button></Link>
-          <Link to="/cadastro"><Button size="sm" className="bg-gold-gradient text-primary-foreground">Cadastrar</Button></Link>
+          <LanguageSwitcher />
+          <Link to="/login"><Button variant="ghost" size="sm">{t("nav.entrar")}</Button></Link>
+          <Link to="/cadastro"><Button size="sm" className="bg-gold-gradient text-primary-foreground">{t("nav.cadastrar")}</Button></Link>
         </div>
       </div>
     </header>
@@ -54,25 +58,25 @@ function Header() {
 }
 
 function Hero() {
+  const { t } = useLanguage();
   return (
     <section className="container mx-auto px-4 py-16 md:py-24">
       <div className="grid md:grid-cols-2 gap-10 items-center">
         <div className="text-center md:text-left">
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
-            Compartilhe. <span className="gold-text-gradient">Monetize.</span><br /> Construa renda.
+            {t("hero.title1")} <span className="gold-text-gradient">{t("hero.title2")}</span><br /> {t("hero.title3")}
           </h1>
           <p className="text-lg text-muted-foreground mb-8">
-            Viral Hub conecta você às melhores campanhas digitais. Compartilhe 5 publicidades por dia
-            no seu Instagram e receba bonificações diárias, indicações multinível e rentabilidade de equipe.
+            {t("hero.subtitle")}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
             <Link to="/cadastro">
               <Button size="lg" className="bg-gold-gradient text-primary-foreground shadow-gold">
-                Começar agora <ArrowRight className="ml-2 h-4 w-4" />
+                {t("hero.cta")} <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
             <a href="#como-funciona">
-              <Button size="lg" variant="outline">Ver como funciona</Button>
+              <Button size="lg" variant="outline">{t("hero.ctaSecondary")}</Button>
             </a>
           </div>
         </div>
@@ -93,11 +97,12 @@ function Hero() {
 
 
 function Stats() {
+  const { t } = useLanguage();
   const items = [
-    { v: "200%", l: "Limite por ciclo de pacote" },
-    { v: "5+10", l: "Níveis de indicação e equipe" },
-    { v: "5/dia", l: "Compartilhamentos por dia" },
-    { v: "385 dias", l: "Tempo médio para dobrar o pacote" },
+    { v: "200%", l: t("stats.limite") },
+    { v: "5+10", l: t("stats.niveis") },
+    { v: "5/dia", l: t("stats.compartilhamentos") },
+    { v: "385 dias", l: t("stats.tempo") },
   ];
   return (
     <section className="container mx-auto px-4 py-12 grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -112,19 +117,20 @@ function Stats() {
 }
 
 function Features() {
+  const { t } = useLanguage();
   const items = [
-    { icon: Share2, t: "Campanhas curadas", d: "Receba diariamente publicidades aprovadas, com texto sugerido e instruções claras." },
-    { icon: Wallet, t: "Bonificação diária", d: "Receba ganhos diários ao cumprir os 5 compartilhamentos do dia." },
-    { icon: Users, t: "Programa de afiliados", d: "Indicação 20% no 1º nível, 5% do 2º ao 5º; rentabilidade de equipe 1% até o 10º nível." },
-    { icon: TrendingUp, t: "Ciclo até 200%", d: "Acompanhe seu progresso até atingir o limite e renove para iniciar um novo ciclo." },
-    { icon: Shield, t: "Antifraude robusto", d: "Validação de CPF, e-mail, telefone e Instagram únicos, fingerprint de dispositivo e análise manual." },
-    { icon: CheckCircle2, t: "Aprovação manual", d: "Cada compartilhamento passa por análise para garantir qualidade e conformidade." },
+    { icon: Share2, t: t("features.campanhas.t"), d: t("features.campanhas.d") },
+    { icon: Wallet, t: t("features.bonificacao.t"), d: t("features.bonificacao.d") },
+    { icon: Users, t: t("features.afiliados.t"), d: t("features.afiliados.d") },
+    { icon: TrendingUp, t: t("features.ciclo.t"), d: t("features.ciclo.d") },
+    { icon: Shield, t: t("features.antifraude.t"), d: t("features.antifraude.d") },
+    { icon: CheckCircle2, t: t("features.aprovacao.t"), d: t("features.aprovacao.d") },
   ];
   return (
     <section id="como-funciona" className="container mx-auto px-4 py-20">
       <div className="text-center mb-12">
-        <h2 className="text-3xl md:text-4xl font-bold mb-3">Tudo que você precisa para crescer</h2>
-        <p className="text-muted-foreground">Plataforma completa, segura e transparente.</p>
+        <h2 className="text-3xl md:text-4xl font-bold mb-3">{t("features.title")}</h2>
+        <p className="text-muted-foreground">{t("features.subtitle")}</p>
       </div>
       <div className="grid md:grid-cols-3 gap-4">
         {items.map(({ icon: Icon, t, d }) => (
@@ -140,6 +146,7 @@ function Features() {
 }
 
 function Showcase() {
+  const { t } = useLanguage();
   return (
     <section className="container mx-auto px-4 py-20">
       <div className="grid md:grid-cols-2 gap-10 items-center">
@@ -156,16 +163,15 @@ function Showcase() {
         </div>
         <div className="order-1 md:order-2">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Acompanhe seus ganhos <span className="gold-text-gradient">em tempo real</span>
+            {t("showcase.ganhos.title1")} <span className="gold-text-gradient">{t("showcase.ganhos.title2")}</span>
           </h2>
           <p className="text-muted-foreground mb-6">
-            Visualize a evolução do seu ciclo, bonificações diárias, indicações e rentabilidade de equipe
-            num painel transparente, no celular ou no desktop.
+            {t("showcase.ganhos.text")}
           </p>
           <ul className="space-y-3 text-sm">
-            <li className="flex gap-2"><CheckCircle2 className="h-5 w-5 text-primary shrink-0" /> Painel diário com progresso do ciclo</li>
-            <li className="flex gap-2"><CheckCircle2 className="h-5 w-5 text-primary shrink-0" /> Extrato detalhado de bônus e indicações</li>
-            <li className="flex gap-2"><CheckCircle2 className="h-5 w-5 text-primary shrink-0" /> Solicitação de saque rápida e segura</li>
+            <li className="flex gap-2"><CheckCircle2 className="h-5 w-5 text-primary shrink-0" /> {t("showcase.ganhos.li1")}</li>
+            <li className="flex gap-2"><CheckCircle2 className="h-5 w-5 text-primary shrink-0" /> {t("showcase.ganhos.li2")}</li>
+            <li className="flex gap-2"><CheckCircle2 className="h-5 w-5 text-primary shrink-0" /> {t("showcase.ganhos.li3")}</li>
           </ul>
         </div>
       </div>
@@ -173,15 +179,14 @@ function Showcase() {
       <div className="grid md:grid-cols-2 gap-10 items-center mt-24">
         <div>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Uma comunidade de <span className="gold-text-gradient">criadores reais</span>
+            {t("showcase.comunidade.title1")} <span className="gold-text-gradient">{t("showcase.comunidade.title2")}</span>
           </h2>
           <p className="text-muted-foreground mb-6">
-            Milhares de criadores já fazem parte da rede Viral Hub, transformando o tempo nas redes sociais
-            em uma nova fonte de renda — com transparência, suporte e regras claras.
+            {t("showcase.comunidade.text")}
           </p>
           <Link to="/cadastro">
             <Button size="lg" className="bg-gold-gradient text-primary-foreground shadow-gold">
-              Fazer parte agora <ArrowRight className="ml-2 h-4 w-4" />
+              {t("showcase.comunidade.cta")} <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
         </div>
@@ -202,23 +207,24 @@ function Showcase() {
 }
 
 function Testimonials() {
+  const { t } = useLanguage();
   const depoimentos = [
     {
-      nome: "Ana Clara M.",
-      funcao: "Criadora de conteúdo — São Paulo",
-      texto: "Entrei na Viral Hub há 3 meses e já recuperei o valor do pacote. Compartilho no meu Instagram de moda e o painel mostra tudo em tempo real. Super transparente!",
+      nome: t("testimonials.1.nome"),
+      funcao: t("testimonials.1.funcao"),
+      texto: t("testimonials.1.texto"),
       nota: 5,
     },
     {
-      nome: "Lucas Ribeiro",
-      funcao: "Digital creator — Rio de Janeiro",
-      texto: "A plataforma mudou minha rotina. Antes só postava por hobby, agora tenho uma renda extra consistente todos os dias. O suporte também é excelente.",
+      nome: t("testimonials.2.nome"),
+      funcao: t("testimonials.2.funcao"),
+      texto: t("testimonials.2.texto"),
       nota: 5,
     },
     {
-      nome: "Mariana Souza",
-      funcao: "Influencer — Belo Horizonte",
-      texto: "Fiquei no Inicial por 2 ciclos, depois fiz o upgrade. Hoje ganho por compartilhamento, indicação e equipe. A melhor decisão que tomei no digital.",
+      nome: t("testimonials.3.nome"),
+      funcao: t("testimonials.3.funcao"),
+      texto: t("testimonials.3.texto"),
       nota: 5,
     },
   ];
@@ -226,9 +232,9 @@ function Testimonials() {
   return (
     <section className="container mx-auto px-4 py-20">
       <div className="text-center mb-12">
-        <h2 className="text-3xl md:text-4xl font-bold mb-3">Quem já usa, recomenda</h2>
+        <h2 className="text-3xl md:text-4xl font-bold mb-3">{t("testimonials.title")}</h2>
         <p className="text-muted-foreground max-w-xl mx-auto">
-          Depoimentos de criadores reais que transformaram seu tempo nas redes em renda.
+          {t("testimonials.subtitle")}
         </p>
       </div>
       <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
@@ -254,32 +260,33 @@ function Testimonials() {
 }
 
 function Plans() {
+  const { t } = useLanguage();
   const items = [
-    { n: "Start", v: "$ 70", diario: "$ 0.18", desc: "Comece a divulgar e ganhar." },
-    { n: "Plus", v: "$ 130", diario: "$ 0.34", desc: "Mais bonificação por ciclo." },
-    { n: "Pro", v: "$ 310", diario: "$ 0.81", desc: "Retorno acelerado por compartilhamento." },
-    { n: "Elite", v: "$ 1,010", diario: "$ 2.63", desc: "Máximo potencial de ganhos." },
+    { n: "Start", v: "$ 70", diario: "$ 0.18", desc: t("plans.start.desc") },
+    { n: "Plus", v: "$ 130", diario: "$ 0.34", desc: t("plans.plus.desc") },
+    { n: "Pro", v: "$ 310", diario: "$ 0.81", desc: t("plans.pro.desc") },
+    { n: "Elite", v: "$ 1,010", diario: "$ 2.63", desc: t("plans.elite.desc") },
   ];
   return (
     <section id="planos" className="container mx-auto px-4 py-20">
       <div className="text-center mb-12">
-        <h2 className="text-3xl md:text-4xl font-bold mb-3">Pacotes disponíveis</h2>
-        <p className="text-muted-foreground">Escolha o pacote ideal para o seu objetivo.</p>
+        <h2 className="text-3xl md:text-4xl font-bold mb-3">{t("plans.title")}</h2>
+        <p className="text-muted-foreground">{t("plans.subtitle")}</p>
       </div>
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
         {items.map((p, i) => (
           <Card key={p.n} className={`p-8 bg-card/50 border-border/50 ${i === 3 ? "border-gold/60 shadow-gold" : ""}`}>
-            <div className="text-sm text-muted-foreground">Pacote {p.n}</div>
+            <div className="text-sm text-muted-foreground">{t("plans.pacote")} {p.n}</div>
             <div className="text-4xl font-bold gold-text-gradient mt-2">{p.v}</div>
             <p className="text-sm text-muted-foreground mt-3">{p.desc}</p>
             <ul className="mt-6 space-y-2 text-sm">
-              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> Ganho diário {p.diario}</li>
-              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> Bônus de até 200%</li>
-              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> Curso exclusivo {p.n}</li>
-              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> Programa de afiliados</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> {t("plans.ganhoDiario")} {p.diario}</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> {t("plans.bonusAte")}</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> {t("plans.cursoExclusivo")} {p.n}</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> {t("plans.afiliados")}</li>
             </ul>
             <Link to="/cadastro" className="block mt-6">
-              <Button className="w-full bg-gold-gradient text-primary-foreground">Quero esse</Button>
+              <Button className="w-full bg-gold-gradient text-primary-foreground">{t("plans.cta")}</Button>
             </Link>
           </Card>
         ))}
@@ -289,23 +296,24 @@ function Plans() {
 }
 
 function Compliance() {
+  const { t } = useLanguage();
   return (
     <section id="compliance" className="container mx-auto px-4 py-20">
       <Card className="p-8 md:p-12 bg-card/50 border-gold/30 max-w-4xl mx-auto">
         <Shield className="h-10 w-10 text-gold mb-4" />
-        <h2 className="text-2xl md:text-3xl font-bold mb-4">Transparência e regras claras</h2>
+        <h2 className="text-2xl md:text-3xl font-bold mb-4">{t("compliance.title")}</h2>
         <ul className="space-y-3 text-sm text-muted-foreground">
-          <li>• Bonificações dependem do cumprimento integral das regras de compartilhamento.</li>
-          <li>• Não há promessa de renda garantida — ganhos variam conforme engajamento.</li>
-          <li>• Cadastros falsos, múltiplas contas ou compartilhamentos fora do perfil cadastrado podem gerar bloqueio.</li>
-          <li>• Você deve usar apenas o perfil Instagram cadastrado em sua conta.</li>
-          <li>• A plataforma pode rejeitar compartilhamentos que não cumpram as regras.</li>
+          <li>• {t("compliance.li1")}</li>
+          <li>• {t("compliance.li2")}</li>
+          <li>• {t("compliance.li3")}</li>
+          <li>• {t("compliance.li4")}</li>
+          <li>• {t("compliance.li5")}</li>
         </ul>
         <div className="flex flex-wrap gap-3 mt-6">
-          <Link to="/legal/termos"><Button variant="outline" size="sm">Termos de uso</Button></Link>
-          <Link to="/legal/privacidade"><Button variant="outline" size="sm">Privacidade</Button></Link>
-          <Link to="/legal/bonificacao"><Button variant="outline" size="sm">Regras de bonificação</Button></Link>
-          <Link to="/legal/antifraude"><Button variant="outline" size="sm">Política antifraude</Button></Link>
+          <Link to="/legal/termos"><Button variant="outline" size="sm">{t("legal.termos")}</Button></Link>
+          <Link to="/legal/privacidade"><Button variant="outline" size="sm">{t("legal.privacidade")}</Button></Link>
+          <Link to="/legal/bonificacao"><Button variant="outline" size="sm">{t("legal.bonificacao")}</Button></Link>
+          <Link to="/legal/antifraude"><Button variant="outline" size="sm">{t("legal.antifraude")}</Button></Link>
         </div>
       </Card>
     </section>
@@ -313,45 +321,24 @@ function Compliance() {
 }
 
 function Disclaimer() {
+  const { t } = useLanguage();
   return (
     <section id="disclaimer" className="container mx-auto px-4 py-20">
       <Card className="p-8 md:p-12 bg-card/50 border-border/50 max-w-4xl mx-auto">
         <div className="flex items-center gap-3 mb-4">
           <Shield className="h-8 w-8 text-muted-foreground" />
-          <h2 className="text-2xl md:text-3xl font-bold">Aviso importante (Disclaimer)</h2>
+          <h2 className="text-2xl md:text-3xl font-bold">{t("disclaimer.title")}</h2>
         </div>
         <div className="space-y-4 text-sm text-muted-foreground leading-relaxed">
-          <p>
-            A Viral Hub é uma plataforma de participação em campanhas publicitárias e atividades de
-            divulgação digital. <strong className="text-foreground">Não somos uma instituição financeira,
-            banco, corretora, fundo de investimento, distribuidora de valores mobiliários ou empresa
-            de investimentos</strong>, e não oferecemos produtos financeiros de qualquer natureza.
-          </p>
-          <p>
-            A aquisição de pacotes representa a contratação de um plano de participação em campanhas e
-            atividades da plataforma. <strong className="text-foreground">Em nenhuma hipótese a compra
-            de pacotes deve ser interpretada como investimento, aplicação financeira ou promessa de
-            rentabilidade.</strong> Não há garantia, previsão ou compromisso de ganhos, lucros ou retorno
-            sobre qualquer valor pago.
-          </p>
-          <p>
-            Eventuais recompensas e bonificações dependem do cumprimento integral das atividades exigidas
-            (como compartilhamentos diários), da disponibilidade de campanhas no período, das regras do
-            plano escolhido e/ou do desempenho do participante na construção e desenvolvimento de equipe,
-            conforme as políticas internas da plataforma. <strong className="text-foreground">Os resultados
-            podem variar significativamente de pessoa para pessoa</strong> e estão sujeitos a fatores
-            individuais de engajamento, dedicação e conformidade com as regras.
-          </p>
-          <p>
-            Antes de participar, é responsabilidade do usuário ler e compreender integralmente os Termos de
-            Uso, a Política de Privacidade, as Regras de Bonificação e a Política Antifraude. Ao aderir à
-            plataforma, o usuário declara ciência destas condições e da natureza não financeira da atividade.
-          </p>
+          <p>{t("disclaimer.p1")}</p>
+          <p>{t("disclaimer.p2")}</p>
+          <p>{t("disclaimer.p3")}</p>
+          <p>{t("disclaimer.p4")}</p>
         </div>
         <div className="flex flex-wrap gap-3 mt-6">
-          <Link to="/legal/termos"><Button variant="outline" size="sm">Termos de uso</Button></Link>
-          <Link to="/legal/bonificacao"><Button variant="outline" size="sm">Regras de bonificação</Button></Link>
-          <Link to="/legal/privacidade"><Button variant="outline" size="sm">Privacidade</Button></Link>
+          <Link to="/legal/termos"><Button variant="outline" size="sm">{t("legal.termos")}</Button></Link>
+          <Link to="/legal/bonificacao"><Button variant="outline" size="sm">{t("legal.bonificacao")}</Button></Link>
+          <Link to="/legal/privacidade"><Button variant="outline" size="sm">{t("legal.privacidade")}</Button></Link>
         </div>
       </Card>
     </section>
@@ -359,33 +346,32 @@ function Disclaimer() {
 }
 
 function CTA() {
+  const { t } = useLanguage();
   return (
     <section className="container mx-auto px-4 py-20 text-center">
-      <h2 className="text-3xl md:text-5xl font-bold mb-4">Pronto para começar?</h2>
-      <p className="text-muted-foreground mb-8">Crie sua conta em menos de 2 minutos.</p>
+      <h2 className="text-3xl md:text-5xl font-bold mb-4">{t("cta.title")}</h2>
+      <p className="text-muted-foreground mb-8">{t("cta.subtitle")}</p>
       <Link to="/cadastro">
         <Button size="lg" className="bg-gold-gradient text-primary-foreground shadow-gold">
-          Criar minha conta <ArrowRight className="ml-2 h-4 w-4" />
+          {t("cta.button")} <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </Link>
       <p className="text-xs text-muted-foreground mt-8 max-w-2xl mx-auto">
-        Ao prosseguir, você declara ciência de que a Viral Hub não é instituição financeira e que a aquisição
-        de pacotes não constitui investimento, não havendo garantia de ganhos. Recompensas dependem do
-        cumprimento das atividades e regras do plano. <a href="#disclaimer" className="underline hover:text-foreground">Leia o aviso completo</a>.
+        {t("cta.disclaimer1")} <a href="#disclaimer" className="underline hover:text-foreground">{t("cta.disclaimerLink")}</a>.
       </p>
     </section>
   );
 }
 
 function Footer() {
+  const { t } = useLanguage();
   return (
     <footer className="border-t border-border/50 mt-12">
       <div className="container mx-auto px-4 py-8 space-y-3 text-center text-xs text-muted-foreground">
         <p className="max-w-3xl mx-auto">
-          A Viral Hub não é uma instituição financeira e a compra de pacotes não constitui investimento.
-          Não há promessa de ganhos — recompensas dependem do cumprimento das atividades e regras da plataforma.
+          {t("footer.disclaimer")}
         </p>
-        <p>© {new Date().getFullYear()} Viral Hub. Todos os direitos reservados.</p>
+        <p>© {new Date().getFullYear()} Viral Hub. {t("footer.rights")}</p>
       </div>
     </footer>
   );

@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/supabase/auth";
+import { useLanguage } from "@/lib/i18n/context";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -74,6 +75,7 @@ const DAILY_GOAL = 5;
 
 function Dashboard() {
   const { supabase, user } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [s, setS] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -174,7 +176,7 @@ function Dashboard() {
     })();
   }, [supabase, user]);
 
-  if (loading) return <p className="text-muted-foreground">Carregando dashboard...</p>;
+  if (loading) return <p className="text-muted-foreground">{t("dashboard.loading")}</p>;
   if (!s) return <EmptyState />;
 
   // Blocked: no active package
@@ -184,8 +186,8 @@ function Dashboard() {
         <Card className="border-border/50 bg-card/60 p-6">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h1 className="text-2xl font-bold">Olá, {firstName(s.nome)}!</h1>
-              <p className="mt-1 text-sm text-muted-foreground">Bem-vindo à Viral Hub.</p>
+              <h1 className="text-2xl font-bold">{t("dashboard.greeting")}, {firstName(s.nome)}!</h1>
+              <p className="mt-1 text-sm text-muted-foreground">{t("dashboard.welcome")}</p>
             </div>
             <StatusBadge status={s.status} />
           </div>
@@ -195,12 +197,12 @@ function Dashboard() {
             <div className="flex items-center justify-center rounded-full bg-primary/10 w-16 h-16 mx-auto">
               <Grid2X2 className="h-8 w-8 text-primary" />
             </div>
-            <h2 className="text-xl font-bold">Ative um pacote para acessar o dashboard</h2>
+            <h2 className="text-xl font-bold">{t("dashboard.activatePackageTitle")}</h2>
             <p className="text-sm text-muted-foreground">
-              Para participar das campanhas, ganhar bônus diários e acessar todos os recursos, você precisa ter um pacote ativo.
+              {t("dashboard.activatePackageDesc")}
             </p>
             <Link to="/app/pacotes">
-              <Button className="w-full bg-primary text-primary-foreground">Ver pacotes disponíveis</Button>
+              <Button className="w-full bg-primary text-primary-foreground">{t("dashboard.viewAvailablePackages")}</Button>
             </Link>
           </Card>
         </div>
@@ -222,9 +224,9 @@ function Dashboard() {
           <Card className="overflow-hidden border-primary/15 bg-card/50 p-4 md:p-5">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div>
-                <h1 className="text-3xl font-bold tracking-normal">Olá, {firstName(s.nome)}!</h1>
+                <h1 className="text-3xl font-bold tracking-normal">{t("dashboard.greeting")}, {firstName(s.nome)}!</h1>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Cada ação te aproxima de grandes conquistas. Continue assim!
+                  {t("dashboard.motivational")}
                 </p>
               </div>
               <div className="flex items-center gap-3">
@@ -236,20 +238,20 @@ function Dashboard() {
             </div>
 
             <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              <TopMetric icon={Wallet} label="Saldo do ciclo" value={formatMoney(s.saldo)} sub="Bônus acumulados no ciclo" tone="violet" />
-              <TopMetric icon={Star} label="Pontos acumulados" value={formatNumber(s.points)} sub="Este mês" tone="purple" />
-              <TopMetric icon={Share2} label="Compartilhamentos hoje" value={`${s.sharesHoje} / ${s.metaDia}`} sub={restantes ? `Faltam ${restantes} para o bônus` : "Meta concluída"} tone="primary" />
-              <TopMetric icon={Goal} label="Ciclo (até 200%)" value={`${cyclePercent}%`} sub="Progresso atual" tone="ring" progress={cyclePercent} />
+              <TopMetric icon={Wallet} label={t("dashboard.cycleBalance")} value={formatMoney(s.saldo)} sub={t("dashboard.cycleBalanceSub")} tone="violet" />
+              <TopMetric icon={Star} label={t("dashboard.accumulatedPoints")} value={formatNumber(s.points)} sub={t("dashboard.thisMonth")} tone="purple" />
+              <TopMetric icon={Share2} label={t("dashboard.sharesToday")} value={`${s.sharesHoje} / ${s.metaDia}`} sub={restantes ? t("dashboard.remainingForBonus").replace("{n}", String(restantes)) : t("dashboard.goalCompleted")} tone="primary" />
+              <TopMetric icon={Goal} label={t("dashboard.cycleUntil200")} value={`${cyclePercent}%`} sub={t("dashboard.currentProgress")} tone="ring" progress={cyclePercent} />
             </div>
           </Card>
 
           <JourneyCard points={s.points} nextPrize={nextPrize} />
 
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <GainCard icon={TrendingUp} label="Ganhos diários" value={s.ganhosDiarios} tone="success" />
-            <GainCard icon={Users} label="Ganhos por indicação" value={s.ganhosIndicacao} tone="primary" />
-            <GainCard icon={Crown} label="Ganhos de equipe" value={s.ganhosEquipe} tone="warning" />
-            <GainCard icon={Wallet} label="Bônus do ciclo" value={s.saldo} change={`${cyclePercent}% do ciclo concluído`} tone="success" />
+            <GainCard icon={TrendingUp} label={t("dashboard.dailyEarnings")} value={s.ganhosDiarios} tone="success" />
+            <GainCard icon={Users} label={t("dashboard.referralEarnings")} value={s.ganhosIndicacao} tone="primary" />
+            <GainCard icon={Crown} label={t("dashboard.teamEarnings")} value={s.ganhosEquipe} tone="warning" />
+            <GainCard icon={Wallet} label={t("dashboard.cycleBonus")} value={s.saldo} change={t("dashboard.cycleCompletedPercent").replace("{n}", String(cyclePercent))} tone="success" />
           </div>
 
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.96fr)]">
@@ -263,11 +265,11 @@ function Dashboard() {
                 <Trophy className="h-8 w-8" />
               </div>
               <div>
-                <h3 className="font-semibold">Você está mandando muito bem!</h3>
+                <h3 className="font-semibold">{t("dashboard.doingWell")}</h3>
                 <p className="text-sm text-muted-foreground">
                   {s.points > 0
-                    ? `${formatNumber(s.points)} pontos acumulados — continue assim!`
-                    : "Complete publicações diárias para acumular pontos."}
+                    ? t("dashboard.pointsAccumulatedKeepGoing").replace("{n}", formatNumber(s.points))
+                    : t("dashboard.completeDailyPostsForPoints")}
                 </p>
               </div>
             </div>
@@ -309,12 +311,12 @@ function TopMetric({ icon: Icon, label, value, sub, tone, progress }: any) {
   );
 }
 
-const PRIZES = [
-  { title: "iPhone", points: 10000, icon: Rocket },
-  { title: "Viagem dos sonhos", points: 30000, icon: Medal },
-] as const;
-
 function JourneyCard({ points, nextPrize }: { points: number; nextPrize: ReturnType<typeof nextAchievement> }) {
+  const { t } = useLanguage();
+  const PRIZES = [
+    { title: t("dashboard.prizeIphone"), points: 10000, icon: Rocket },
+    { title: t("dashboard.prizeTrip"), points: 30000, icon: Medal },
+  ] as const;
   const maxPoints = PRIZES[PRIZES.length - 1].points;
   const percent = Math.min(100, (points / maxPoints) * 100);
 
@@ -324,12 +326,12 @@ function JourneyCard({ points, nextPrize }: { points: number; nextPrize: ReturnT
         <div className="flex items-start gap-3">
           <Crown className="mt-1 h-5 w-5 text-amber-300" />
           <div>
-            <h2 className="font-semibold">Sua jornada de conquistas</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Acumule pontos e troque por prêmios incríveis!</p>
+            <h2 className="font-semibold">{t("dashboard.journeyTitle")}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{t("dashboard.journeySubtitle")}</p>
           </div>
         </div>
         <Badge variant="outline" className="border-violet-400/40 bg-violet-500/15 text-violet-200 shrink-0">
-          Próxima conquista: {formatNumber(nextPrize.target)} pontos
+          {t("dashboard.nextAchievement").replace("{n}", formatNumber(nextPrize.target))}
         </Badge>
       </div>
 
@@ -337,7 +339,7 @@ function JourneyCard({ points, nextPrize }: { points: number; nextPrize: ReturnT
         <div className="mb-3 flex items-end justify-between gap-4">
           <div>
             <p className="text-2xl font-bold">{formatNumber(points)}</p>
-            <p className="text-sm text-muted-foreground">pontos acumulados</p>
+            <p className="text-sm text-muted-foreground">{t("dashboard.pointsAccumulated")}</p>
           </div>
         </div>
         <div className="relative h-3 rounded-full bg-primary/10">
@@ -362,9 +364,9 @@ function JourneyCard({ points, nextPrize }: { points: number; nextPrize: ReturnT
               </div>
               <div>
                 <p className="text-sm font-medium">{prize.title}</p>
-                <p className="text-sm font-semibold">{formatNumber(prize.points)} pontos</p>
+                <p className="text-sm font-semibold">{formatNumber(prize.points)} {t("dashboard.points")}</p>
                 <Badge className={unlocked ? "mt-1 bg-success/15 text-success hover:bg-success/15" : "mt-1 bg-muted text-muted-foreground hover:bg-muted"}>
-                  {unlocked ? "Disponível" : "Bloqueado"}
+                  {unlocked ? t("dashboard.available") : t("dashboard.locked")}
                 </Badge>
               </div>
             </div>
@@ -399,13 +401,14 @@ function GainCard({ icon: Icon, label, value, change, tone }: any) {
 }
 
 function EarningsChart({ data, total }: { data: any[]; total: number }) {
+  const { t } = useLanguage();
   const values = data.map((item) => item.valor);
   const max = Math.max(...values, 0);
   return (
     <Card className="border-primary/15 bg-card/50 p-5">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <h3 className="font-semibold">Evolução dos ganhos</h3>
-        <Button size="sm" variant="outline">Últimos 7 dias</Button>
+        <h3 className="font-semibold">{t("dashboard.earningsEvolution")}</h3>
+        <Button size="sm" variant="outline">{t("dashboard.last7Days")}</Button>
       </div>
       <div className="h-56">
         <ResponsiveContainer width="100%" height="100%">
@@ -428,25 +431,26 @@ function EarningsChart({ data, total }: { data: any[]; total: number }) {
         </ResponsiveContainer>
       </div>
       <div className="mt-4 grid gap-3 border-t border-border/50 pt-4 sm:grid-cols-3">
-        <MiniStat icon={Wallet} label="Total no período" value={formatMoney(total)} />
-        <MiniStat icon={TrendingUp} label="Maior ganho diário" value={formatMoney(max)} />
-        <MiniStat icon={Sparkles} label="Média diária" value={formatMoney(total / Math.max(1, data.filter((d: any) => d.valor > 0).length))} />
+        <MiniStat icon={Wallet} label={t("dashboard.totalInPeriod")} value={formatMoney(total)} />
+        <MiniStat icon={TrendingUp} label={t("dashboard.highestDailyEarning")} value={formatMoney(max)} />
+        <MiniStat icon={Sparkles} label={t("dashboard.dailyAverage")} value={formatMoney(total / Math.max(1, data.filter((d: any) => d.valor > 0).length))} />
       </div>
     </Card>
   );
 }
 
 function ActivityCard({ shares }: { shares: Share[] }) {
+  const { t } = useLanguage();
   const activity = shares.length ? shares : [];
   return (
     <Card className="border-primary/15 bg-card/50 p-5">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <h3 className="font-semibold">Atividades recentes</h3>
-        <Button size="sm" variant="outline">Ver todas</Button>
+        <h3 className="font-semibold">{t("dashboard.recentActivity")}</h3>
+        <Button size="sm" variant="outline">{t("dashboard.viewAll")}</Button>
       </div>
       {activity.length === 0 ? (
         <div className="rounded-lg border border-dashed border-primary/20 bg-background/40 p-6 text-center text-sm text-muted-foreground">
-          Nenhuma atividade recente. <Link to="/app/campanhas" className="text-primary hover:underline">Ver campanhas</Link>
+          {t("dashboard.noRecentActivity")} <Link to="/app/campanhas" className="text-primary hover:underline">{t("dashboard.viewCampaigns")}</Link>
         </div>
       ) : (
         <div className="space-y-3">
@@ -456,13 +460,13 @@ function ActivityCard({ shares }: { shares: Share[] }) {
                 <Star className="h-4 w-4" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{activityTitle(item.status)}</p>
-                <p className="truncate text-xs text-muted-foreground">{item.campaigns?.titulo ?? "Campanha"}</p>
+                <p className="truncate text-sm font-medium">{activityTitle(item.status, t)}</p>
+                <p className="truncate text-xs text-muted-foreground">{item.campaigns?.titulo ?? t("dashboard.campaign")}</p>
               </div>
               <div className="text-right">
                 <p className="text-xs text-muted-foreground">{formatShortDate(item.created_at)}</p>
                 <Badge variant="outline" className={item.status === "aprovada" ? "border-success/30 text-success" : "border-amber-400/30 text-amber-300"}>
-                  {item.status === "aprovada" ? "+10 pts" : "Pendente"}
+                  {item.status === "aprovada" ? t("dashboard.pointsAbbrev") : t("dashboard.pending")}
                 </Badge>
               </div>
             </div>
@@ -474,15 +478,16 @@ function ActivityCard({ shares }: { shares: Share[] }) {
 }
 
 function DailyGoalCard({ shares, goal }: { shares: number; goal: number }) {
+  const { t } = useLanguage();
   const progress = Math.min(100, Math.round((shares / goal) * 100));
   return (
     <Card className="border-primary/15 bg-card/50 p-5">
-      <h3 className="font-semibold">Meta diária</h3>
+      <h3 className="font-semibold">{t("dashboard.dailyGoal")}</h3>
       <div className="mt-4 flex items-center justify-between gap-4">
         <div>
-          <p className="text-sm text-muted-foreground">Complete suas {goal} publicidades diárias e garanta seu bônus!</p>
+          <p className="text-sm text-muted-foreground">{t("dashboard.completeDailyAdsAndEnsureBonus").replace("{n}", String(goal))}</p>
           <p className="mt-4 text-3xl font-bold">{shares}<span className="text-base text-muted-foreground"> / {goal}</span></p>
-          <p className="text-xs text-muted-foreground">publicações</p>
+          <p className="text-xs text-muted-foreground">{t("dashboard.posts")}</p>
         </div>
         <div className="grid h-24 w-24 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
           <Goal className="h-12 w-12" />
@@ -490,52 +495,55 @@ function DailyGoalCard({ shares, goal }: { shares: number; goal: number }) {
       </div>
       <Progress value={progress} className="mt-4 h-2 bg-primary/10" />
       <Link to="/app/campanhas">
-        <Button className="mt-4 w-full bg-primary text-primary-foreground">Ver minhas publicações</Button>
+        <Button className="mt-4 w-full bg-primary text-primary-foreground">{t("dashboard.viewMyPosts")}</Button>
       </Link>
     </Card>
   );
 }
 
 function ScoreCard({ points }: { points: number }) {
+  const { t } = useLanguage();
   return (
     <Card className="overflow-hidden border-violet-500/25 bg-[radial-gradient(circle_at_right,rgba(124,58,237,0.34),transparent_35%),linear-gradient(180deg,rgba(30,27,75,0.56),rgba(2,6,23,0.86))] p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="font-semibold">Sua pontuação</h3>
+          <h3 className="font-semibold">{t("dashboard.yourScore")}</h3>
           <p className="mt-4 text-3xl font-bold">{formatNumber(points)}</p>
-          <p className="text-sm text-muted-foreground">pontos</p>
+          <p className="text-sm text-muted-foreground">{t("dashboard.points")}</p>
         </div>
         <div className="grid h-20 w-20 place-items-center rounded-full border border-violet-400/40 bg-violet-500/15 text-amber-300">
           <Award className="h-10 w-10" />
         </div>
       </div>
       <div className="mt-5 space-y-3 border-t border-border/35 pt-4 text-sm">
-        <ScoreRow label="Pontos acumulados" value={`${formatNumber(points)} pts`} positive={points > 0} />
+        <ScoreRow label={t("dashboard.pointsAccumulated")} value={`${formatNumber(points)} pts`} positive={points > 0} />
       </div>
     </Card>
   );
 }
 
 function RankingCard({ points, name }: { points: number; name: string }) {
+  const { t } = useLanguage();
   return (
     <Card className="border-primary/15 bg-card/50 p-5">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="font-semibold">Top compartilhadores</h3>
-        <Button size="sm" variant="outline">Ver ranking</Button>
+        <h3 className="font-semibold">{t("dashboard.topSharers")}</h3>
+        <Button size="sm" variant="outline">{t("dashboard.viewRanking")}</Button>
       </div>
       <div className="space-y-2">
         <div className="flex items-center gap-3 rounded-lg border border-primary/40 bg-primary/10 p-2">
           <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-muted text-xs font-bold text-muted-foreground">1</span>
-          <span className="min-w-0 flex-1 truncate text-sm font-medium">Você</span>
+          <span className="min-w-0 flex-1 truncate text-sm font-medium">{t("dashboard.you")}</span>
           <span className="text-sm text-muted-foreground">{formatNumber(points)} pts</span>
         </div>
-        <p className="text-xs text-muted-foreground">O ranking geral sera exibido conforme novos membros entrarem na rede.</p>
+        <p className="text-xs text-muted-foreground">{t("dashboard.rankingPlaceholder")}</p>
       </div>
     </Card>
   );
 }
 
 function DoubleBonusCard({ shares }: { shares: number }) {
+  const { t } = useLanguage();
   return (
     <Card className="border-primary/15 bg-[radial-gradient(circle_at_left,rgba(124,58,237,0.24),transparent_30%),rgba(15,23,42,0.5)] p-5">
       <div className="flex gap-4">
@@ -543,13 +551,13 @@ function DoubleBonusCard({ shares }: { shares: number }) {
           <Rocket className="h-6 w-6" />
         </div>
         <div>
-          <h3 className="font-semibold">Bônus em dobro!</h3>
-          <p className="mt-1 text-sm text-muted-foreground">Complete suas 5 publicações diárias durante 7 dias seguidos e ganhe bônus em dobro!</p>
+          <h3 className="font-semibold">{t("dashboard.doubleBonusTitle")}</h3>
+          <p className="mt-1 text-sm text-muted-foreground">{t("dashboard.doubleBonusDesc")}</p>
         </div>
       </div>
       <div className="mt-4 flex items-center gap-3">
         <Progress value={(shares / 7) * 100} className="h-2 bg-primary/10" />
-        <span className="shrink-0 text-xs text-muted-foreground">{Math.min(shares, 7)} / 7 dias</span>
+        <span className="shrink-0 text-xs text-muted-foreground">{Math.min(shares, 7)} / 7 {t("dashboard.daysAbbrev")}</span>
       </div>
     </Card>
   );
@@ -587,11 +595,12 @@ function ScoreRow({ label, value, positive }: { label: string; value: string; po
 }
 
 function StatusBadge({ status }: { status: string }) {
+  const { t } = useLanguage();
   const map: any = {
-    ativo: "Ativo",
-    pendente: "Pendente",
-    bloqueado: "Bloqueado",
-    aguardando_renovacao: "Aguardando renovação",
+    ativo: t("dashboard.statusAtivo"),
+    pendente: t("dashboard.statusPendente"),
+    bloqueado: t("dashboard.statusBloqueado"),
+    aguardando_renovacao: t("dashboard.statusAguardandoRenovacao"),
   };
   return (
     <Badge className="border-success/30 bg-success/15 text-success hover:bg-success/15">
@@ -601,11 +610,12 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function EmptyState() {
+  const { t } = useLanguage();
   return (
     <Card className="border-border/50 bg-card/50 p-10 text-center">
-      <h3 className="font-semibold">Perfil não encontrado</h3>
+      <h3 className="font-semibold">{t("dashboard.profileNotFound")}</h3>
       <p className="mt-2 text-sm text-muted-foreground">
-        Seu perfil ainda não foi criado. Verifique o e-mail de confirmação ou contate o suporte.
+        {t("dashboard.profileNotFoundDesc")}
       </p>
     </Card>
   );
@@ -637,11 +647,11 @@ function nextAchievement(points: number) {
   return { target, remaining: Math.max(0, target - points) };
 }
 
-function activityTitle(status: string) {
-  if (status === "aprovada") return "Compartilhamento validado";
-  if (status === "rejeitada") return "Publicação rejeitada";
-  if (status === "pendente") return "Publicação em análise";
-  return "Aguardando validação";
+function activityTitle(status: string, t: (key: string) => string) {
+  if (status === "aprovada") return t("dashboard.activityApproved");
+  if (status === "rejeitada") return t("dashboard.activityRejected");
+  if (status === "pendente") return t("dashboard.activityPending");
+  return t("dashboard.activityAwaitingValidation");
 }
 
 function firstName(value: string) {
@@ -670,6 +680,7 @@ function formatShortDate(value: string) {
 }
 
 function CycleWarningBanner({ cycle }: { cycle: Stats["cycle"] }) {
+  const { t } = useLanguage();
   if (!cycle) return null;
 
   const pct = cycle.percentual;
@@ -690,18 +701,18 @@ function CycleWarningBanner({ cycle }: { cycle: Stats["cycle"] }) {
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-sm">
             {expired
-              ? "Prazo expirado — pontos perdidos"
-              : `Seu ciclo atingiu 200%! Renove em até ${daysLeft}d para manter seus pontos.`}
+              ? t("dashboard.cycleExpiredTitle")
+              : t("dashboard.cycleReachedRenew").replace("{n}", String(daysLeft))}
           </p>
           <p className="text-xs mt-0.5 opacity-80">
             {expired
-              ? "Você não renovou o pacote dentro do prazo de 7 dias. Todos os pontos acumulados foram zerados."
-              : `Você tem ${daysLeft ?? "poucos"} dia(s) para renovar seu pacote. Se não renovar, todos os pontos acumulados serão perdidos e você recomeça do zero.`}
+              ? t("dashboard.cycleExpiredDesc")
+              : t("dashboard.cycleRenewDaysLeft").replace("{n}", String(daysLeft ?? t("dashboard.fewDays")))}
           </p>
         </div>
         <Link to="/app/renovacao">
           <Button size="sm" variant={expired ? "destructive" : "outline"} className={expired ? "" : "border-amber-400/50 text-amber-300 hover:bg-amber-500/10"}>
-            {expired ? "Ver pacotes" : "Renovar agora"}
+            {expired ? t("dashboard.viewPackages") : t("dashboard.renewNow")}
           </Button>
         </Link>
       </div>
@@ -717,15 +728,15 @@ function CycleWarningBanner({ cycle }: { cycle: Stats["cycle"] }) {
         <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-sm">
-            Seu ciclo está em {pctDisplay}% — faltam apenas {remaining}% para os 200%!
+            {t("dashboard.cycleApproaching200").replace("{pct}", String(pctDisplay)).replace("{remaining}", String(remaining))}
           </p>
           <p className="text-xs mt-0.5 opacity-80">
-            Ao atingir 200%, você terá 7 dias para renovar o pacote e manter todos os seus pontos acumulados. Se não renovar nesse prazo, os pontos serão zerados e você recomeça do zero.
+            {t("dashboard.cycleApproaching200Desc")}
           </p>
         </div>
         <Link to="/app/renovacao">
           <Button size="sm" variant="outline" className="border-warning/40 text-warning hover:bg-warning/10 shrink-0">
-            Ver renovação
+            {t("dashboard.viewRenewal")}
           </Button>
         </Link>
       </div>

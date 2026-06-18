@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/supabase/auth";
+import { useLanguage } from "@/lib/i18n/context";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,15 +26,17 @@ type WithdrawalRequest = {
   admin_notes: string | null;
 };
 
-const statusLabels: Record<string, string> = {
-  solicitado: "Solicitado",
-  em_analise: "Em analise",
-  aprovado: "Aprovado",
-  em_processamento: "Em processamento",
-  pago: "Pago",
-  recusado: "Recusado",
-  cancelado: "Cancelado",
-};
+function getStatusLabels(t: (key: string) => string): Record<string, string> {
+  return {
+    solicitado: t("withdrawal.statusRequested"),
+    em_analise: t("withdrawal.statusInReview"),
+    aprovado: t("withdrawal.statusApproved"),
+    em_processamento: t("withdrawal.statusProcessing"),
+    pago: t("withdrawal.statusPaid"),
+    recusado: t("withdrawal.statusRejected"),
+    cancelado: t("withdrawal.statusCanceled"),
+  };
+}
 
 const statusStyles: Record<string, string> = {
   solicitado: "border-amber-400/30 bg-amber-500/15 text-amber-300",
@@ -59,6 +62,8 @@ function daysUntil(iso: string): number {
 }
 
 function SaquePage() {
+  const { t } = useLanguage();
+  const statusLabels = getStatusLabels(t);
   const { supabase, user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [balance, setBalance] = useState(0);
@@ -129,13 +134,13 @@ function SaquePage() {
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [supabase, user]);
 
-  if (loading) return <p className="text-muted-foreground">Carregando saque...</p>;
+  if (loading) return <p className="text-muted-foreground">{t("withdrawal.loading")}</p>;
 
   return (
     <div className="space-y-4">
       <Card className="border-primary/15 bg-card/50 p-4 md:p-5">
-        <h1 className="text-3xl font-bold tracking-normal">Saque</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Solicite a retirada do seu saldo disponivel e acompanhe suas solicitacoes.</p>
+        <h1 className="text-3xl font-bold tracking-normal">{t("withdrawal.title")}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{t("withdrawal.subtitle")}</p>
 
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <div className="flex items-center gap-3 rounded-lg border border-primary/20 bg-background/45 p-4">
@@ -143,7 +148,7 @@ function SaquePage() {
               <Wallet className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs text-muted-foreground">Disponivel para saque</p>
+              <p className="text-xs text-muted-foreground">{t("withdrawal.available")}</p>
               <p className="text-xl font-bold text-success">{formatMoney(balance)}</p>
             </div>
           </div>
@@ -152,7 +157,7 @@ function SaquePage() {
               <Clock className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs text-muted-foreground">Aguardando liberacao (7d)</p>
+              <p className="text-xs text-muted-foreground">{t("withdrawal.waitingRelease")}</p>
               <p className="text-xl font-bold text-amber-300">{formatMoney(saldoAguardando)}</p>
             </div>
           </div>
@@ -161,7 +166,7 @@ function SaquePage() {
               <XCircle className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs text-muted-foreground">Cancelados</p>
+              <p className="text-xs text-muted-foreground">{t("withdrawal.canceled")}</p>
               <p className="text-xl font-bold text-destructive">{formatMoney(saldoCancelado)}</p>
             </div>
           </div>
@@ -171,17 +176,17 @@ function SaquePage() {
       {holds.length > 0 && (
         <Card className="border-amber-400/25 bg-card/50 p-5">
           <h2 className="font-semibold mb-1 flex items-center gap-2">
-            <Clock className="h-4 w-4 text-amber-300" /> Aguardando liberacao
+            <Clock className="h-4 w-4 text-amber-300" /> {t("withdrawal.waitingReleaseTitle")}
           </h2>
-          <p className="text-xs text-muted-foreground mb-4">Bonuses ficam retidos 7 dias. Apos esse prazo sao liberados automaticamente para saque.</p>
+          <p className="text-xs text-muted-foreground mb-4">{t("withdrawal.waitingReleaseDesc")}</p>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[440px] text-sm">
               <thead className="text-xs text-muted-foreground border-b border-border/50">
                 <tr>
-                  <th className="px-3 py-2 text-left">Data do bonus</th>
-                  <th className="px-3 py-2 text-left">Valor</th>
-                  <th className="px-3 py-2 text-left">Liberacao em</th>
-                  <th className="px-3 py-2 text-left">Contagem</th>
+                  <th className="px-3 py-2 text-left">{t("withdrawal.bonusDate")}</th>
+                  <th className="px-3 py-2 text-left">{t("withdrawal.value")}</th>
+                  <th className="px-3 py-2 text-left">{t("withdrawal.releaseOn")}</th>
+                  <th className="px-3 py-2 text-left">{t("withdrawal.countdown")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -194,10 +199,10 @@ function SaquePage() {
                       <td className="px-3 py-2 text-muted-foreground">{new Date(hold.release_at).toLocaleDateString("pt-BR")}</td>
                       <td className="px-3 py-2">
                         {days === 0 ? (
-                          <Badge className="border-success/30 bg-success/15 text-success">Liberando...</Badge>
+                          <Badge className="border-success/30 bg-success/15 text-success">{t("withdrawal.releasingNow")}</Badge>
                         ) : (
                           <Badge className="border-amber-400/30 bg-amber-500/15 text-amber-300">
-                            <Clock className="h-3 w-3 mr-1" />{days}d restantes
+                            <Clock className="h-3 w-3 mr-1" />{t("withdrawal.daysRemaining").replace("{n}", String(days))}
                           </Badge>
                         )}
                       </td>
@@ -212,18 +217,18 @@ function SaquePage() {
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
         <Card className="border-primary/15 bg-card/50 p-5">
-          <h2 className="font-semibold">Historico de solicitacoes</h2>
+          <h2 className="font-semibold">{t("withdrawal.requestsHistory")}</h2>
           <div className="mt-4 overflow-x-auto">
             {requests.length === 0 ? (
-              <p className="py-8 text-sm text-muted-foreground">Nenhuma solicitacao de saque ainda.</p>
+              <p className="py-8 text-sm text-muted-foreground">{t("withdrawal.noRequestsYet")}</p>
             ) : (
               <table className="w-full min-w-[560px] text-sm">
                 <thead className="text-xs text-muted-foreground">
                   <tr className="border-b border-border/50">
-                    <th className="px-3 py-3 text-left font-medium">Data</th>
-                    <th className="px-3 py-3 text-left font-medium">Valor</th>
-                    <th className="px-3 py-3 text-left font-medium">Chave</th>
-                    <th className="px-3 py-3 text-left font-medium">Status</th>
+                    <th className="px-3 py-3 text-left font-medium">{t("withdrawal.date")}</th>
+                    <th className="px-3 py-3 text-left font-medium">{t("withdrawal.value")}</th>
+                    <th className="px-3 py-3 text-left font-medium">{t("withdrawal.key")}</th>
+                    <th className="px-3 py-3 text-left font-medium">{t("withdrawal.status")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -264,6 +269,7 @@ function WithdrawalRequestCard({
   twoFactorEnabled: boolean;
   onSubmitted: () => void;
 }) {
+  const { t } = useLanguage();
   const { supabase } = useAuth();
   const [amount, setAmount] = useState("");
   const [documentCpf, setDocumentCpf] = useState("");
@@ -273,18 +279,18 @@ function WithdrawalRequestCard({
   async function submit() {
     if (!supabase) return;
     const amountUsd = Number(amount);
-    if (!amountUsd || amountUsd <= 0) return toast.error("Informe um valor valido");
-    if (amountUsd < MIN_WITHDRAWAL_USD) return toast.error(`O valor minimo para saque e de ${formatMoney(MIN_WITHDRAWAL_USD)}`);
-    if (amountUsd > MAX_WITHDRAWAL_USD) return toast.error(`O valor maximo para saque e de ${formatMoney(MAX_WITHDRAWAL_USD)}`);
-    if (amountUsd > balance) return toast.error("Saldo insuficiente para este saque");
-    if (!documentCpf.trim()) return toast.error("Informe o CPF cadastrado na conta");
-    if (!/^\d{6}$/.test(totpCode)) return toast.error("Informe o código de 6 dígitos do Google Authenticator");
+    if (!amountUsd || amountUsd <= 0) return toast.error(t("withdrawal.invalidValue"));
+    if (amountUsd < MIN_WITHDRAWAL_USD) return toast.error(t("withdrawal.minValue").replace("{value}", formatMoney(MIN_WITHDRAWAL_USD)));
+    if (amountUsd > MAX_WITHDRAWAL_USD) return toast.error(t("withdrawal.maxValue").replace("{value}", formatMoney(MAX_WITHDRAWAL_USD)));
+    if (amountUsd > balance) return toast.error(t("withdrawal.insufficientBalance"));
+    if (!documentCpf.trim()) return toast.error(t("withdrawal.informCpf"));
+    if (!/^\d{6}$/.test(totpCode)) return toast.error(t("withdrawal.informTotp"));
 
     setSubmitting(true);
     try {
       const { data: session } = await supabase.auth.getSession();
       const accessToken = session.session?.access_token;
-      if (!accessToken) throw new Error("Sessao expirada");
+      if (!accessToken) throw new Error(t("withdrawal.sessionExpired"));
 
       await requestWithdrawal({
         data: {
@@ -297,13 +303,13 @@ function WithdrawalRequestCard({
         },
       });
 
-      toast.success("Solicitacao de saque enviada para analise");
+      toast.success(t("withdrawal.requestSent"));
       setAmount("");
       setDocumentCpf("");
       setTotpCode("");
       onSubmitted();
     } catch (error: any) {
-      toast.error(error.message ?? "Erro ao solicitar saque");
+      toast.error(error.message ?? t("withdrawal.requestError"));
     } finally {
       setSubmitting(false);
     }
@@ -312,8 +318,8 @@ function WithdrawalRequestCard({
   return (
     <Card className="border-primary/15 bg-card/50 p-5 space-y-3">
       <div>
-        <h3 className="font-semibold">Solicitar saque</h3>
-        <p className="text-xs text-muted-foreground">Disponivel: {formatMoney(balance)}{saldoAguardando > 0 ? ` · Aguardando: ${formatMoney(saldoAguardando)}` : ""}</p>
+        <h3 className="font-semibold">{t("withdrawal.requestWithdrawal")}</h3>
+        <p className="text-xs text-muted-foreground">{t("withdrawal.availableLabel").replace("{value}", formatMoney(balance))}{saldoAguardando > 0 ? t("withdrawal.waitingLabel").replace("{value}", formatMoney(saldoAguardando)) : ""}</p>
       </div>
 
       {!twoFactorEnabled && <TwoFactorReminderBanner to="/app/seguranca" />}
@@ -321,35 +327,32 @@ function WithdrawalRequestCard({
       <div className="flex items-start gap-2 rounded-lg border border-amber-400/35 bg-amber-500/10 p-3 text-xs text-amber-200">
         <Info className="mt-0.5 h-4 w-4 shrink-0" />
         <p>
-          O valor minimo para solicitar saque e de <strong>{formatMoney(MIN_WITHDRAWAL_USD)}</strong> e o valor maximo
-          por solicitacao e de <strong>{formatMoney(MAX_WITHDRAWAL_USD)}</strong>. O saque so pode ser realizado para
-          o CPF cadastrado nesta conta e requer confirmacao via Google Authenticator.
+          {t("withdrawal.minMaxNotice").replace("{min}", formatMoney(MIN_WITHDRAWAL_USD)).replace("{max}", formatMoney(MAX_WITHDRAWAL_USD))}
         </p>
       </div>
 
       <div className="flex items-start gap-2 rounded-lg border border-sky-400/35 bg-sky-500/10 p-3 text-xs text-sky-200">
         <Info className="mt-0.5 h-4 w-4 shrink-0" />
         <p>
-          Voce pode solicitar o saque em qualquer dia, mas o pagamento so e processado nos <strong>dias 15 e 30 de cada mes</strong>,
-          apos revisao da nossa equipe. Solicitacoes feitas apos o dia 15 entram automaticamente no ciclo de pagamento do dia 30.
+          {t("withdrawal.paymentScheduleNotice")}
         </p>
       </div>
 
       <div>
-        <Label>Valor (US$)</Label>
+        <Label>{t("withdrawal.amountLabel")}</Label>
         <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder={`${MIN_WITHDRAWAL_USD}`} min={MIN_WITHDRAWAL_USD} max={MAX_WITHDRAWAL_USD} />
       </div>
       <div>
-        <Label>CPF cadastrado na conta (chave PIX)</Label>
-        <Input value={documentCpf} onChange={(e) => setDocumentCpf(e.target.value)} placeholder={cpf ?? "Informe o CPF da sua conta"} />
-        <p className="mt-1 text-xs text-muted-foreground">O saque so pode ser feito via PIX para o CPF cadastrado nesta conta.</p>
+        <Label>{t("withdrawal.cpfLabel")}</Label>
+        <Input value={documentCpf} onChange={(e) => setDocumentCpf(e.target.value)} placeholder={cpf ?? t("withdrawal.cpfPlaceholder")} />
+        <p className="mt-1 text-xs text-muted-foreground">{t("withdrawal.cpfHelp")}</p>
       </div>
       <div>
-        <Label>Codigo do Google Authenticator</Label>
+        <Label>{t("withdrawal.totpLabel")}</Label>
         <Input value={totpCode} onChange={(e) => setTotpCode(e.target.value)} placeholder="000000" maxLength={6} />
       </div>
       <Button onClick={submit} disabled={submitting} className="w-full bg-gold-gradient text-primary-foreground">
-        Solicitar saque
+        {t("withdrawal.requestWithdrawal")}
       </Button>
     </Card>
   );

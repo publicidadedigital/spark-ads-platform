@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/supabase/auth";
+import { useLanguage } from "@/lib/i18n/context";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,13 +30,17 @@ type BonusEvent = {
   advertiser: { company_name: string | null } | { company_name: string | null }[] | null;
 };
 
-const statusMeta: Record<string, { label: string; className: string }> = {
-  ativo: { label: "Ativo", className: "border-success/30 bg-success/15 text-success hover:bg-success/15" },
-  pendente: { label: "Em análise", className: "border-amber-400/30 bg-amber-500/15 text-amber-300 hover:bg-amber-500/15" },
-  bloqueado: { label: "Bloqueado", className: "border-destructive/30 bg-destructive/15 text-destructive hover:bg-destructive/15" },
-};
+function getStatusMeta(t: (key: string) => string): Record<string, { label: string; className: string }> {
+  return {
+    ativo: { label: t("advertiserReferral.statusActive"), className: "border-success/30 bg-success/15 text-success hover:bg-success/15" },
+    pendente: { label: t("advertiserReferral.statusInReview"), className: "border-amber-400/30 bg-amber-500/15 text-amber-300 hover:bg-amber-500/15" },
+    bloqueado: { label: t("advertiserReferral.statusBlocked"), className: "border-destructive/30 bg-destructive/15 text-destructive hover:bg-destructive/15" },
+  };
+}
 
 function IndicacaoAnunciantePage() {
+  const { t } = useLanguage();
+  const statusMeta = getStatusMeta(t);
   const { supabase, user } = useAuth();
   const [profile, setProfile] = useState<{ id: string; nome: string | null } | null>(null);
   const [advertisers, setAdvertisers] = useState<Advertiser[]>([]);
@@ -95,13 +100,13 @@ function IndicacaoAnunciantePage() {
   const copyLink = async () => {
     if (!link) return;
     await navigator.clipboard.writeText(link);
-    toast.success("Link copiado");
+    toast.success(t("advertiserReferral.linkCopied"));
   };
 
   const shareLink = async () => {
     if (!link) return;
     if (navigator.share) {
-      await navigator.share({ title: "Viralink", text: "Anuncie na Viralink usando meu link", url: link });
+      await navigator.share({ title: t("advertiserReferral.shareTitle"), text: t("advertiserReferral.shareText"), url: link });
       return;
     }
     await copyLink();
@@ -115,44 +120,44 @@ function IndicacaoAnunciantePage() {
             <div className="rounded-lg border border-primary/40 bg-primary/15 p-2 text-primary shadow-gold">
               <Megaphone className="h-5 w-5" />
             </div>
-            <h1 className="text-3xl font-bold tracking-normal">Indicação de Anunciante</h1>
+            <h1 className="text-3xl font-bold tracking-normal">{t("advertiserReferral.title")}</h1>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Receba 50% de comissão na hora em que o anunciante indicado pagar um pacote de anúncios.
+            {t("advertiserReferral.subtitle")}
           </p>
         </div>
 
         <div className="flex flex-wrap gap-2">
           <Button onClick={shareLink} className="bg-gold-gradient text-primary-foreground">
-            <Share2 className="mr-2 h-4 w-4" /> Compartilhar link
+            <Share2 className="mr-2 h-4 w-4" /> {t("advertiserReferral.shareLink")}
           </Button>
           <Button variant="outline" onClick={copyLink}>
-            <Copy className="mr-2 h-4 w-4" /> Copiar link
+            <Copy className="mr-2 h-4 w-4" /> {t("advertiserReferral.copyLink")}
           </Button>
           <Button variant="outline" onClick={copyLink}>
-            <QrCode className="mr-2 h-4 w-4" /> QR Code
+            <QrCode className="mr-2 h-4 w-4" /> {t("advertiserReferral.qrCode")}
           </Button>
         </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard icon={Building2} label="Anunciantes indicados" value={advertisers.length.toString()} sub="empresas" />
-        <MetricCard icon={CheckCircle2} label="Comissão liberada" value={usd.format(totalRecebido)} sub="total recebido (50%)" />
-        <MetricCard icon={Clock} label="Aguardando liberação" value={usd.format(totalPendente)} sub="em quarentena (7 dias)" />
-        <MetricCard icon={Megaphone} label="Total de eventos" value={bonusEvents.length.toString()} sub="pagamentos" />
+        <MetricCard icon={Building2} label={t("advertiserReferral.referredAdvertisers")} value={advertisers.length.toString()} sub={t("advertiserReferral.companies")} />
+        <MetricCard icon={CheckCircle2} label={t("advertiserReferral.releasedCommission")} value={usd.format(totalRecebido)} sub={t("advertiserReferral.totalReceived")} />
+        <MetricCard icon={Clock} label={t("advertiserReferral.waitingRelease")} value={usd.format(totalPendente)} sub={t("advertiserReferral.inQuarantine")} />
+        <MetricCard icon={Megaphone} label={t("advertiserReferral.totalEvents")} value={bonusEvents.length.toString()} sub={t("advertiserReferral.payments")} />
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
         <Card className="overflow-hidden border-primary/20 bg-card/50">
           <div className="border-b border-border/60 p-5">
-            <h2 className="text-lg font-semibold">Anunciantes indicados</h2>
-            <p className="text-sm text-muted-foreground">Empresas que se cadastraram com o seu link</p>
+            <h2 className="text-lg font-semibold">{t("advertiserReferral.referredAdvertisersTitle")}</h2>
+            <p className="text-sm text-muted-foreground">{t("advertiserReferral.companiesRegistered")}</p>
           </div>
           <div className="p-5">
             {loading ? (
-              <p className="text-sm text-muted-foreground">Carregando...</p>
+              <p className="text-sm text-muted-foreground">{t("advertiserReferral.loading")}</p>
             ) : advertisers.length === 0 ? (
-              <EmptyState text="Nenhum anunciante indicado ainda. Compartilhe seu link para começar." />
+              <EmptyState text={t("advertiserReferral.noAdvertisersYet")} />
             ) : (
               <div className="space-y-3">
                 {advertisers.map((ad) => {
@@ -160,7 +165,7 @@ function IndicacaoAnunciantePage() {
                   return (
                     <div key={ad.id} className="flex items-center justify-between gap-3 border-b border-border/40 pb-3 last:border-0 last:pb-0">
                       <div>
-                        <p className="text-sm font-medium">{ad.company_name || "Anunciante"}</p>
+                        <p className="text-sm font-medium">{ad.company_name || t("advertiserReferral.advertiser")}</p>
                         <p className="text-xs text-muted-foreground">
                           {ad.created_at ? new Date(ad.created_at).toLocaleDateString("pt-BR") : "-"}
                         </p>
@@ -176,14 +181,14 @@ function IndicacaoAnunciantePage() {
 
         <Card className="overflow-hidden border-primary/20 bg-card/50">
           <div className="border-b border-border/60 p-5">
-            <h2 className="text-lg font-semibold">Comissões</h2>
-            <p className="text-sm text-muted-foreground">50% do lucro real — liberado após 7 dias sem cancelamento</p>
+            <h2 className="text-lg font-semibold">{t("advertiserReferral.commissions")}</h2>
+            <p className="text-sm text-muted-foreground">{t("advertiserReferral.commissionsDesc")}</p>
           </div>
           <div className="p-5">
             {loading ? (
-              <p className="text-sm text-muted-foreground">Carregando...</p>
+              <p className="text-sm text-muted-foreground">{t("advertiserReferral.loading")}</p>
             ) : bonusEvents.length === 0 ? (
-              <EmptyState text="Nenhuma comissão registrada ainda." />
+              <EmptyState text={t("advertiserReferral.noCommissionsYet")} />
             ) : (
               <div className="space-y-3">
                 {bonusEvents.map((b) => {
@@ -194,9 +199,9 @@ function IndicacaoAnunciantePage() {
                   return (
                     <div key={b.id} className="flex items-start justify-between gap-3 border-b border-border/40 pb-3 last:border-0 last:pb-0">
                       <div className="min-w-0">
-                        <p className="text-sm font-medium">{advertiser?.company_name || "Anunciante"}</p>
+                        <p className="text-sm font-medium">{advertiser?.company_name || t("advertiserReferral.advertiser")}</p>
                         <p className="text-xs text-muted-foreground">
-                          {b.created_at ? new Date(b.created_at).toLocaleDateString("pt-BR") : "-"} · Pacote {usd.format(Number(b.gross_amount ?? 0))}
+                          {b.created_at ? new Date(b.created_at).toLocaleDateString("pt-BR") : "-"} · {t("advertiserReferral.package")} {usd.format(Number(b.gross_amount ?? 0))}
                         </p>
                         {b.motivo && (
                           <p className="mt-1 text-xs text-muted-foreground italic">{b.motivo}</p>
@@ -238,17 +243,18 @@ function MetricCard({ icon: Icon, label, value, sub }: any) {
 }
 
 function BonusStatusBadge({ status, daysLeft }: { status: string; daysLeft: number | null }) {
+  const { t } = useLanguage();
   if (status === "liberado") {
     return (
       <Badge className="mt-1 border-success/30 bg-success/15 text-success hover:bg-success/15">
-        <CheckCircle2 className="mr-1 h-3 w-3" /> Liberado
+        <CheckCircle2 className="mr-1 h-3 w-3" /> {t("advertiserReferral.released")}
       </Badge>
     );
   }
   if (status === "cancelado") {
     return (
       <Badge className="mt-1 border-destructive/30 bg-destructive/15 text-destructive hover:bg-destructive/15">
-        <XCircle className="mr-1 h-3 w-3" /> Cancelado
+        <XCircle className="mr-1 h-3 w-3" /> {t("advertiserReferral.canceled")}
       </Badge>
     );
   }
@@ -256,7 +262,7 @@ function BonusStatusBadge({ status, daysLeft }: { status: string; daysLeft: numb
   return (
     <Badge className="mt-1 border-amber-400/30 bg-amber-500/15 text-amber-300 hover:bg-amber-500/15">
       <Clock className="mr-1 h-3 w-3" />
-      {daysLeft !== null && daysLeft > 0 ? `Libera em ${daysLeft}d` : "Processando"}
+      {daysLeft !== null && daysLeft > 0 ? t("advertiserReferral.releasesIn").replace("{n}", String(daysLeft)) : t("advertiserReferral.processing")}
     </Badge>
   );
 }

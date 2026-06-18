@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/supabase/auth";
+import { useLanguage } from "@/lib/i18n/context";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -48,6 +49,7 @@ type Cycle = {
 };
 
 function RenovacaoPage() {
+  const { t } = useLanguage();
   const { supabase, user } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -104,7 +106,7 @@ function RenovacaoPage() {
     return packages.find((p) => p.id === profile.pacote_ativo_id) ?? null;
   }, [cycle, packages, profile?.pacote_ativo_id]);
 
-  if (loading) return <p className="text-muted-foreground">Carregando renovação...</p>;
+  if (loading) return <p className="text-muted-foreground">{t("renewal.loading")}</p>;
 
   const cyclePercentRaw = Number(cycle?.percentual_atual ?? 0);
   const cycleProgress = Math.min(100, Math.max(0, Math.round((cyclePercentRaw / cycleGoalPercent) * 100)));
@@ -121,18 +123,18 @@ function RenovacaoPage() {
     <div className="space-y-4">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-normal">Renovação de pacote</h1>
+          <h1 className="text-3xl font-bold tracking-normal">{t("renewal.title")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Seu ciclo é concluído ao atingir {cycleGoalPercent}% do valor do pacote contratado.
+            {t("renewal.subtitle").replace("{pct}", String(cycleGoalPercent))}
           </p>
         </div>
         {cycle && (
           <div className="rounded-lg border border-success/20 bg-card/60 px-4 py-2">
             <div className="flex items-center gap-2 text-sm font-medium">
               <span className="h-2.5 w-2.5 rounded-full bg-success shadow-[0_0_18px_rgba(34,197,94,0.7)]" />
-              Ciclo ativo
+              {t("renewal.activeCycle")}
             </div>
-            <p className="text-xs text-muted-foreground">{cyclePercentRaw.toFixed(1)}% de {cycleGoalPercent}%</p>
+            <p className="text-xs text-muted-foreground">{t("renewal.ofGoal").replace("{pct}", cyclePercentRaw.toFixed(1)).replace("{goal}", String(cycleGoalPercent))}</p>
           </div>
         )}
       </div>
@@ -144,23 +146,23 @@ function RenovacaoPage() {
               <div className="flex items-center gap-5">
                 <PackageIcon tone="blue" size="large" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Seu pacote atual</p>
-                  <h2 className="text-3xl font-bold text-primary">{currentPackage?.nome ?? "Sem pacote ativo"}</h2>
+                  <p className="text-sm text-muted-foreground">{t("renewal.currentPackage")}</p>
+                  <h2 className="text-3xl font-bold text-primary">{currentPackage?.nome ?? t("renewal.noActivePackage")}</h2>
                   {currentPackage && (
                     <p className="mt-1 text-lg font-semibold text-muted-foreground">{formatMoney(moneyValue(currentPackage.valor))}</p>
                   )}
                   {startedAt && (
-                    <p className="mt-2 text-sm text-muted-foreground">Adquirido em {formatDate(startedAt)}</p>
+                    <p className="mt-2 text-sm text-muted-foreground">{t("renewal.acquiredOn").replace("{date}", formatDate(startedAt))}</p>
                   )}
                 </div>
               </div>
 
               <div className="border-primary/15 lg:border-l lg:px-8">
-                <p className="text-sm text-muted-foreground">Progresso do ciclo</p>
+                <p className="text-sm text-muted-foreground">{t("renewal.cycleProgress")}</p>
                 <div className="mt-2 flex flex-wrap items-end gap-x-4 gap-y-1">
                   <p className="text-5xl font-bold">{cycleProgress}%</p>
                   <p className="pb-2 text-sm text-muted-foreground">
-                    {formatMoney(cycleTotal)} de {formatMoney(cycleGoal)}
+                    {formatMoney(cycleTotal)} {t("renewal.of")} {formatMoney(cycleGoal)}
                   </p>
                 </div>
                 <div className="relative mt-6">
@@ -180,51 +182,51 @@ function RenovacaoPage() {
 
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">Faltam</p>
+                  <p className="text-sm text-muted-foreground">{t("renewal.missing")}</p>
                   <p className="text-2xl font-bold text-primary">{formatMoney(missingValue)}</p>
-                  <p className="text-sm text-muted-foreground">para atingir {cycleGoalPercent}%</p>
+                  <p className="text-sm text-muted-foreground">{t("renewal.toReach").replace("{pct}", String(cycleGoalPercent))}</p>
                 </div>
                 <div className="rounded-lg border border-amber-300/25 bg-amber-500/10 p-3">
-                  <p className="font-medium">Mantenha o ritmo!</p>
-                  <p className="text-xs text-muted-foreground">Você está indo muito bem.</p>
+                  <p className="font-medium">{t("renewal.keepPace")}</p>
+                  <p className="text-xs text-muted-foreground">{t("renewal.doingWell")}</p>
                 </div>
               </div>
             </div>
             <Button variant="outline" className="mt-5 border-primary/40 bg-primary/10 text-primary">
-              Ver detalhes do pacote
+              {t("renewal.viewPackageDetails")}
             </Button>
           </Card>
 
           <div className="grid gap-3 md:grid-cols-2">
-            <CycleMetric label="Ganho total do ciclo" value={formatMoney(cycleTotal)} sub={`${cycleProgress}% do objetivo`} />
-            <CycleMetric label="Ganhos diários (média)" value={cycle ? formatMoney(cycleTotal / Math.max(1, daysSince(startedAt))) : "—"} sub="Média desde o início do ciclo" />
+            <CycleMetric label={t("renewal.totalCycleEarnings")} value={formatMoney(cycleTotal)} sub={t("renewal.ofGoalShort").replace("{pct}", String(cycleProgress))} />
+            <CycleMetric label={t("renewal.dailyEarningsAvg")} value={cycle ? formatMoney(cycleTotal / Math.max(1, daysSince(startedAt))) : "—"} sub={t("renewal.avgSinceStart")} />
           </div>
 
           <Card className="border-primary/15 bg-card/50 p-5">
-            <h2 className="text-xl font-semibold">O que você deseja fazer?</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Escolha a melhor opção para continuar crescendo.</p>
+            <h2 className="text-xl font-semibold">{t("renewal.whatToDo")}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{t("renewal.chooseOption")}</p>
 
             <div className="mt-4 grid gap-4 lg:grid-cols-2">
               <ActionCard
-                title="Renovar pacote atual"
-                description="Renove seu pacote e inicie um novo ciclo com os mesmos benefícios."
+                title={t("renewal.renewCurrentPackage")}
+                description={t("renewal.renewDescription")}
                 price={currentValue}
                 icon="renew"
-                button="Renovar pacote"
+                button={t("renewal.renewButton")}
                 disabled={!canRenew || !currentPackage}
                 onClick={() => currentPackage && escolher(currentPackage as PackageRow)}
-                bullets={["Mesmo pacote e benefícios", "Toda sua estrutura e equipe", "Seu histórico de ganhos"]}
+                bullets={[t("renewal.bulletSamePackage"), t("renewal.bulletStructure"), t("renewal.bulletHistory")]}
               />
               <ActionCard
-                title="Fazer upgrade de pacote"
-                description="Evolua para um pacote superior e aumente seus ganhos."
+                title={t("renewal.upgradePackage")}
+                description={t("renewal.upgradeDescription")}
                 price={moneyValue(upgradePackage?.valor)}
                 icon="rocket"
-                button="Ver pacotes superiores"
+                button={t("renewal.viewHigherPackages")}
                 accent
                 disabled={!upgradePackage}
                 onClick={() => upgradePackage && escolher(upgradePackage)}
-                bullets={["Maiores retornos", "Bônus diários maiores", "Mais pontos por ações", "Novos recursos exclusivos"]}
+                bullets={[t("renewal.bulletHigherReturns"), t("renewal.bulletHigherBonus"), t("renewal.bulletMorePoints"), t("renewal.bulletNewFeatures")]}
               />
             </div>
           </Card>
@@ -233,8 +235,8 @@ function RenovacaoPage() {
             <Card className="border-primary/15 bg-card/50 p-5">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-xl font-semibold">Compare os pacotes</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">O pacote superior aumenta o teto de retorno do ciclo.</p>
+                  <h2 className="text-xl font-semibold">{t("renewal.comparePackages")}</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">{t("renewal.comparePackagesSub")}</p>
                 </div>
                 <Button size="icon" variant="outline" className="hidden shrink-0 rounded-full lg:inline-flex">
                   <ArrowRight className="h-5 w-5" />
@@ -282,6 +284,7 @@ function ActionCard({
   title: string; description: string; price: number; bullets: string[];
   button: string; icon: "renew" | "rocket"; accent?: boolean; disabled?: boolean; onClick: () => void;
 }) {
+  const { t } = useLanguage();
   return (
     <Card className={`relative overflow-hidden p-5 ${accent ? "border-violet-500/30 bg-violet-500/10" : "border-primary/20 bg-background/35"}`}>
       <div className="relative z-10 grid gap-5 md:grid-cols-[minmax(0,1fr)_120px] md:items-center">
@@ -290,7 +293,7 @@ function ActionCard({
           <p className="mt-2 text-sm text-muted-foreground">{description}</p>
           <div className="mt-4 rounded-lg border border-primary/20 bg-background/45 p-4">
             <p className={`text-sm ${accent ? "text-violet-300" : "text-foreground"}`}>
-              {accent ? "Ao fazer upgrade você ganha:" : "Ao renovar agora você mantém:"}
+              {accent ? t("renewal.upgradeYouGain") : t("renewal.renewYouKeep")}
             </p>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
               {bullets.map((bullet) => (
@@ -308,7 +311,7 @@ function ActionCard({
       </div>
       <div className="relative z-10 mt-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm text-muted-foreground">Investimento</p>
+          <p className="text-sm text-muted-foreground">{t("renewal.investment")}</p>
           <p className={`text-2xl font-bold ${accent ? "text-violet-300" : "text-primary"}`}>{price > 0 ? formatMoney(price) : "—"}</p>
         </div>
         <Button onClick={onClick} disabled={disabled} className={accent ? "bg-violet-600 text-white hover:bg-violet-500" : "bg-primary text-primary-foreground"}>
@@ -320,6 +323,7 @@ function ActionCard({
 }
 
 function PackageCard({ pkg, index, current, goalPercent, onChoose }: { pkg: PackageRow; index: number; current: boolean; goalPercent: number; onChoose: () => void }) {
+  const { t } = useLanguage();
   const value = moneyValue(pkg.valor);
   const bonusable = moneyValue(pkg.bonusable_amount) || value;
   const maxReturn = bonusable * (goalPercent / 100);
@@ -332,17 +336,17 @@ function PackageCard({ pkg, index, current, goalPercent, onChoose }: { pkg: Pack
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <h3 className="truncate font-semibold">{pkg.nome}</h3>
-            {current && <Badge className="bg-primary/20 text-primary hover:bg-primary/20">Atual</Badge>}
+            {current && <Badge className="bg-primary/20 text-primary hover:bg-primary/20">{t("renewal.current")}</Badge>}
           </div>
           <p className="mt-1 text-xl font-bold">{formatMoney(value)}</p>
-          <p className="mt-2 text-sm text-muted-foreground">Retorno máximo: {formatMoney(maxReturn)}</p>
-          <p className="text-sm text-muted-foreground">{goalPercent}% de meta</p>
+          <p className="mt-2 text-sm text-muted-foreground">{t("renewal.maxReturn").replace("{value}", formatMoney(maxReturn))}</p>
+          <p className="text-sm text-muted-foreground">{t("renewal.goalPercent").replace("{pct}", String(goalPercent))}</p>
         </div>
       </div>
       <div className="mt-4 border-t border-border/45 pt-3 text-sm text-muted-foreground">
         <div className="flex gap-2">
           <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" />
-          <span>Bônus diário por publicação: {dailyBonus > 0 ? formatMoney(dailyBonus) : "—"}</span>
+          <span>{t("renewal.dailyBonusPerPost").replace("{value}", dailyBonus > 0 ? formatMoney(dailyBonus) : "—")}</span>
         </div>
       </div>
     </Card>
@@ -350,15 +354,16 @@ function PackageCard({ pkg, index, current, goalPercent, onChoose }: { pkg: Pack
 }
 
 function BenefitsCard() {
+  const { t } = useLanguage();
   const items = [
-    { icon: BarChart3, title: "Bônus diários maiores", text: "Quanto mais você avança, mais ganha." },
-    { icon: Star, title: "Mais pontos acumulados", text: "Aproxime-se de grandes conquistas." },
-    { icon: Users, title: "Equipe mais forte", text: "Sua rede continua crescendo com você." },
-    { icon: Lock, title: "Acesso contínuo", text: "Todos os recursos e campanhas liberados." },
+    { icon: BarChart3, title: t("renewal.benefitBonusTitle"), text: t("renewal.benefitBonusText") },
+    { icon: Star, title: t("renewal.benefitPointsTitle"), text: t("renewal.benefitPointsText") },
+    { icon: Users, title: t("renewal.benefitTeamTitle"), text: t("renewal.benefitTeamText") },
+    { icon: Lock, title: t("renewal.benefitAccessTitle"), text: t("renewal.benefitAccessText") },
   ];
   return (
     <Card className="border-primary/15 bg-card/50 p-5">
-      <h3 className="font-semibold">Benefícios de manter seu ciclo ativo</h3>
+      <h3 className="font-semibold">{t("renewal.benefitsTitle")}</h3>
       <div className="mt-5 space-y-5">
         {items.map((item, index) => (
           <div key={item.title} className="flex gap-4">
@@ -377,23 +382,24 @@ function BenefitsCard() {
 }
 
 function HistoryCard({ currentPackage, cycle, progress }: { currentPackage: PackageRow | null; cycle: Cycle | null; progress: number }) {
+  const { t } = useLanguage();
   const rows = cycle
-    ? [{ name: currentPackage?.nome ?? "Ciclo atual", date: cycle.started_at ? formatDate(new Date(cycle.started_at)) : "—", progress }]
+    ? [{ name: currentPackage?.nome ?? t("renewal.currentCycle"), date: cycle.started_at ? formatDate(new Date(cycle.started_at)) : "—", progress }]
     : [];
   return (
     <Card className="border-primary/15 bg-card/50 p-5">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <h3 className="font-semibold">Histórico de ciclos</h3>
-        <Button size="sm" variant="outline">Ver todos</Button>
+        <h3 className="font-semibold">{t("renewal.cycleHistory")}</h3>
+        <Button size="sm" variant="outline">{t("renewal.viewAll")}</Button>
       </div>
       <div className="space-y-3">
-        {rows.length === 0 && <p className="text-sm text-muted-foreground">Nenhum ciclo encontrado ainda.</p>}
+        {rows.length === 0 && <p className="text-sm text-muted-foreground">{t("renewal.noCyclesYet")}</p>}
         {rows.map((row, index) => (
           <div key={`${row.name}-${index}`} className="flex items-center gap-3 rounded-lg border-b border-border/35 pb-3 last:border-b-0 last:pb-0">
             <PackageIcon tone={index === 0 ? "blue" : "gray"} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{row.name}</p>
-              <p className="text-xs text-muted-foreground">Iniciado em {row.date}</p>
+              <p className="text-xs text-muted-foreground">{t("renewal.startedOn").replace("{date}", row.date)}</p>
             </div>
             <Badge className={row.progress >= 100 ? "bg-success/15 text-success hover:bg-success/15" : "bg-primary/15 text-primary hover:bg-primary/15"}>
               {row.progress}%
@@ -406,6 +412,7 @@ function HistoryCard({ currentPackage, cycle, progress }: { currentPackage: Pack
 }
 
 function HelpCard() {
+  const { t } = useLanguage();
   return (
     <Card className="border-primary/15 bg-card/50 p-5">
       <div className="flex gap-4">
@@ -413,12 +420,12 @@ function HelpCard() {
           <Headphones className="h-6 w-6" />
         </div>
         <div>
-          <h3 className="font-semibold">Precisa de ajuda?</h3>
-          <p className="mt-1 text-sm text-muted-foreground">Fale com nosso suporte e tire suas dúvidas.</p>
+          <h3 className="font-semibold">{t("renewal.needHelp")}</h3>
+          <p className="mt-1 text-sm text-muted-foreground">{t("renewal.helpText")}</p>
         </div>
       </div>
       <Button variant="outline" className="mt-5 w-full border-primary/30 text-primary">
-        Abrir chamado
+        {t("renewal.openTicket")}
       </Button>
     </Card>
   );

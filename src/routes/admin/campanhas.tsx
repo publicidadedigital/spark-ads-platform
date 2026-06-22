@@ -433,6 +433,13 @@ function AdminCampaigns() {
                               <a href={s.shared_link} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline inline-flex items-center gap-1 mt-1 break-all">
                                 {s.shared_link} <ExternalLink className="h-3 w-3 shrink-0" />
                               </a>
+                              {(s.views_count != null || s.likes_count != null || s.comments_count != null) && (
+                                <div className="mt-1 flex flex-wrap gap-3 text-xs text-muted-foreground">
+                                  {s.views_count != null && <span>{Number(s.views_count).toLocaleString("pt-BR")} views</span>}
+                                  {s.likes_count != null && <span>{Number(s.likes_count).toLocaleString("pt-BR")} curtidas</span>}
+                                  {s.comments_count != null && <span>{Number(s.comments_count).toLocaleString("pt-BR")} comentários</span>}
+                                </div>
+                              )}
                             </div>
                             <div className="flex items-center gap-3 text-right">
                               <div className="text-xs text-muted-foreground">

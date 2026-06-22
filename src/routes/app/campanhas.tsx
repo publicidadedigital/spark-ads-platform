@@ -870,6 +870,6 @@ function ClientAutoValidateBadge({ status, validateAt, shareStatus }: { status?:
   if (status === "live") return <Badge className="border-success/30 bg-success/15 text-success"><ShieldCheck className="mr-1 h-3 w-3" /> ✓ {t("campaigns.autoValidateLive")}</Badge>;
   if (status === "removed") return <Badge className="border-destructive/30 bg-destructive/15 text-destructive">⚠ {t("campaigns.autoValidateRemoved")}</Badge>;
   if (status === "story_manual") return <Badge className="border-amber-400/30 bg-amber-500/15 text-amber-300"><Clock className="mr-1 h-3 w-3" /> {t("campaigns.autoValidateStoryManual")}</Badge>;
-  if (status === "private") return <Badge className="border-primary/30 bg-primary/15 text-primary">{t("campaigns.autoValidatePrivate")}</Badge>;
+  if (status === "private") return <Badge className="border-destructive/30 bg-destructive/15 text-destructive">⚠ {t("campaigns.autoValidatePrivate")}</Badge>;
   return <Badge variant="outline" className="text-muted-foreground">{t("campaigns.autoValidateInAnalysis")}</Badge>;
 }

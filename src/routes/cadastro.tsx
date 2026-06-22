@@ -83,8 +83,8 @@ function CadastroPage() {
 
   useEffect(() => {
     if (!supabase || !ref) return;
-    supabase.from("users_profile").select("nome").eq("id", ref).maybeSingle()
-      .then(({ data }) => { if (data?.nome) setReferrerName(data.nome); });
+    supabase.rpc("get_referrer_name", { p_id: ref })
+      .then(({ data }) => { if (data) setReferrerName(data); });
   }, [supabase, ref]);
 
   function set(key: keyof typeof form, value: string) {

@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ImagePlus, Video, Loader2, CheckCircle2, Send, Heart, MessageCircle, Share2, ChevronDown, ChevronUp, ExternalLink, Users } from "lucide-react";
+import { ImagePlus, Video, Loader2, CheckCircle2, Send, Heart, MessageCircle, Share2, ChevronDown, ChevronUp, ExternalLink, Users, Pencil } from "lucide-react";
 
 export const Route = createFileRoute("/admin/campanhas")({ component: AdminCampaigns });
 
@@ -43,6 +43,7 @@ function AdminCampaigns() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [shares, setShares] = useState<Record<string, any[]>>({});
   const [loadingShares, setLoadingShares] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   async function load() {
     if (!supabase) return;
@@ -104,18 +105,46 @@ function AdminCampaigns() {
       }
       if (!media_url) { toast.error("Envie um arquivo ou cole uma URL de mídia"); return; }
 
-      const { error } = await supabase.from("campaigns").insert({ ...form, media_url });
-      if (error) throw error;
-
-      toast.success("Campanha criada");
+      if (editingId) {
+        const { error } = await supabase.from("campaigns").update({ ...form, media_url }).eq("id", editingId);
+        if (error) throw error;
+        toast.success("Campanha atualizada");
+        setEditingId(null);
+      } else {
+        const { error } = await supabase.from("campaigns").insert({ ...form, media_url });
+        if (error) throw error;
+        toast.success("Campanha criada");
+      }
       setForm(emptyForm);
       handleFile(null);
       load();
     } catch (e: any) {
-      toast.error(e.message || "Erro ao criar campanha");
+      toast.error(e.message || "Erro ao salvar campanha");
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function startEdit(c: any) {
+    setEditingId(c.id);
+    setForm({
+      titulo: c.titulo ?? "",
+      tipo_midia: c.tipo_midia ?? "imagem",
+      media_url: c.media_url ?? "",
+      texto_sugerido: c.texto_sugerido ?? "",
+      link_campanha: c.link_campanha ?? "",
+      rede_permitida: c.rede_permitida ?? "instagram",
+      instrucoes_obrigatorias: c.instrucoes_obrigatorias ?? "",
+    });
+    setFile(null);
+    setPreview(c.media_url ?? null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setForm(emptyForm);
+    handleFile(null);
   }
 
   async function toggle(id: string, status: string) {
@@ -153,7 +182,7 @@ function AdminCampaigns() {
       <h1 className="text-2xl font-bold">Campanhas</h1>
 
       <div>
-        <h2 className="text-lg font-semibold mb-3">Criar nova campanha</h2>
+        <h2 className="text-lg font-semibold mb-3">{editingId ? "Editar campanha" : "Criar nova campanha"}</h2>
         <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
           {/* Left: form */}
           <Card className="p-6 bg-card/50 border-border/50 space-y-5">
@@ -283,13 +312,20 @@ function AdminCampaigns() {
             </div>
 
             {/* Submit button */}
-            <Button onClick={create} disabled={submitting} className="w-full bg-gold-gradient text-primary-foreground">
-              {submitting ? (
-                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Criando...</>
-              ) : (
-                <><Send className="h-4 w-4 mr-2" /> Criar campanha</>
+            <div className="flex gap-2">
+              {editingId && (
+                <Button variant="outline" onClick={cancelEdit} disabled={submitting} className="flex-1">
+                  Cancelar
+                </Button>
               )}
-            </Button>
+              <Button onClick={create} disabled={submitting} className="flex-1 bg-gold-gradient text-primary-foreground">
+                {submitting ? (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {editingId ? "Salvando..." : "Criando..."}</>
+                ) : (
+                  <><Send className="h-4 w-4 mr-2" /> {editingId ? "Salvar alterações" : "Criar campanha"}</>
+                )}
+              </Button>
+            </div>
           </Card>
 
           {/* Right: Instagram previews */}
@@ -403,6 +439,10 @@ function AdminCampaigns() {
                     <Users className="h-3.5 w-3.5" />
                     Acompanhamento
                     {expandedId === c.id ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                  </Button>
+                  <Button size="sm" variant="outline" className="gap-1.5" onClick={() => startEdit(c)}>
+                    <Pencil className="h-3.5 w-3.5" />
+                    Editar
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => toggle(c.id, c.status)}>
                     {c.status === "ativa" ? "Inativar" : "Ativar"}

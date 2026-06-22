@@ -193,8 +193,8 @@ function AutoValidateBadge({ status, detail, checkedAt }: { status?: string; det
     </Badge>
   );
   if (status === "private") return (
-    <Badge className="border-primary/30 bg-primary/15 text-primary">
-      <Zap className="mr-1 h-3 w-3" /> Perfil privado — verifique manualmente
+    <Badge className="border-destructive/30 bg-destructive/15 text-destructive">
+      <Zap className="mr-1 h-3 w-3" /> Perfil privado — rejeitado automaticamente
     </Badge>
   );
   return (

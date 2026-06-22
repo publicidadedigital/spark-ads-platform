@@ -88,6 +88,13 @@ Deno.serve(async (_req: Request) => {
       updateData.motivo_rejeicao = "Post removido antes de completar 24h";
     }
 
+    // Auto-reject if the profile/post is private — campaigns require a public profile
+    if (validateStatus === "private") {
+      updateData.status = "rejeitada";
+      updateData.reviewed_at = checkedAt;
+      updateData.motivo_rejeicao = "Perfil privado — as campanhas exigem perfil público no Instagram";
+    }
+
     const { error: updateErr } = await supabase
       .from("campaign_shares")
       .update(updateData)

@@ -289,7 +289,7 @@ function AutoValidateBadge({ status, checkedAt, validateAt }: { status?: string 
   if (status === "live") return <Badge className="border-success/30 bg-success/15 text-success text-xs w-fit"><Zap className="mr-1 h-3 w-3" />✓ Verificado automaticamente</Badge>;
   if (status === "removed") return <Badge className="border-destructive/30 bg-destructive/15 text-destructive text-xs w-fit"><XCircle className="mr-1 h-3 w-3" />Post removido detectado {ts}</Badge>;
   if (status === "story_manual") return <Badge className="border-amber-400/30 bg-amber-500/15 text-amber-300 text-xs w-fit"><Clock className="mr-1 h-3 w-3" />Story: validação por print</Badge>;
-  if (status === "private") return <Badge className="border-primary/30 bg-primary/15 text-primary text-xs w-fit"><ShieldCheck className="mr-1 h-3 w-3" />Perfil privado</Badge>;
+  if (status === "private") return <Badge className="border-destructive/30 bg-destructive/15 text-destructive text-xs w-fit"><ShieldCheck className="mr-1 h-3 w-3" />Perfil privado — rejeitado</Badge>;
   return null;
 }
 

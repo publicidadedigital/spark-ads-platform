@@ -296,7 +296,7 @@ export const translations: Record<Lang, Dict> = {
     "campaigns.autoValidateLive": "Post verificado — ativo",
     "campaigns.autoValidateRemoved": "Post removido detectado",
     "campaigns.autoValidateStoryManual": "Story: aguardando análise manual",
-    "campaigns.autoValidatePrivate": "Perfil privado — análise manual",
+    "campaigns.autoValidatePrivate": "Perfil privado — envio rejeitado automaticamente",
     "campaigns.autoValidateInAnalysis": "Em análise",
 
     "network.title": "Minha Rede",
@@ -899,7 +899,7 @@ export const translations: Record<Lang, Dict> = {
     "campaigns.autoValidateLive": "Post verified — live",
     "campaigns.autoValidateRemoved": "Removed post detected",
     "campaigns.autoValidateStoryManual": "Story: awaiting manual review",
-    "campaigns.autoValidatePrivate": "Private profile — manual review",
+    "campaigns.autoValidatePrivate": "Private profile — automatically rejected",
     "campaigns.autoValidateInAnalysis": "Under review",
 
     "network.title": "My Network",
@@ -1502,7 +1502,7 @@ export const translations: Record<Lang, Dict> = {
     "campaigns.autoValidateLive": "Publicación verificada — activa",
     "campaigns.autoValidateRemoved": "Publicación eliminada detectada",
     "campaigns.autoValidateStoryManual": "Historia: esperando revisión manual",
-    "campaigns.autoValidatePrivate": "Perfil privado — revisión manual",
+    "campaigns.autoValidatePrivate": "Perfil privado — rechazado automáticamente",
     "campaigns.autoValidateInAnalysis": "En revisión",
 
     "network.title": "Mi Red",

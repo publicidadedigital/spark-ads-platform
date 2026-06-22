@@ -5,8 +5,9 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Clock, ExternalLink, Zap, Bot, RefreshCw } from "lucide-react";
+import { Clock, ExternalLink, Zap, Bot, RefreshCw, Eye, Heart, MessageCircle, ImageOff } from "lucide-react";
 
 export const Route = createFileRoute("/admin/provas")({
   validateSearch: (s) => ({ campaignId: (s.campaignId as string) || "" }),
@@ -25,6 +26,8 @@ function AdminProvas() {
   const { campaignId } = Route.useSearch();
   const [items, setItems] = useState<any[]>([]);
   const [motivos, setMotivos] = useState<Record<string,string>>({});
+  const [metrics, setMetrics] = useState<Record<string, { views: string; likes: string; comments: string }>>({});
+  const [proofUrls, setProofUrls] = useState<Record<string, string>>({});
 
   async function load() {
     if (!supabase) return;
@@ -36,6 +39,16 @@ function AdminProvas() {
     if (campaignId) query = query.eq("advertiser_campaign_id", campaignId);
     const { data } = await query;
     setItems(data ?? []);
+
+    const withProof = (data ?? []).filter((s) => s.proof_url);
+    if (withProof.length) {
+      const urls: Record<string, string> = {};
+      await Promise.all(withProof.map(async (s) => {
+        const { data: signed } = await supabase.storage.from("share-proofs").createSignedUrl(s.proof_url, 3600);
+        if (signed?.signedUrl) urls[s.id] = signed.signedUrl;
+      }));
+      setProofUrls(urls);
+    }
   }
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [supabase, campaignId]);
 
@@ -45,8 +58,16 @@ function AdminProvas() {
     if (warn) {
       toast.warning("Atenção: publicação com menos de 23h. Aprovando assim mesmo.");
     }
+    const m = metrics[item.id] || { views: "", likes: "", comments: "" };
     const { error } = await supabase.from("campaign_shares")
-      .update({ status: "aprovada", reviewed_by: user?.id, reviewed_at: new Date().toISOString() })
+      .update({
+        status: "aprovada",
+        reviewed_by: user?.id,
+        reviewed_at: new Date().toISOString(),
+        views_count: m.views.trim() ? Number(m.views) : null,
+        likes_count: m.likes.trim() ? Number(m.likes) : null,
+        comments_count: m.comments.trim() ? Number(m.comments) : null,
+      })
       .eq("id", item.id);
     if (error) return toast.error(error.message);
 
@@ -155,8 +176,32 @@ function AdminProvas() {
                   </a>
                   <AutoValidateBadge status={s.auto_validate_status} detail={s.auto_validate_detail} checkedAt={s.auto_validate_checked_at} />
                 </div>
+                {proofUrls[s.id] ? (
+                  <a href={proofUrls[s.id]} target="_blank" rel="noreferrer" className="mt-3 block w-fit">
+                    <img src={proofUrls[s.id]} alt="Print dos Insights" className="h-32 rounded-md border border-border/50 object-cover" />
+                  </a>
+                ) : (
+                  <div className="mt-3 flex items-center gap-1.5 text-xs text-amber-300">
+                    <ImageOff className="h-3.5 w-3.5" /> Sem print de Insights enviado
+                  </div>
+                )}
               </div>
               <div className="flex flex-col gap-2 w-full md:w-72">
+                <Label className="text-xs text-muted-foreground">Métricas do print de Insights</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <Label className="text-[11px] text-muted-foreground flex items-center gap-1"><Eye className="h-3 w-3" /> Views</Label>
+                    <Input type="number" min={0} value={metrics[s.id]?.views ?? ""} onChange={(e) => setMetrics({ ...metrics, [s.id]: { ...(metrics[s.id] ?? { views: "", likes: "", comments: "" }), views: e.target.value } })} />
+                  </div>
+                  <div>
+                    <Label className="text-[11px] text-muted-foreground flex items-center gap-1"><Heart className="h-3 w-3" /> Likes</Label>
+                    <Input type="number" min={0} value={metrics[s.id]?.likes ?? ""} onChange={(e) => setMetrics({ ...metrics, [s.id]: { ...(metrics[s.id] ?? { views: "", likes: "", comments: "" }), likes: e.target.value } })} />
+                  </div>
+                  <div>
+                    <Label className="text-[11px] text-muted-foreground flex items-center gap-1"><MessageCircle className="h-3 w-3" /> Coment.</Label>
+                    <Input type="number" min={0} value={metrics[s.id]?.comments ?? ""} onChange={(e) => setMetrics({ ...metrics, [s.id]: { ...(metrics[s.id] ?? { views: "", likes: "", comments: "" }), comments: e.target.value } })} />
+                  </div>
+                </div>
                 <Input placeholder="Motivo da rejeição / fraude" value={motivos[s.id] || ""} onChange={(e) => setMotivos({...motivos, [s.id]: e.target.value})} />
                 <div className="flex gap-2">
                   <Button size="sm" className="flex-1 bg-gold-gradient text-primary-foreground" onClick={() => approve(s)}>Aprovar</Button>

@@ -505,6 +505,7 @@ function AdvertiserShareDialog({ campaign, profileId, cycleId, onSubmitted, chil
   async function submit() {
     if (!supabase || !user || !profileId) return;
     if (!link.trim()) return toast.error(t("campaigns.linkRequired"));
+    if (!file) return toast.error(t("campaigns.proofRequired"));
     setBusy(true);
     let proofUrl: string | null = null;
     try {
@@ -636,6 +637,7 @@ function ShareDialog({ campaign, profileId, cycleId, onSubmitted, children }: {
   async function submit() {
     if (!supabase || !user || !profileId) return;
     if (!link.trim()) return toast.error(t("campaigns.linkRequired"));
+    if (!file) return toast.error(t("campaigns.proofRequired"));
     setBusy(true);
     let proofUrl: string | null = null;
     try {

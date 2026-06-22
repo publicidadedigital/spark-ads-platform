@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/lib/supabase/auth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,14 +9,37 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { ImagePlus, Video, Loader2, CheckCircle2, Send, Heart, MessageCircle, Share2 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/campanhas")({ component: AdminCampaigns });
+
+const VIDEO_EXTS = ["mp4", "mov", "avi", "mkv", "webm", "m4v", "3gp"];
+
+function isVideo(f: File) {
+  if (f.type.startsWith("video/")) return true;
+  const ext = f.name.split(".").pop()?.toLowerCase() ?? "";
+  return VIDEO_EXTS.includes(ext);
+}
+
+const emptyForm = {
+  titulo: "",
+  tipo_midia: "imagem",
+  media_url: "",
+  texto_sugerido: "",
+  link_campanha: "",
+  rede_permitida: "instagram",
+  instrucoes_obrigatorias: "",
+};
 
 function AdminCampaigns() {
   const { supabase } = useAuth();
   const [items, setItems] = useState<any[]>([]);
-  const [form, setForm] = useState<any>({ titulo: "", tipo_midia: "imagem", media_url: "", texto_sugerido: "", link_campanha: "", rede_permitida: "instagram", instrucoes_obrigatorias: "" });
+  const [form, setForm] = useState<any>(emptyForm);
   const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function load() {
     if (!supabase) return;
@@ -25,23 +48,71 @@ function AdminCampaigns() {
   }
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [supabase]);
 
+  function handleFile(f: File | null) {
+    setFile(f);
+    if (!f) { setPreview(null); return; }
+    setForm((current: any) => ({ ...current, tipo_midia: isVideo(f) ? "video" : "imagem" }));
+    if (isVideo(f)) {
+      setPreview(URL.createObjectURL(f));
+    } else {
+      const reader = new FileReader();
+      reader.onload = (e) => setPreview(e.target?.result as string);
+      reader.readAsDataURL(f);
+    }
+  }
+
+  function onFileInput(e: React.ChangeEvent<HTMLInputElement>) {
+    handleFile(e.target.files?.[0] ?? null);
+  }
+
+  function onDragOver(e: React.DragEvent) {
+    e.preventDefault();
+    setDragging(true);
+  }
+
+  function onDragLeave() {
+    setDragging(false);
+  }
+
+  function onDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setDragging(false);
+    const f = e.dataTransfer.files?.[0] ?? null;
+    if (f && (f.type.startsWith("image/") || isVideo(f))) {
+      handleFile(f);
+    }
+  }
+
   async function create() {
     if (!supabase) return;
-    let media_url = form.media_url;
-    if (file) {
-      const path = `${Date.now()}-${file.name}`;
-      const { error: upErr } = await supabase.storage.from("campaign-media").upload(path, file);
-      if (upErr) return toast.error(upErr.message);
-      const { data: pub } = supabase.storage.from("campaign-media").getPublicUrl(path);
-      media_url = pub.publicUrl;
+    if (!form.titulo.trim()) return toast.error("Informe o titulo da campanha");
+    if (!form.texto_sugerido.trim()) return toast.error("Informe o texto sugerido");
+    if (!form.link_campanha.trim()) return toast.error("Informe o link da campanha");
+
+    setSubmitting(true);
+    try {
+      let media_url = form.media_url;
+      if (file) {
+        const path = `${Date.now()}-${file.name}`;
+        const { error: upErr } = await supabase.storage.from("campaign-media").upload(path, file);
+        if (upErr) throw upErr;
+        const { data: pub } = supabase.storage.from("campaign-media").getPublicUrl(path);
+        media_url = pub.publicUrl;
+      }
+      if (!media_url) { toast.error("Envie um arquivo ou cole uma URL de mídia"); return; }
+
+      const { error } = await supabase.from("campaigns").insert({ ...form, media_url });
+      if (error) throw error;
+
+      toast.success("Campanha criada");
+      setForm(emptyForm);
+      handleFile(null);
+      load();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao criar campanha");
+    } finally {
+      setSubmitting(false);
     }
-    if (!media_url) return toast.error("Envie um arquivo ou cole uma URL de mídia");
-    const { error } = await supabase.from("campaigns").insert({ ...form, media_url });
-    if (error) return toast.error(error.message);
-    toast.success("Campanha criada");
-    setForm({ titulo: "", tipo_midia: "imagem", media_url: "", texto_sugerido: "", link_campanha: "", rede_permitida: "instagram", instrucoes_obrigatorias: "" });
-    setFile(null);
-    load();
   }
 
   async function toggle(id: string, status: string) {
@@ -53,27 +124,240 @@ function AdminCampaigns() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Campanhas</h1>
-      <Card className="p-6 bg-card/50 border-border/50">
-        <h3 className="font-semibold mb-4">Criar nova campanha</h3>
-        <div className="grid md:grid-cols-2 gap-3">
-          <div><Label>Título</Label><Input value={form.titulo} onChange={(e) => setForm({...form, titulo: e.target.value})} /></div>
-          <div><Label>Link da campanha</Label><Input value={form.link_campanha} onChange={(e) => setForm({...form, link_campanha: e.target.value})} /></div>
-          <div><Label>Tipo de mídia</Label>
-            <Select value={form.tipo_midia} onValueChange={(v) => setForm({...form, tipo_midia: v})}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent><SelectItem value="imagem">Imagem</SelectItem><SelectItem value="video">Vídeo</SelectItem></SelectContent>
-            </Select>
+
+      <div>
+        <h2 className="text-lg font-semibold mb-3">Criar nova campanha</h2>
+        <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
+          {/* Left: form */}
+          <Card className="p-6 bg-card/50 border-border/50 space-y-5">
+
+            {/* Media upload */}
+            <div>
+              <Label className="mb-2 block">Imagem ou vídeo da campanha</Label>
+              <div className="flex gap-2 mb-2">
+                <Button type="button" variant="outline" size="sm" className="flex-1 gap-1.5" onClick={() => { if (fileInputRef.current) { fileInputRef.current.accept = "image/*"; fileInputRef.current.click(); } }}>
+                  <ImagePlus className="h-4 w-4" /> Escolher imagem
+                </Button>
+                <Button type="button" variant="outline" size="sm" className="flex-1 gap-1.5" onClick={() => { if (fileInputRef.current) { fileInputRef.current.accept = "video/*"; fileInputRef.current.click(); } }}>
+                  <Video className="h-4 w-4" /> Escolher vídeo
+                </Button>
+              </div>
+              <div
+                onClick={() => { if (fileInputRef.current) { fileInputRef.current.accept = "image/*,video/*"; fileInputRef.current.click(); } }}
+                onDragOver={onDragOver}
+                onDragLeave={onDragLeave}
+                onDrop={onDrop}
+                className={`flex min-h-[180px] cursor-pointer items-center justify-center rounded-lg border-2 border-dashed transition ${
+                  dragging ? "border-primary bg-primary/10" : "border-border/60 bg-background/40 hover:border-primary/50"
+                } overflow-hidden`}
+              >
+                {preview ? (
+                  file && isVideo(file) ? (
+                    <video key={preview} src={preview} autoPlay loop playsInline muted className="h-full w-full object-cover max-h-64" />
+                  ) : (
+                    <img src={preview} alt="preview" className="h-full w-full object-cover" />
+                  )
+                ) : (
+                  <div className="flex flex-col items-center gap-2 p-6 text-center text-muted-foreground">
+                    <div className="flex gap-3">
+                      <ImagePlus className="h-8 w-8 opacity-60" />
+                      <Video className="h-8 w-8 opacity-60" />
+                    </div>
+                    <p className="text-sm font-medium">Clique para enviar ou arraste o arquivo aqui</p>
+                    <p className="text-xs opacity-70">Imagem (PNG, JPG, WEBP) ou vídeo (MP4, MOV) até 50MB</p>
+                  </div>
+                )}
+              </div>
+              {file && (
+                <div className="mt-1.5 flex items-center justify-between text-xs text-muted-foreground">
+                  <span className="truncate max-w-[200px]">{file.name}</span>
+                  <button type="button" className="text-destructive hover:underline ml-2 shrink-0" onClick={() => handleFile(null)}>Remover</button>
+                </div>
+              )}
+              <input ref={fileInputRef} type="file" accept="image/*,video/*" className="hidden" onChange={onFileInput} />
+              <div className="mt-3">
+                <Label className="mb-1 block text-xs text-muted-foreground">URL de mídia (alternativa ao upload)</Label>
+                <Input value={form.media_url} onChange={(e) => setForm({ ...form, media_url: e.target.value })} placeholder="https://" />
+              </div>
+            </div>
+
+            {/* Title */}
+            <div>
+              <Label className="mb-1 block">Título da campanha *</Label>
+              <Input value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} placeholder="Ex: Lançamento da coleção verão" />
+            </div>
+
+            {/* Link + rede permitida */}
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <Label className="mb-1 block">Link da campanha *</Label>
+                <Input value={form.link_campanha} onChange={(e) => setForm({ ...form, link_campanha: e.target.value })} placeholder="https://" />
+              </div>
+              <div>
+                <Label className="mb-1 block">Rede permitida</Label>
+                <Input value={form.rede_permitida} onChange={(e) => setForm({ ...form, rede_permitida: e.target.value })} placeholder="instagram" />
+              </div>
+            </div>
+
+            <div>
+              <Label className="mb-1 block">Tipo de mídia</Label>
+              <Select value={form.tipo_midia} onValueChange={(v) => setForm({ ...form, tipo_midia: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent><SelectItem value="imagem">Imagem</SelectItem><SelectItem value="video">Vídeo</SelectItem></SelectContent>
+              </Select>
+            </div>
+
+            {/* Caption textarea */}
+            <div>
+              <Label className="mb-1 block">Texto sugerido para compartilhamento *</Label>
+              <div className="relative">
+                <Textarea
+                  value={form.texto_sugerido}
+                  onChange={(e) => setForm({ ...form, texto_sugerido: e.target.value.slice(0, 2200) })}
+                  placeholder="Texto que os associados irão usar ao compartilhar, instruções obrigatórias e hashtags."
+                  rows={5}
+                  className="resize-none"
+                />
+                <span className="absolute bottom-2 right-3 text-xs text-muted-foreground">{form.texto_sugerido.length}/2200</span>
+              </div>
+
+              {/* Tips box */}
+              <div className="mt-3 rounded-lg border border-primary/20 bg-primary/5 p-4">
+                <p className="text-sm font-semibold mb-2">Dicas para um bom texto</p>
+                <ul className="space-y-1.5">
+                  {[
+                    "Seja claro e objetivo",
+                    "Inclua os principais benefícios",
+                    "Use chamadas para ação",
+                    "Evite letras maiúsculas em excesso",
+                  ].map((tip) => (
+                    <li key={tip} className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                      {tip}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Instrucoes obrigatorias */}
+            <div>
+              <Label className="mb-1 block">Instruções obrigatórias (opcional)</Label>
+              <div className="relative">
+                <Textarea
+                  value={form.instrucoes_obrigatorias}
+                  onChange={(e) => setForm({ ...form, instrucoes_obrigatorias: e.target.value.slice(0, 1000) })}
+                  placeholder="Instruções extras que os associados devem seguir ao compartilhar..."
+                  rows={3}
+                  className="resize-none"
+                />
+                <span className="absolute bottom-2 right-3 text-xs text-muted-foreground">{form.instrucoes_obrigatorias.length}/1000</span>
+              </div>
+            </div>
+
+            {/* Submit button */}
+            <Button onClick={create} disabled={submitting} className="w-full bg-gold-gradient text-primary-foreground">
+              {submitting ? (
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Criando...</>
+              ) : (
+                <><Send className="h-4 w-4 mr-2" /> Criar campanha</>
+              )}
+            </Button>
+          </Card>
+
+          {/* Right: Instagram previews */}
+          <div className="space-y-5">
+            <Card className="p-4 bg-card/50 border-border/50">
+              <p className="font-semibold text-sm mb-3 flex items-center gap-2">
+                <span className="inline-block h-3 w-3 rounded-sm bg-primary/70" />
+                Feed (1:1)
+              </p>
+              <div className="rounded-xl border border-border/60 bg-background overflow-hidden">
+                <div className="flex items-center gap-2.5 px-3 py-2">
+                  <div className="h-7 w-7 rounded-full bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 p-[2px]">
+                    <div className="h-full w-full rounded-full bg-background" />
+                  </div>
+                  <div className="space-y-1 flex-1">
+                    <div className="h-2 w-20 rounded bg-muted" />
+                  </div>
+                  <div className="h-1 w-1 rounded-full bg-muted" />
+                  <div className="h-1 w-1 rounded-full bg-muted" />
+                  <div className="h-1 w-1 rounded-full bg-muted" />
+                </div>
+                <div className="aspect-square bg-muted/20 flex items-center justify-center overflow-hidden">
+                  {preview ? (
+                    file && isVideo(file) ? (
+                      <video key={preview} src={preview} autoPlay loop playsInline muted className="h-full w-full object-cover" />
+                    ) : (
+                      <img src={preview} alt="feed preview" className="h-full w-full object-cover" />
+                    )
+                  ) : (
+                    <ImagePlus className="h-10 w-10 text-muted-foreground/20" />
+                  )}
+                </div>
+                <div className="flex items-center gap-3.5 px-3 py-2">
+                  <Heart className="h-4.5 w-4.5 text-muted-foreground" />
+                  <MessageCircle className="h-4.5 w-4.5 text-muted-foreground" />
+                  <Share2 className="h-4.5 w-4.5 text-muted-foreground" />
+                </div>
+                <div className="px-3 pb-3 space-y-1">
+                  {form.texto_sugerido ? (
+                    <p className="text-[11px] text-foreground line-clamp-3">{form.texto_sugerido}</p>
+                  ) : (
+                    <>
+                      <div className="h-1.5 w-full rounded bg-muted/60" />
+                      <div className="h-1.5 w-3/4 rounded bg-muted/60" />
+                      <div className="h-1.5 w-1/2 rounded bg-muted/40" />
+                    </>
+                  )}
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-4 bg-card/50 border-border/50">
+              <p className="font-semibold text-sm mb-3 flex items-center gap-2">
+                <span className="inline-block h-4 w-2.5 rounded-sm bg-primary/70" />
+                Stories (9:16)
+              </p>
+              <div className="mx-auto w-[160px]">
+                <div className="relative rounded-2xl overflow-hidden border border-border/60 bg-black" style={{ aspectRatio: "9/16" }}>
+                  {preview ? (
+                    file && isVideo(file) ? (
+                      <video key={preview} src={preview} autoPlay loop playsInline muted className="absolute inset-0 h-full w-full object-cover" />
+                    ) : (
+                      <img src={preview} alt="stories preview" className="absolute inset-0 h-full w-full object-cover" />
+                    )
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <ImagePlus className="h-8 w-8 text-white/20" />
+                    </div>
+                  )}
+                  <div className="absolute inset-x-0 top-0 p-2 flex items-center gap-1.5">
+                    <div className="flex-1 h-0.5 rounded-full bg-white/60" />
+                  </div>
+                  <div className="absolute inset-x-0 top-4 px-2 flex items-center gap-1.5">
+                    <div className="h-5 w-5 rounded-full bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 p-[1.5px]">
+                      <div className="h-full w-full rounded-full bg-black/50" />
+                    </div>
+                    <div className="h-1.5 w-12 rounded bg-white/50" />
+                  </div>
+                  {form.texto_sugerido && (
+                    <div className="absolute inset-x-0 bottom-6 px-3">
+                      <p className="text-[9px] text-white line-clamp-3 drop-shadow">{form.texto_sugerido}</p>
+                    </div>
+                  )}
+                  <div className="absolute inset-x-0 bottom-1 flex justify-center">
+                    <div className="h-1.5 w-12 rounded-full bg-white/30" />
+                  </div>
+                </div>
+              </div>
+            </Card>
           </div>
-          <div><Label>Rede permitida</Label><Input value={form.rede_permitida} onChange={(e) => setForm({...form, rede_permitida: e.target.value})} /></div>
-          <div className="md:col-span-2"><Label>Upload de mídia (ou URL abaixo)</Label><Input type="file" accept="image/*,video/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} /></div>
-          <div className="md:col-span-2"><Label>URL de mídia (alternativa)</Label><Input value={form.media_url} onChange={(e) => setForm({...form, media_url: e.target.value})} /></div>
-          <div className="md:col-span-2"><Label>Texto sugerido</Label><Textarea rows={3} value={form.texto_sugerido} onChange={(e) => setForm({...form, texto_sugerido: e.target.value})} /></div>
-          <div className="md:col-span-2"><Label>Instruções obrigatórias</Label><Textarea rows={2} value={form.instrucoes_obrigatorias} onChange={(e) => setForm({...form, instrucoes_obrigatorias: e.target.value})} /></div>
         </div>
-        <Button onClick={create} className="mt-4 bg-gold-gradient text-primary-foreground">Criar campanha</Button>
-      </Card>
+      </div>
 
       <div className="space-y-2">
+        <h2 className="text-lg font-semibold">Campanhas existentes</h2>
         {items.map((c) => (
           <Card key={c.id} className="p-4 bg-card/50 border-border/50 flex items-center justify-between gap-4">
             <div className="flex-1">

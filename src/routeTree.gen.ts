@@ -44,6 +44,7 @@ import { Route as AnunciantePainelCampanhasRouteImport } from './routes/anuncian
 import { Route as AdminSegurancaRouteImport } from './routes/admin/seguranca'
 import { Route as AdminSaquesRouteImport } from './routes/admin/saques'
 import { Route as AdminRenovacaoRouteImport } from './routes/admin/renovacao'
+import { Route as AdminRedeRouteImport } from './routes/admin/rede'
 import { Route as AdminProvasRouteImport } from './routes/admin/provas'
 import { Route as AdminPontuacaoRouteImport } from './routes/admin/pontuacao'
 import { Route as AdminPagamentosRouteImport } from './routes/admin/pagamentos'
@@ -51,6 +52,7 @@ import { Route as AdminPacotesRouteImport } from './routes/admin/pacotes'
 import { Route as AdminLogsRouteImport } from './routes/admin/logs'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminFinanceiroRouteImport } from './routes/admin/financeiro'
+import { Route as AdminCarteirasRouteImport } from './routes/admin/carteiras'
 import { Route as AdminCampanhasAnunciantesRouteImport } from './routes/admin/campanhas-anunciantes'
 import { Route as AdminCampanhasRouteImport } from './routes/admin/campanhas'
 import { Route as AdminAtivacaoRouteImport } from './routes/admin/ativacao'
@@ -242,6 +244,11 @@ const AdminRenovacaoRoute = AdminRenovacaoRouteImport.update({
   path: '/renovacao',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminRedeRoute = AdminRedeRouteImport.update({
+  id: '/rede',
+  path: '/rede',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminProvasRoute = AdminProvasRouteImport.update({
   id: '/provas',
   path: '/provas',
@@ -275,6 +282,11 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
 const AdminFinanceiroRoute = AdminFinanceiroRouteImport.update({
   id: '/financeiro',
   path: '/financeiro',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCarteirasRoute = AdminCarteirasRouteImport.update({
+  id: '/carteiras',
+  path: '/carteiras',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminCampanhasAnunciantesRoute =
@@ -360,6 +372,7 @@ export interface FileRoutesByFullPath {
   '/admin/ativacao': typeof AdminAtivacaoRoute
   '/admin/campanhas': typeof AdminCampanhasRoute
   '/admin/campanhas-anunciantes': typeof AdminCampanhasAnunciantesRoute
+  '/admin/carteiras': typeof AdminCarteirasRoute
   '/admin/financeiro': typeof AdminFinanceiroRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/logs': typeof AdminLogsRoute
@@ -367,6 +380,7 @@ export interface FileRoutesByFullPath {
   '/admin/pagamentos': typeof AdminPagamentosRoute
   '/admin/pontuacao': typeof AdminPontuacaoRoute
   '/admin/provas': typeof AdminProvasRoute
+  '/admin/rede': typeof AdminRedeRoute
   '/admin/renovacao': typeof AdminRenovacaoRoute
   '/admin/saques': typeof AdminSaquesRoute
   '/admin/seguranca': typeof AdminSegurancaRoute
@@ -413,6 +427,7 @@ export interface FileRoutesByTo {
   '/admin/ativacao': typeof AdminAtivacaoRoute
   '/admin/campanhas': typeof AdminCampanhasRoute
   '/admin/campanhas-anunciantes': typeof AdminCampanhasAnunciantesRoute
+  '/admin/carteiras': typeof AdminCarteirasRoute
   '/admin/financeiro': typeof AdminFinanceiroRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/logs': typeof AdminLogsRoute
@@ -420,6 +435,7 @@ export interface FileRoutesByTo {
   '/admin/pagamentos': typeof AdminPagamentosRoute
   '/admin/pontuacao': typeof AdminPontuacaoRoute
   '/admin/provas': typeof AdminProvasRoute
+  '/admin/rede': typeof AdminRedeRoute
   '/admin/renovacao': typeof AdminRenovacaoRoute
   '/admin/saques': typeof AdminSaquesRoute
   '/admin/seguranca': typeof AdminSegurancaRoute
@@ -470,6 +486,7 @@ export interface FileRoutesById {
   '/admin/ativacao': typeof AdminAtivacaoRoute
   '/admin/campanhas': typeof AdminCampanhasRoute
   '/admin/campanhas-anunciantes': typeof AdminCampanhasAnunciantesRoute
+  '/admin/carteiras': typeof AdminCarteirasRoute
   '/admin/financeiro': typeof AdminFinanceiroRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/logs': typeof AdminLogsRoute
@@ -477,6 +494,7 @@ export interface FileRoutesById {
   '/admin/pagamentos': typeof AdminPagamentosRoute
   '/admin/pontuacao': typeof AdminPontuacaoRoute
   '/admin/provas': typeof AdminProvasRoute
+  '/admin/rede': typeof AdminRedeRoute
   '/admin/renovacao': typeof AdminRenovacaoRoute
   '/admin/saques': typeof AdminSaquesRoute
   '/admin/seguranca': typeof AdminSegurancaRoute
@@ -528,6 +546,7 @@ export interface FileRouteTypes {
     | '/admin/ativacao'
     | '/admin/campanhas'
     | '/admin/campanhas-anunciantes'
+    | '/admin/carteiras'
     | '/admin/financeiro'
     | '/admin/login'
     | '/admin/logs'
@@ -535,6 +554,7 @@ export interface FileRouteTypes {
     | '/admin/pagamentos'
     | '/admin/pontuacao'
     | '/admin/provas'
+    | '/admin/rede'
     | '/admin/renovacao'
     | '/admin/saques'
     | '/admin/seguranca'
@@ -581,6 +601,7 @@ export interface FileRouteTypes {
     | '/admin/ativacao'
     | '/admin/campanhas'
     | '/admin/campanhas-anunciantes'
+    | '/admin/carteiras'
     | '/admin/financeiro'
     | '/admin/login'
     | '/admin/logs'
@@ -588,6 +609,7 @@ export interface FileRouteTypes {
     | '/admin/pagamentos'
     | '/admin/pontuacao'
     | '/admin/provas'
+    | '/admin/rede'
     | '/admin/renovacao'
     | '/admin/saques'
     | '/admin/seguranca'
@@ -637,6 +659,7 @@ export interface FileRouteTypes {
     | '/admin/ativacao'
     | '/admin/campanhas'
     | '/admin/campanhas-anunciantes'
+    | '/admin/carteiras'
     | '/admin/financeiro'
     | '/admin/login'
     | '/admin/logs'
@@ -644,6 +667,7 @@ export interface FileRouteTypes {
     | '/admin/pagamentos'
     | '/admin/pontuacao'
     | '/admin/provas'
+    | '/admin/rede'
     | '/admin/renovacao'
     | '/admin/saques'
     | '/admin/seguranca'
@@ -946,6 +970,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRenovacaoRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/rede': {
+      id: '/admin/rede'
+      path: '/rede'
+      fullPath: '/admin/rede'
+      preLoaderRoute: typeof AdminRedeRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/provas': {
       id: '/admin/provas'
       path: '/provas'
@@ -993,6 +1024,13 @@ declare module '@tanstack/react-router' {
       path: '/financeiro'
       fullPath: '/admin/financeiro'
       preLoaderRoute: typeof AdminFinanceiroRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/carteiras': {
+      id: '/admin/carteiras'
+      path: '/carteiras'
+      fullPath: '/admin/carteiras'
+      preLoaderRoute: typeof AdminCarteirasRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/campanhas-anunciantes': {
@@ -1087,6 +1125,7 @@ interface AdminRouteChildren {
   AdminAtivacaoRoute: typeof AdminAtivacaoRoute
   AdminCampanhasRoute: typeof AdminCampanhasRoute
   AdminCampanhasAnunciantesRoute: typeof AdminCampanhasAnunciantesRoute
+  AdminCarteirasRoute: typeof AdminCarteirasRoute
   AdminFinanceiroRoute: typeof AdminFinanceiroRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AdminLogsRoute: typeof AdminLogsRoute
@@ -1094,6 +1133,7 @@ interface AdminRouteChildren {
   AdminPagamentosRoute: typeof AdminPagamentosRoute
   AdminPontuacaoRoute: typeof AdminPontuacaoRoute
   AdminProvasRoute: typeof AdminProvasRoute
+  AdminRedeRoute: typeof AdminRedeRoute
   AdminRenovacaoRoute: typeof AdminRenovacaoRoute
   AdminSaquesRoute: typeof AdminSaquesRoute
   AdminSegurancaRoute: typeof AdminSegurancaRoute
@@ -1105,6 +1145,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAtivacaoRoute: AdminAtivacaoRoute,
   AdminCampanhasRoute: AdminCampanhasRoute,
   AdminCampanhasAnunciantesRoute: AdminCampanhasAnunciantesRoute,
+  AdminCarteirasRoute: AdminCarteirasRoute,
   AdminFinanceiroRoute: AdminFinanceiroRoute,
   AdminLoginRoute: AdminLoginRoute,
   AdminLogsRoute: AdminLogsRoute,
@@ -1112,6 +1153,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminPagamentosRoute: AdminPagamentosRoute,
   AdminPontuacaoRoute: AdminPontuacaoRoute,
   AdminProvasRoute: AdminProvasRoute,
+  AdminRedeRoute: AdminRedeRoute,
   AdminRenovacaoRoute: AdminRenovacaoRoute,
   AdminSaquesRoute: AdminSaquesRoute,
   AdminSegurancaRoute: AdminSegurancaRoute,

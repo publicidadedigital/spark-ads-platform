@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ImagePlus, Video, Loader2, CheckCircle2, Send, Heart, MessageCircle, Share2 } from "lucide-react";
+import { ImagePlus, Video, Loader2, CheckCircle2, Send, Heart, MessageCircle, Share2, ChevronDown, ChevronUp, ExternalLink, Users } from "lucide-react";
 
 export const Route = createFileRoute("/admin/campanhas")({ component: AdminCampaigns });
 
@@ -40,6 +40,9 @@ function AdminCampaigns() {
   const [dragging, setDragging] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [shares, setShares] = useState<Record<string, any[]>>({});
+  const [loadingShares, setLoadingShares] = useState<string | null>(null);
 
   async function load() {
     if (!supabase) return;
@@ -119,6 +122,30 @@ function AdminCampaigns() {
     if (!supabase) return;
     await supabase.from("campaigns").update({ status: status === "ativa" ? "inativa" : "ativa" }).eq("id", id);
     load();
+  }
+
+  async function toggleTracking(campaignId: string) {
+    if (expandedId === campaignId) {
+      setExpandedId(null);
+      return;
+    }
+    setExpandedId(campaignId);
+    if (shares[campaignId] || !supabase) return;
+    setLoadingShares(campaignId);
+    const { data, error } = await supabase
+      .from("campaign_shares")
+      .select("*, profile:user_id(nome, instagram, seguidores_instagram)")
+      .eq("campaign_id", campaignId)
+      .order("created_at", { ascending: false });
+    setLoadingShares(null);
+    if (error) { toast.error(error.message); return; }
+    setShares((current) => ({ ...current, [campaignId]: data ?? [] }));
+  }
+
+  function statusBadgeClass(status: string) {
+    if (status === "aprovada") return "border-success/30 bg-success/15 text-success";
+    if (status === "rejeitada" || status === "removida") return "border-destructive/30 bg-destructive/15 text-destructive";
+    return "border-amber-400/30 bg-amber-500/15 text-amber-300";
   }
 
   return (
@@ -358,17 +385,71 @@ function AdminCampaigns() {
 
       <div className="space-y-2">
         <h2 className="text-lg font-semibold">Campanhas existentes</h2>
-        {items.map((c) => (
-          <Card key={c.id} className="p-4 bg-card/50 border-border/50 flex items-center justify-between gap-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-2"><span className="font-medium">{c.titulo}</span><Badge variant="outline">{c.status}</Badge></div>
-              <div className="text-xs text-muted-foreground mt-1">{c.link_campanha}</div>
-            </div>
-            <Button size="sm" variant="outline" onClick={() => toggle(c.id, c.status)}>
-              {c.status === "ativa" ? "Inativar" : "Ativar"}
-            </Button>
-          </Card>
-        ))}
+        {items.map((c) => {
+          const campaignShares = shares[c.id] ?? [];
+          const totalAlcance = campaignShares.reduce(
+            (sum, s) => sum + Number(s.detected_followers || s.profile?.seguidores_instagram || 0),
+            0
+          );
+          return (
+            <Card key={c.id} className="p-4 bg-card/50 border-border/50">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2"><span className="font-medium">{c.titulo}</span><Badge variant="outline">{c.status}</Badge></div>
+                  <div className="text-xs text-muted-foreground mt-1">{c.link_campanha}</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button size="sm" variant="outline" className="gap-1.5" onClick={() => toggleTracking(c.id)}>
+                    <Users className="h-3.5 w-3.5" />
+                    Acompanhamento
+                    {expandedId === c.id ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => toggle(c.id, c.status)}>
+                    {c.status === "ativa" ? "Inativar" : "Ativar"}
+                  </Button>
+                </div>
+              </div>
+
+              {expandedId === c.id && (
+                <div className="mt-4 border-t border-border/50 pt-4">
+                  {loadingShares === c.id ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Carregando...</div>
+                  ) : campaignShares.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Nenhum usuário pegou esta campanha para divulgar ainda.</p>
+                  ) : (
+                    <>
+                      <div className="flex flex-wrap gap-4 mb-3 text-sm">
+                        <span><strong>{campaignShares.length}</strong> participação(ões)</span>
+                        <span><strong>{totalAlcance.toLocaleString("pt-BR")}</strong> alcance estimado (seguidores somados)</span>
+                      </div>
+                      <div className="space-y-2">
+                        {campaignShares.map((s) => (
+                          <div key={s.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/40 bg-background/40 p-3">
+                            <div className="min-w-0 flex-1">
+                              <div className="text-sm font-medium">{s.profile?.nome ?? "Usuário"} {s.profile?.instagram && <span className="text-muted-foreground">(@{s.profile.instagram})</span>}</div>
+                              {s.instagram_usado && s.instagram_usado !== s.profile?.instagram && (
+                                <div className="text-xs text-muted-foreground">Insta usado no envio: @{s.instagram_usado}</div>
+                              )}
+                              <a href={s.shared_link} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline inline-flex items-center gap-1 mt-1 break-all">
+                                {s.shared_link} <ExternalLink className="h-3 w-3 shrink-0" />
+                              </a>
+                            </div>
+                            <div className="flex items-center gap-3 text-right">
+                              <div className="text-xs text-muted-foreground">
+                                {Number(s.detected_followers || s.profile?.seguidores_instagram || 0).toLocaleString("pt-BR")} seguidores
+                              </div>
+                              <Badge className={statusBadgeClass(s.status)}>{s.status}</Badge>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+            </Card>
+          );
+        })}
       </div>
     </div>
   );

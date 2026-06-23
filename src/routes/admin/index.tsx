@@ -156,6 +156,13 @@ function AdminUsers() {
     if (!supabase) return;
     const { error } = await supabase.from("users_profile").update({ status }).eq("id", id);
     if (error) return toast.error(error.message);
+    if (status === "bloqueado") {
+      try {
+        await supabase.rpc("cancel_pending_bonuses_for_referred_user", { p_referred_profile_id: id });
+      } catch {
+        // best-effort: bonus cancellation failure shouldn't block the status update
+      }
+    }
     toast.success("Status atualizado");
     load();
   }

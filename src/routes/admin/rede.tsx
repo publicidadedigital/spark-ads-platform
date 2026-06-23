@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Clock, Network, Search, TrendingUp, XCircle, CheckCircle } from "lucide-react";
+import { Clock, Network, Search, TrendingUp, XCircle, CheckCircle, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/rede")({ component: AdminRede });
@@ -40,6 +40,7 @@ function AdminRede() {
   const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [search, setSearch] = useState("");
   const [acting, setActing] = useState<string | null>(null);
+  const [orphanOrigem, setOrphanOrigem] = useState<Set<string>>(new Set());
 
   async function load() {
     if (!supabase) return;
@@ -50,7 +51,17 @@ function AdminRede() {
       .order("created_at", { ascending: false })
       .limit(500);
     if (error) toast.error(error.message);
-    setRows((data ?? []) as unknown as BonusRow[]);
+    const list = (data ?? []) as unknown as BonusRow[];
+    setRows(list);
+
+    const origemIds = [...new Set(list.map((r) => r.origem_id).filter((v): v is string => !!v))];
+    if (origemIds.length) {
+      const { data: cycles } = await supabase.from("user_cycles").select("id").in("id", origemIds);
+      const existing = new Set((cycles ?? []).map((c: any) => c.id));
+      setOrphanOrigem(new Set(origemIds.filter((id) => !existing.has(id))));
+    } else {
+      setOrphanOrigem(new Set());
+    }
     setLoading(false);
   }
 
@@ -222,17 +233,24 @@ function AdminRede() {
                         ) : "—"}
                       </td>
                       <td className="p-3">
-                        {row.status === "pendente" ? (
-                          <Badge className="border-amber-400/30 bg-amber-500/15 text-amber-300">
-                            <Clock className="h-3 w-3 mr-1" />{days != null ? `${days}d restantes` : "Pendente"}
-                          </Badge>
-                        ) : row.status === "liberado" ? (
-                          <Badge className="border-success/30 bg-success/15 text-success">Liberado</Badge>
-                        ) : row.status === "cancelado" ? (
-                          <Badge className="border-destructive/30 bg-destructive/15 text-destructive">Cancelado</Badge>
-                        ) : (
-                          <Badge variant="outline">{row.status}</Badge>
-                        )}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {row.status === "pendente" ? (
+                            <Badge className="border-amber-400/30 bg-amber-500/15 text-amber-300">
+                              <Clock className="h-3 w-3 mr-1" />{days != null ? `${days}d restantes` : "Pendente"}
+                            </Badge>
+                          ) : row.status === "liberado" ? (
+                            <Badge className="border-success/30 bg-success/15 text-success">Liberado</Badge>
+                          ) : row.status === "cancelado" ? (
+                            <Badge className="border-destructive/30 bg-destructive/15 text-destructive">Cancelado</Badge>
+                          ) : (
+                            <Badge variant="outline">{row.status}</Badge>
+                          )}
+                          {row.origem_id && orphanOrigem.has(row.origem_id) && (
+                            <Badge title="O usuário que gerou este bônus foi excluído" className="border-destructive/30 bg-destructive/15 text-destructive">
+                              <AlertTriangle className="h-3 w-3 mr-1" />Origem excluída
+                            </Badge>
+                          )}
+                        </div>
                       </td>
                       <td className="p-3 text-right">
                         {row.status === "pendente" && (

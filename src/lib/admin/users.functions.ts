@@ -17,30 +17,6 @@ async function requireAdmin(accessToken: string) {
   if (!legacyRole && !modernRole) throw new Error("Acesso administrativo necessario");
 }
 
-export const getUsersLastLogin = createServerFn({ method: "POST" })
-  .inputValidator((input) => z.object({ accessToken: z.string().min(10) }).parse(input))
-  .handler(async ({ data }) => {
-    await requireAdmin(data.accessToken);
-
-    const admin = getAdminClient();
-    const lastLogins: Record<string, string | null> = {};
-
-    let page = 1;
-    while (page <= 10) {
-      const { data: result, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
-      if (error) throw new Error(error.message);
-
-      for (const u of result.users) {
-        lastLogins[u.id] = u.last_sign_in_at ?? null;
-      }
-
-      if (result.users.length < 1000) break;
-      page += 1;
-    }
-
-    return { lastLogins };
-  });
-
 export const deleteUser = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ accessToken: z.string().min(10), authUserId: z.string().uuid() }).parse(input))
   .handler(async ({ data }) => {

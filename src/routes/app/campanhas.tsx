@@ -262,7 +262,7 @@ function CampanhasPage() {
               <p className="text-sm text-muted-foreground">{t("campaigns.chooseAdDesc")}</p>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+            <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-5">
               {campaigns.slice(0, DAILY_GOAL).map((campaign, index) => (
                 <CampaignCard
                   key={campaign.id}
@@ -389,8 +389,8 @@ function CampaignCard({ campaign, index, alreadyShared, profileId, cycleId, onSu
   const color = cardColor(index);
   const ext = campaign.tipo_midia === "video" ? "mp4" : "jpg";
   return (
-    <Card className="overflow-hidden border-primary/15 bg-card/50">
-      <div className="relative aspect-[4/3] overflow-hidden bg-black/40">
+    <Card className="min-w-0 overflow-hidden border-primary/15 bg-card/50">
+      <div className="relative aspect-[4/3] w-full min-w-0 overflow-hidden bg-black/40">
         <span className="absolute left-3 top-3 z-10 flex h-6 w-6 items-center justify-center rounded-md border text-xs font-semibold" style={{ borderColor: color, color, background: `${color}25` }}>
           {index}
         </span>

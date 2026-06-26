@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { getTwoFactorStatus } from "@/lib/security/totp.functions";
 import { TwoFactorReminderBanner } from "@/components/TwoFactorSetup";
-import { getUsersLastLogin, deleteUser } from "@/lib/admin/users.functions";
+import { deleteUser } from "@/lib/admin/users.functions";
 import { activateDepositManually } from "@/lib/payments/admin-deposits.functions";
 
 export const Route = createFileRoute("/admin/")({ component: AdminUsers });
@@ -145,9 +145,15 @@ function AdminUsers() {
       getTwoFactorStatus({ data: { accessToken } })
         .then((status) => setTwoFactorEnabled(status.enabled))
         .catch(() => {});
-      getUsersLastLogin({ data: { accessToken } })
-        .then((result) => setLastLogins(result.lastLogins))
-        .catch(() => {});
+    }
+
+    const { data: lastLoginRows, error: lastLoginErr } = await supabase.rpc("admin_list_last_logins");
+    if (lastLoginErr) {
+      console.error("admin_list_last_logins failed", lastLoginErr);
+    } else {
+      const map: Record<string, string | null> = {};
+      for (const row of lastLoginRows ?? []) map[row.auth_user_id] = row.last_sign_in_at;
+      setLastLogins(map);
     }
   }
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [supabase]);
@@ -247,6 +253,11 @@ function AdminUsers() {
     return new Date(value).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
   }
 
+  function dateTimeLabel(value: string | null | undefined) {
+    if (!value) return "—";
+    return new Date(value).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -278,7 +289,7 @@ function AdminUsers() {
           {loading ? <p className="p-6 text-muted-foreground">Carregando...</p> : (
             <div className="overflow-x-auto"><table className="w-full min-w-[900px] text-sm">
               <thead className="border-b border-border/50 text-xs uppercase text-muted-foreground">
-                <tr><th className="text-left p-3">Nome</th><th className="text-left p-3">E-mail</th><th className="text-left p-3">Instagram</th><th className="text-left p-3">Indicado por</th><th className="text-left p-3">Plano</th><th className="text-left p-3">Status</th><th className="text-left p-3">Último login</th><th className="text-right p-3">Ações</th></tr>
+                <tr><th className="text-left p-3">Nome</th><th className="text-left p-3">E-mail</th><th className="text-left p-3">Instagram</th><th className="text-left p-3">Indicado por</th><th className="text-left p-3">Plano</th><th className="text-left p-3">Status</th><th className="text-left p-3">Cadastro</th><th className="text-left p-3">Último login</th><th className="text-right p-3">Ações</th></tr>
               </thead>
               <tbody>
                 {users.map((u) => {
@@ -362,6 +373,7 @@ function AdminUsers() {
                       )}
                     </td>
                     <td className="p-3"><Badge variant="outline">{u.status}</Badge></td>
+                    <td className="p-3 text-muted-foreground">{dateTimeLabel(u.created_at)}</td>
                     <td className="p-3 text-muted-foreground">{lastLoginLabel(u.auth_user_id)}</td>
                     <td className="p-3 text-right space-x-1">
                       {u.status !== "ativo" && <Button size="sm" variant="outline" onClick={() => setStatus(u.id, "ativo")}>Aprovar</Button>}
@@ -392,6 +404,7 @@ function AdminUsers() {
                   <th className="text-left p-3">Indicado por</th>
                   <th className="text-left p-3">Plano ativo</th>
                   <th className="text-left p-3">Status</th>
+                  <th className="text-left p-3">Cadastro</th>
                   <th className="text-left p-3">Último login</th>
                   <th className="text-right p-3">Ações</th>
                 </tr>
@@ -441,6 +454,7 @@ function AdminUsers() {
                         )}
                       </td>
                       <td className="p-3"><Badge variant="outline">{a.status}</Badge></td>
+                      <td className="p-3 text-muted-foreground">{dateTimeLabel(a.created_at)}</td>
                       <td className="p-3 text-muted-foreground">{lastLoginLabel(a.auth_user_id)}</td>
                       <td className="p-3 text-right space-x-1">
                         {a.status !== "ativo" && <Button size="sm" variant="outline" onClick={() => setAdvertiserStatus(a.id, "ativo")}>Aprovar</Button>}

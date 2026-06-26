@@ -200,8 +200,8 @@ function CampanhasPage() {
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_330px]">
-        <div className="space-y-4">
+      <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_330px]">
+        <div className="min-w-0 space-y-4">
           <Card className="border-primary/15 bg-card/50 p-4 md:p-5">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div>
@@ -331,7 +331,7 @@ function CampanhasPage() {
                 <h2 className="text-xl font-semibold">{t("campaigns.advertiserCampaigns")}</h2>
                 <p className="text-sm text-muted-foreground">{t("campaigns.advertiserCampaignsDesc")}</p>
               </div>
-              <div className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-2.5">
+              <div className="grid min-w-0 grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-2.5">
                 {advertiserCampaigns.map((campaign, index) => (
                   <AdvertiserCampaignCard
                     key={campaign.id}
@@ -367,7 +367,7 @@ function CampanhasPage() {
           )}
         </div>
 
-        <aside className="space-y-4">
+        <aside className="min-w-0 space-y-4">
           <ProgressPanel progress={progress} approved={approvedCount} remaining={remaining} />
           <HowItWorks />
           <RulesPanel />
@@ -458,8 +458,8 @@ function AdvertiserCampaignCard({ campaign, index, alreadyShared, profileId, cyc
   const color = cardColor(index);
   const ext = campaign.media_type === "video" ? "mp4" : "jpg";
   return (
-    <Card className="overflow-hidden border-primary/15 bg-card/50">
-      <div className="relative aspect-square overflow-hidden bg-black/40">
+    <Card className="min-w-0 overflow-hidden border-primary/15 bg-card/50">
+      <div className="relative aspect-square w-full min-w-0 overflow-hidden bg-black/40">
         {campaign.media_type === "video" ? (
           <video src={campaign.media_url} controls className="h-full w-full object-contain" />
         ) : (

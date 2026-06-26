@@ -86,6 +86,7 @@ function CampanhasPage() {
   const [sharesToday, setSharesToday] = useState<Share[]>([]);
   const [monthBonuses, setMonthBonuses] = useState<Bonus[]>([]);
   const [profileId, setProfileId] = useState<string | null>(null);
+  const [registeredInstagram, setRegisteredInstagram] = useState<string>("");
   const [cycleId, setCycleId] = useState<string | null>(null);
   const [cyclePackageValue, setCyclePackageValue] = useState<number>(0);
   const [loading, setLoading] = useState(true);
@@ -102,7 +103,7 @@ function CampanhasPage() {
 
     const { data: prof } = await supabase
       .from("users_profile")
-      .select("id")
+      .select("id,instagram")
       .eq("auth_user_id", user.id)
       .maybeSingle();
 
@@ -112,6 +113,7 @@ function CampanhasPage() {
     }
 
     setProfileId(prof.id);
+    setRegisteredInstagram(prof.instagram ?? "");
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -272,6 +274,7 @@ function CampanhasPage() {
                   alreadyShared={sharedToday.has(campaign.id)}
                   profileId={profileId}
                   cycleId={cycleId}
+                  registeredInstagram={registeredInstagram}
                   onSubmitted={refresh}
                 />
               ))}
@@ -317,6 +320,7 @@ function CampanhasPage() {
                         dailyBonus={dailyBonus}
                         profileId={profileId}
                         cycleId={cycleId}
+                        registeredInstagram={registeredInstagram}
                         onSubmitted={refresh}
                       />
                     );
@@ -378,12 +382,13 @@ function CampanhasPage() {
   );
 }
 
-function CampaignCard({ campaign, index, alreadyShared, profileId, cycleId, onSubmitted }: {
+function CampaignCard({ campaign, index, alreadyShared, profileId, cycleId, registeredInstagram, onSubmitted }: {
   campaign: Campaign;
   index: number;
   alreadyShared: boolean;
   profileId: string | null;
   cycleId: string | null;
+  registeredInstagram: string;
   onSubmitted: () => void;
 }) {
   const { t } = useLanguage();
@@ -432,7 +437,7 @@ function CampaignCard({ campaign, index, alreadyShared, profileId, cycleId, onSu
             <ShieldCheck className="mr-1 h-3 w-3" /> {t("campaigns.sentToday")}
           </Badge>
         ) : (
-          <ShareDialog campaign={campaign} profileId={profileId} cycleId={cycleId} onSubmitted={onSubmitted}>
+          <ShareDialog campaign={campaign} profileId={profileId} cycleId={cycleId} registeredInstagram={registeredInstagram} onSubmitted={onSubmitted}>
             <Button size="sm" variant="outline" className="w-full" style={{ borderColor: `${color}88`, color }}>
               {t("campaigns.useThisAd")}
             </Button>
@@ -657,13 +662,14 @@ function AdvertiserShareDialog({ campaign, profileId, cycleId, onSubmitted, chil
   );
 }
 
-function ShareRow({ campaign, share, index, dailyBonus, profileId, cycleId, onSubmitted }: {
+function ShareRow({ campaign, share, index, dailyBonus, profileId, cycleId, registeredInstagram, onSubmitted }: {
   campaign: Campaign;
   share?: Share;
   index: number;
   dailyBonus: number;
   profileId: string | null;
   cycleId: string | null;
+  registeredInstagram?: string;
   onSubmitted: () => void;
 }) {
   const { t } = useLanguage();
@@ -693,7 +699,7 @@ function ShareRow({ campaign, share, index, dailyBonus, profileId, cycleId, onSu
         ) : share ? (
           <span className="text-muted-foreground">-</span>
         ) : (
-          <ShareDialog campaign={campaign} profileId={profileId} cycleId={cycleId} onSubmitted={onSubmitted}>
+          <ShareDialog campaign={campaign} profileId={profileId} cycleId={cycleId} registeredInstagram={registeredInstagram} onSubmitted={onSubmitted}>
             <Button size="sm" variant="outline">
               <Send className="mr-2 h-4 w-4" /> {t("campaigns.sendLink")}
             </Button>
@@ -704,10 +710,11 @@ function ShareRow({ campaign, share, index, dailyBonus, profileId, cycleId, onSu
   );
 }
 
-function ShareDialog({ campaign, profileId, cycleId, onSubmitted, children }: {
+function ShareDialog({ campaign, profileId, cycleId, registeredInstagram, onSubmitted, children }: {
   campaign: Campaign;
   profileId: string | null;
   cycleId: string | null;
+  registeredInstagram?: string;
   onSubmitted: () => void;
   children: React.ReactNode;
 }) {
@@ -715,7 +722,7 @@ function ShareDialog({ campaign, profileId, cycleId, onSubmitted, children }: {
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [link, setLink] = useState("");
-  const [insta, setInsta] = useState("");
+  const insta = registeredInstagram ?? "";
   const [notes, setNotes] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [postType, setPostType] = useState<"feed" | "stories" | "">("");
@@ -748,7 +755,6 @@ function ShareDialog({ campaign, profileId, cycleId, onSubmitted, children }: {
       toast.success(t("campaigns.sentForAnalysisToast"));
       setOpen(false);
       setLink("");
-      setInsta("");
       setNotes("");
       setFile(null);
       setPostType("");
@@ -790,7 +796,7 @@ function ShareDialog({ campaign, profileId, cycleId, onSubmitted, children }: {
           </div>
           <div>
             <Label>{t("campaigns.instagramUsed")}</Label>
-            <Input value={insta} onChange={(e) => setInsta(e.target.value)} placeholder={t("campaigns.instagramPlaceholder")} />
+            <Input value={insta} disabled readOnly placeholder={t("campaigns.instagramPlaceholder")} />
           </div>
           <div>
             <Label>{t("campaigns.optionalNote")}</Label>

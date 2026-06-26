@@ -415,14 +415,17 @@ function CampaignCard({ campaign, index, alreadyShared, profileId, cycleId, onSu
           <Download className="h-3.5 w-3.5" /> {t("campaigns.download")} {campaign.tipo_midia === "video" ? t("campaigns.downloadVideo") : t("campaigns.downloadImage")}
         </Button>
         {!alreadyShared && (
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-8 w-full gap-1.5 border-pink-400/40 text-xs text-pink-300 hover:bg-pink-500/10"
-            onClick={() => shareToInstagram(campaign.media_url, `${campaign.titulo.replace(/\s+/g, "-")}.${ext}`, campaign.tipo_midia === "video" ? "video/mp4" : "image/jpeg", t("campaigns.shareInstagramFallback"))}
+          <InstagramShareGuide
+            onShare={() => shareToInstagram(campaign.media_url, `${campaign.titulo.replace(/\s+/g, "-")}.${ext}`, campaign.tipo_midia === "video" ? "video/mp4" : "image/jpeg", t("campaigns.shareInstagramFallback"))}
           >
-            <Instagram className="h-3.5 w-3.5" /> {t("campaigns.shareInstagram")}
-          </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 w-full gap-1.5 border-pink-400/40 text-xs text-pink-300 hover:bg-pink-500/10"
+            >
+              <Instagram className="h-3.5 w-3.5" /> {t("campaigns.shareInstagram")}
+            </Button>
+          </InstagramShareGuide>
         )}
         {alreadyShared ? (
           <Badge className="w-full justify-center border-success/30 bg-success/15 py-2 text-success hover:bg-success/15">
@@ -472,6 +475,53 @@ async function shareToInstagram(url: string, filename: string, mimeType: string,
     await downloadMedia(url, filename);
     toast.info(fallbackMessage);
   }
+}
+
+function InstagramShareGuide({ onShare, children }: { onShare: () => void | Promise<void>; children: React.ReactNode }) {
+  const { t } = useLanguage();
+  const [open, setOpen] = useState(false);
+  const [sharing, setSharing] = useState(false);
+
+  async function handleShare() {
+    setSharing(true);
+    try {
+      await onShare();
+      toast.warning(t("campaigns.shareGuideWarning"));
+    } finally {
+      setSharing(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent>
+        <DialogHeader><DialogTitle>{t("campaigns.shareGuideTitle")}</DialogTitle></DialogHeader>
+        <div className="space-y-3 text-sm">
+          <p className="text-muted-foreground">{t("campaigns.shareGuideIntro")}</p>
+
+          <div className="rounded-lg border border-border/50 bg-muted/10 p-3">
+            <p className="font-semibold text-foreground">{t("campaigns.shareGuideFeedTitle")}</p>
+            <p className="mt-1 text-muted-foreground">{t("campaigns.shareGuideFeedSteps")}</p>
+          </div>
+
+          <div className="rounded-lg border border-border/50 bg-muted/10 p-3">
+            <p className="font-semibold text-foreground">{t("campaigns.shareGuideStoriesTitle")}</p>
+            <p className="mt-1 text-muted-foreground">{t("campaigns.shareGuideStoriesSteps")}</p>
+          </div>
+
+          <div className="flex items-start gap-2 rounded-lg border border-amber-400/30 bg-amber-500/10 p-3 text-amber-200">
+            <Clock className="h-4 w-4 shrink-0 mt-0.5" />
+            <span>{t("campaigns.shareGuideWarning")}</span>
+          </div>
+
+          <Button onClick={handleShare} disabled={sharing} className="w-full gap-1.5 bg-pink-500 text-white hover:bg-pink-600">
+            <Instagram className="h-4 w-4" /> {t("campaigns.shareGuideAction")}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 function AdvertiserCampaignCard({ campaign, index, alreadyShared, profileId, cycleId, onSubmitted }: {

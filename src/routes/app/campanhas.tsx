@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { calculateDailyShareBonus } from "@/lib/business/rules";
 import {
   Check,
@@ -413,6 +414,16 @@ function CampaignCard({ campaign, index, alreadyShared, profileId, cycleId, onSu
         >
           <Download className="h-3.5 w-3.5" /> {t("campaigns.download")} {campaign.tipo_midia === "video" ? t("campaigns.downloadVideo") : t("campaigns.downloadImage")}
         </Button>
+        {!alreadyShared && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 w-full gap-1.5 border-pink-400/40 text-xs text-pink-300 hover:bg-pink-500/10"
+            onClick={() => shareToInstagram(campaign.media_url, `${campaign.titulo.replace(/\s+/g, "-")}.${ext}`, campaign.tipo_midia === "video" ? "video/mp4" : "image/jpeg", t("campaigns.shareInstagramFallback"))}
+          >
+            <Instagram className="h-3.5 w-3.5" /> {t("campaigns.shareInstagram")}
+          </Button>
+        )}
         {alreadyShared ? (
           <Badge className="w-full justify-center border-success/30 bg-success/15 py-2 text-success hover:bg-success/15">
             <ShieldCheck className="mr-1 h-3 w-3" /> {t("campaigns.sentToday")}
@@ -443,6 +454,23 @@ async function downloadMedia(url: string, filename: string) {
     URL.revokeObjectURL(objectUrl);
   } catch {
     window.open(url, "_blank");
+  }
+}
+
+async function shareToInstagram(url: string, filename: string, mimeType: string, fallbackMessage: string) {
+  try {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    const file = new File([blob], filename, { type: blob.type || mimeType });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file] });
+      return;
+    }
+    throw new Error("share-unsupported");
+  } catch (e: any) {
+    if (e?.name === "AbortError") return;
+    await downloadMedia(url, filename);
+    toast.info(fallbackMessage);
   }
 }
 
@@ -640,12 +668,14 @@ function ShareDialog({ campaign, profileId, cycleId, onSubmitted, children }: {
   const [insta, setInsta] = useState("");
   const [notes, setNotes] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [postType, setPostType] = useState<"feed" | "stories" | "">("");
   const [busy, setBusy] = useState(false);
 
   async function submit() {
     if (!supabase || !user || !profileId) return;
     if (!link.trim()) return toast.error(t("campaigns.linkRequired"));
     if (!file) return toast.error(t("campaigns.proofRequired"));
+    if (!postType) return toast.error(t("campaigns.postTypeRequired"));
     setBusy(true);
     let proofUrl: string | null = null;
     try {
@@ -662,6 +692,7 @@ function ShareDialog({ campaign, profileId, cycleId, onSubmitted, children }: {
         proof_url: proofUrl,
         shared_link: link.trim(),
         instagram_usado: insta.trim() || null,
+        post_type: postType,
       });
       if (error) throw error;
       toast.success(t("campaigns.sentForAnalysisToast"));
@@ -670,6 +701,7 @@ function ShareDialog({ campaign, profileId, cycleId, onSubmitted, children }: {
       setInsta("");
       setNotes("");
       setFile(null);
+      setPostType("");
       onSubmitted();
     } catch (e: any) {
       toast.error(e.message || t("campaigns.sendError"));
@@ -687,6 +719,17 @@ function ShareDialog({ campaign, profileId, cycleId, onSubmitted, children }: {
           <div className="flex items-start gap-2 rounded-lg border border-amber-400/30 bg-amber-500/10 p-3 text-sm text-amber-200">
             <Clock className="h-4 w-4 shrink-0 mt-0.5" />
             <span>{t("campaigns.postLiveWarning").replace("{hours}", t("campaigns.postLiveHours"))}</span>
+          </div>
+          <div>
+            <Label>{t("campaigns.postTypeLabel")}</Label>
+            <ToggleGroup type="single" value={postType} onValueChange={(v) => setPostType(v as "feed" | "stories" | "")} className="mt-1 justify-start gap-2">
+              <ToggleGroupItem value="feed" variant="outline" className="flex-1 data-[state=on]:border-primary data-[state=on]:bg-primary/15 data-[state=on]:text-primary">
+                {t("campaigns.postTypeFeed")}
+              </ToggleGroupItem>
+              <ToggleGroupItem value="stories" variant="outline" className="flex-1 data-[state=on]:border-primary data-[state=on]:bg-primary/15 data-[state=on]:text-primary">
+                {t("campaigns.postTypeStories")}
+              </ToggleGroupItem>
+            </ToggleGroup>
           </div>
           <div>
             <Label>{t("campaigns.linkLabel")}</Label>

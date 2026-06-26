@@ -387,24 +387,32 @@ function CampaignCard({ campaign, index, alreadyShared, profileId, cycleId, onSu
 }) {
   const { t } = useLanguage();
   const color = cardColor(index);
+  const ext = campaign.tipo_midia === "video" ? "mp4" : "jpg";
   return (
     <Card className="overflow-hidden border-primary/15 bg-card/50">
-      <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+      <div className="relative aspect-[4/3] overflow-hidden bg-black/40">
         <span className="absolute left-3 top-3 z-10 flex h-6 w-6 items-center justify-center rounded-md border text-xs font-semibold" style={{ borderColor: color, color, background: `${color}25` }}>
           {index}
         </span>
         {campaign.tipo_midia === "video" ? (
-          <video src={campaign.media_url} controls className="h-full w-full object-cover" />
+          <video src={campaign.media_url} controls className="h-full w-full object-contain" />
         ) : (
-          <img src={campaign.media_url} alt={campaign.titulo} className="h-full w-full object-cover transition duration-300 hover:scale-105" />
+          <img src={campaign.media_url} alt={campaign.titulo} className="h-full w-full object-contain" />
         )}
-        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-background/95 to-transparent" />
       </div>
       <div className="space-y-3 p-3 text-center">
         <div>
           <h3 className="line-clamp-2 min-h-10 text-sm font-semibold">{campaign.titulo}</h3>
           <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{campaign.texto_sugerido}</p>
         </div>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-8 w-full gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+          onClick={() => downloadMedia(campaign.media_url, `${campaign.titulo.replace(/\s+/g, "-")}.${ext}`)}
+        >
+          <Download className="h-3.5 w-3.5" /> {t("campaigns.download")} {campaign.tipo_midia === "video" ? t("campaigns.downloadVideo") : t("campaigns.downloadImage")}
+        </Button>
         {alreadyShared ? (
           <Badge className="w-full justify-center border-success/30 bg-success/15 py-2 text-success hover:bg-success/15">
             <ShieldCheck className="mr-1 h-3 w-3" /> {t("campaigns.sentToday")}

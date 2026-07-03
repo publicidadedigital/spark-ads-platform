@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { useAuth } from "@/lib/supabase/auth";
 import { useLanguage } from "@/lib/i18n/context";
 import { Card } from "@/components/ui/card";
@@ -56,6 +57,9 @@ type Bonus = {
   created_at: string;
   release_at?: string | null;
   origem_id?: string | null;
+  motivo_cancelamento?: string | null;
+  comprovante_url?: string | null;
+  observacao?: string | null;
 };
 
 type NetworkBonus = Bonus & {
@@ -115,7 +119,7 @@ function ExtratoPage() {
           .limit(160),
         supabase
           .from("bonuses")
-          .select("id,tipo,valor,status,nivel,created_at,origem_id,balance_holds(release_at)")
+          .select("id,tipo,valor,status,nivel,created_at,origem_id,motivo_cancelamento,comprovante_url,observacao,balance_holds(release_at)")
           .eq("user_id", prof.id)
           .order("created_at", { ascending: false })
           .limit(160),
@@ -464,6 +468,68 @@ function DistributionCard({ categories, total }: { categories: Category[]; total
   );
 }
 
+const MOTIVO_LABELS_ASSOC: Record<string, string> = {
+  pagamento_nao_confirmado: "Pagamento não confirmado",
+  ativacao_manual_sem_pagamento: "Ativação manual sem pagamento efetuado",
+  outro: "Outro motivo",
+};
+
+function CancelInfo({ bonusId, motivo, observacao, comprovanteUrl }: {
+  bonusId: string;
+  motivo: string;
+  observacao: string | null;
+  comprovanteUrl: string | null;
+}) {
+  const { supabase, user } = useAuth();
+  const [uploading, setUploading] = useState(false);
+  const [uploaded, setUploaded] = useState(!!comprovanteUrl);
+
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !supabase || !user) return;
+    setUploading(true);
+    try {
+      const path = `${user.id}/${bonusId}-${Date.now()}-${file.name}`;
+      const { error: upErr } = await supabase.storage.from("bonus-proofs").upload(path, file);
+      if (upErr) throw upErr;
+      const { error: dbErr } = await supabase.from("bonuses").update({ comprovante_url: path }).eq("id", bonusId);
+      if (dbErr) throw dbErr;
+      setUploaded(true);
+      toast.success("Comprovante enviado com sucesso!");
+    } catch (err: any) {
+      toast.error(err.message ?? "Erro ao enviar comprovante");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div className="space-y-1.5 text-xs">
+      <p className="text-destructive/80 font-medium">{MOTIVO_LABELS_ASSOC[motivo] ?? motivo}</p>
+      {observacao && <p className="text-muted-foreground italic">"{observacao}"</p>}
+      {motivo === "pagamento_nao_confirmado" && (
+        uploaded ? (
+          <p className="text-success flex items-center gap-1">
+            <ShieldCheck className="h-3 w-3" /> Comprovante enviado — aguarde análise
+          </p>
+        ) : (
+          <label className="inline-flex cursor-pointer items-center gap-1.5 rounded border border-primary/40 px-2 py-1 text-primary hover:bg-primary/10">
+            <Upload className="h-3 w-3" />
+            {uploading ? "Enviando..." : "Enviar comprovante de pagamento"}
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp,application/pdf"
+              className="sr-only"
+              disabled={uploading}
+              onChange={handleUpload}
+            />
+          </label>
+        )
+      )}
+    </div>
+  );
+}
+
 function getTipoLabel(t: (key: string) => string): Record<string, string> {
   return {
     diario: t("statement.bonusDaily"),
@@ -502,6 +568,9 @@ function UnifiedHistory({
     status: string;
     release_at: string | null;
     cycleStatus: string | null;
+    motivo_cancelamento: string | null;
+    comprovante_url: string | null;
+    observacao: string | null;
   };
 
   const rows: Row[] = [
@@ -518,6 +587,9 @@ function UnifiedHistory({
         status: b.status,
         release_at: b.release_at ?? null,
         cycleStatus: nb?.cycleStatus ?? null,
+        motivo_cancelamento: b.motivo_cancelamento ?? null,
+        comprovante_url: b.comprovante_url ?? null,
+        observacao: b.observacao ?? null,
       };
     }),
     ...withdrawals.map((t) => ({
@@ -531,6 +603,9 @@ function UnifiedHistory({
       status: "concluido",
       release_at: null,
       cycleStatus: null,
+      motivo_cancelamento: null,
+      comprovante_url: null,
+      observacao: null,
     })),
   ]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
@@ -564,7 +639,7 @@ function UnifiedHistory({
               : null;
             const isVencido = row.status === "liberado" && row.cycleStatus === "completado";
             return (
-              <tr key={row.id} className="border-b border-border/30 last:border-0 hover:bg-muted/5 transition-colors">
+              <tr key={row.id} className="border-b border-border/30 last:border-0 hover:bg-muted/5 transition-colors align-top">
                 <td className="px-3 py-2.5 text-muted-foreground whitespace-nowrap">{formatDateTime(row.date)}</td>
                 <td className="px-3 py-2.5 font-medium">{row.descricao}</td>
                 <td className="px-3 py-2.5 text-muted-foreground hidden md:table-cell">
@@ -576,7 +651,17 @@ function UnifiedHistory({
                 </td>
                 <td className="px-3 py-2.5">
                   {row.status === "cancelado" ? (
-                    <Badge className="border-destructive/30 bg-destructive/15 text-destructive">{t("statement.statusCanceled")}</Badge>
+                    <div className="space-y-1.5">
+                      <Badge className="border-destructive/30 bg-destructive/15 text-destructive">{t("statement.statusCanceled")}</Badge>
+                      {row.motivo_cancelamento && (
+                        <CancelInfo
+                          bonusId={row.id}
+                          motivo={row.motivo_cancelamento}
+                          observacao={row.observacao}
+                          comprovanteUrl={row.comprovante_url}
+                        />
+                      )}
+                    </div>
                   ) : isVencido ? (
                     <Badge className="border-border/50 bg-muted/20 text-muted-foreground">{t("statement.statusOverdue")}</Badge>
                   ) : row.status === "pendente" ? (

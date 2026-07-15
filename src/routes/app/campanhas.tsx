@@ -597,14 +597,26 @@ function AdvertiserShareDialog({ campaign, profileId, cycleId, onSubmitted, chil
     if (!link.trim()) return toast.error(t("campaigns.linkRequired"));
     setBusy(true);
     try {
-      const { error } = await supabase.from("campaign_shares").insert({
+      const { data: inserted, error } = await supabase.from("campaign_shares").insert({
         user_id: profileId,
         advertiser_campaign_id: campaign.id,
         cycle_id: cycleId,
         shared_link: link.trim(),
         instagram_usado: insta.trim() || null,
-      });
+      }).select("id").single();
       if (error) throw error;
+
+      // Immediate link check: rejects right away if post is not found or profile is private
+      const { data: checkResult } = await supabase.functions.invoke("validate-share-links", {
+        body: { shareId: inserted.id },
+      });
+      if (checkResult?.validateStatus === "removed") {
+        throw new Error(t("campaigns.linkNotFound"));
+      }
+      if (checkResult?.validateStatus === "private") {
+        throw new Error(t("campaigns.profilePrivate"));
+      }
+
       toast.success(t("campaigns.sentForAnalysisToast"));
       setOpen(false);
       setLink("");
@@ -718,15 +730,27 @@ function ShareDialog({ campaign, profileId, cycleId, registeredInstagram, onSubm
     if (!postType) return toast.error(t("campaigns.postTypeRequired"));
     setBusy(true);
     try {
-      const { error } = await supabase.from("campaign_shares").insert({
+      const { data: inserted, error } = await supabase.from("campaign_shares").insert({
         user_id: profileId,
         campaign_id: campaign.id,
         cycle_id: cycleId,
         shared_link: link.trim(),
         instagram_usado: insta.trim() || null,
         post_type: postType,
-      });
+      }).select("id").single();
       if (error) throw error;
+
+      // Immediate link check: rejects right away if post is not found or profile is private
+      const { data: checkResult } = await supabase.functions.invoke("validate-share-links", {
+        body: { shareId: inserted.id },
+      });
+      if (checkResult?.validateStatus === "removed") {
+        throw new Error(t("campaigns.linkNotFound"));
+      }
+      if (checkResult?.validateStatus === "private") {
+        throw new Error(t("campaigns.profilePrivate"));
+      }
+
       toast.success(t("campaigns.sentForAnalysisToast"));
       setOpen(false);
       setLink("");

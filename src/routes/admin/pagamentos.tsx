@@ -68,7 +68,7 @@ function AdminPagamentos() {
     const [{ data: clientRows }, { data: advRows }] = await Promise.all([
       supabase
         .from("payment_orders")
-        .select("id,created_at,amount_usd,status,method,users_profile:user_id(nome,email),cycle:cycle_id(package:package_id(nome))")
+        .select("id,created_at,amount_usd,status,method,users_profile:user_id(nome,email),cycle:cycle_id(pkg:package_id(nome))")
         .order("created_at", { ascending: false })
         .limit(500),
       supabase
@@ -82,7 +82,7 @@ function AdminPagamentos() {
 
     for (const c of clientRows ?? []) {
       const prof = (c as any).users_profile;
-      const pkgNome = (c as any).cycle?.package?.nome ?? null;
+      const pkgNome = (c as any).cycle?.pkg?.nome ?? null;
       unified.push({
         id: c.id,
         tipo: "associado",

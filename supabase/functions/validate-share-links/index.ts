@@ -22,7 +22,9 @@ async function checkLink(url: string): Promise<{ status: string; detail: string 
     const detail = `HTTP ${res.status}`;
     if (res.status === 200) return { status: "live", detail };
     if (res.status === 404 || res.status === 410) return { status: "removed", detail };
-    if (res.status >= 400 && res.status < 500) return { status: "private", detail };
+    if (res.status === 429 || res.status === 503 || res.status === 502) return { status: "check_failed", detail };
+    if (res.status === 403 || res.status === 401) return { status: "private", detail };
+    if (res.status >= 400 && res.status < 500) return { status: "check_failed", detail };
     return { status: "check_failed", detail };
   } catch (e: unknown) {
     return { status: "check_failed", detail: (e as Error).message ?? "fetch error" };

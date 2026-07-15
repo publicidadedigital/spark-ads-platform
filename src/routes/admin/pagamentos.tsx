@@ -20,12 +20,12 @@ type UnifiedPayment = {
   amount_usd: number;
   created_at: string;
   status: string;
+  pacote?: string;
   // associado only
   paymentOrderId?: string;
   // anunciante only
   advertiserProfileId?: string;
   advertiserProfileStatus?: string;
-  pacote?: string;
 };
 
 const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
@@ -68,7 +68,7 @@ function AdminPagamentos() {
     const [{ data: clientRows }, { data: advRows }] = await Promise.all([
       supabase
         .from("payment_orders")
-        .select("id,created_at,amount_usd,status,method,users_profile:user_id(nome,email)")
+        .select("id,created_at,amount_usd,status,method,users_profile:user_id(nome,email),cycle:cycle_id(package:package_id(nome))")
         .order("created_at", { ascending: false })
         .limit(500),
       supabase
@@ -82,6 +82,7 @@ function AdminPagamentos() {
 
     for (const c of clientRows ?? []) {
       const prof = (c as any).users_profile;
+      const pkgNome = (c as any).cycle?.package?.nome ?? null;
       unified.push({
         id: c.id,
         tipo: "associado",
@@ -91,6 +92,7 @@ function AdminPagamentos() {
         amount_usd: Number((c as any).amount_usd ?? 0),
         created_at: c.created_at,
         status: (c as any).status,
+        pacote: pkgNome ?? undefined,
         paymentOrderId: c.id,
       });
     }
@@ -107,9 +109,9 @@ function AdminPagamentos() {
         amount_usd: Number((a as any).amount_usd ?? 0),
         created_at: a.created_at,
         status: (a as any).status,
+        pacote: pkg ? `${pkg.name}${pkg.duration_days ? ` (${pkg.duration_days}d)` : ""}` : undefined,
         advertiserProfileId: prof?.id,
         advertiserProfileStatus: prof?.status,
-        pacote: pkg ? `${pkg.name}${pkg.duration_days ? ` (${pkg.duration_days}d)` : ""}` : undefined,
       });
     }
 
@@ -180,6 +182,7 @@ function AdminPagamentos() {
                   <th className="text-left p-3">Nome</th>
                   <th className="text-left p-3">E-mail</th>
                   <th className="text-left p-3">Tipo</th>
+                  <th className="text-left p-3">Pacote</th>
                   <th className="text-left p-3">Forma Pgto</th>
                   <th className="text-left p-3">Valor</th>
                   <th className="text-left p-3">Data</th>
@@ -196,16 +199,14 @@ function AdminPagamentos() {
                       : r.status !== "approved" || r.advertiserProfileStatus !== "ativo";
                   return (
                     <tr key={r.id} className="border-b border-border/30 hover:bg-card/40">
-                      <td className="p-3 font-medium">
-                        {r.nome}
-                        {r.pacote && <div className="text-xs text-muted-foreground">{r.pacote}</div>}
-                      </td>
+                      <td className="p-3 font-medium">{r.nome}</td>
                       <td className="p-3 text-muted-foreground">{r.email}</td>
                       <td className="p-3">
                         <Badge variant="outline" className={r.tipo === "associado" ? "border-blue-400/40 text-blue-300" : "border-violet-400/40 text-violet-300"}>
                           {r.tipo === "associado" ? "Associado" : "Anunciante"}
                         </Badge>
                       </td>
+                      <td className="p-3 text-muted-foreground">{r.pacote ?? "—"}</td>
                       <td className="p-3">
                         <span className="font-medium text-foreground">{fmtMethod(r.method)}</span>
                       </td>

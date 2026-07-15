@@ -590,27 +590,17 @@ function AdvertiserShareDialog({ campaign, profileId, cycleId, onSubmitted, chil
   const [open, setOpen] = useState(false);
   const [link, setLink] = useState("");
   const [insta, setInsta] = useState("");
-  const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
 
   async function submit() {
     if (!supabase || !user || !profileId) return;
     if (!link.trim()) return toast.error(t("campaigns.linkRequired"));
-    if (!file) return toast.error(t("campaigns.proofRequired"));
     setBusy(true);
-    let proofUrl: string | null = null;
     try {
-      if (file) {
-        const path = `${user.id}/${Date.now()}-${file.name}`;
-        const { error: upErr } = await supabase.storage.from("share-proofs").upload(path, file);
-        if (upErr) throw upErr;
-        proofUrl = path;
-      }
       const { error } = await supabase.from("campaign_shares").insert({
         user_id: profileId,
         advertiser_campaign_id: campaign.id,
         cycle_id: cycleId,
-        proof_url: proofUrl,
         shared_link: link.trim(),
         instagram_usado: insta.trim() || null,
       });
@@ -619,7 +609,6 @@ function AdvertiserShareDialog({ campaign, profileId, cycleId, onSubmitted, chil
       setOpen(false);
       setLink("");
       setInsta("");
-      setFile(null);
       onSubmitted();
     } catch (e: any) {
       toast.error(e.message || t("campaigns.sendError"));
@@ -648,10 +637,6 @@ function AdvertiserShareDialog({ campaign, profileId, cycleId, onSubmitted, chil
           <div>
             <Label>{t("campaigns.instagramUsed")}</Label>
             <Input value={insta} onChange={(e) => setInsta(e.target.value)} placeholder={t("campaigns.instagramPlaceholder")} />
-          </div>
-          <div>
-            <Label>{t("campaigns.proofOptional")}</Label>
-            <Input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
           </div>
           <Button onClick={submit} disabled={busy} className="w-full bg-gold-gradient text-primary-foreground">
             {busy ? t("campaigns.sending") : t("campaigns.sendForAnalysis")}
@@ -724,29 +709,19 @@ function ShareDialog({ campaign, profileId, cycleId, registeredInstagram, onSubm
   const [link, setLink] = useState("");
   const insta = registeredInstagram ?? "";
   const [notes, setNotes] = useState("");
-  const [file, setFile] = useState<File | null>(null);
   const [postType, setPostType] = useState<"feed" | "stories" | "">("");
   const [busy, setBusy] = useState(false);
 
   async function submit() {
     if (!supabase || !user || !profileId) return;
     if (!link.trim()) return toast.error(t("campaigns.linkRequired"));
-    if (!file) return toast.error(t("campaigns.proofRequired"));
     if (!postType) return toast.error(t("campaigns.postTypeRequired"));
     setBusy(true);
-    let proofUrl: string | null = null;
     try {
-      if (file) {
-        const path = `${user.id}/${Date.now()}-${file.name}`;
-        const { error: upErr } = await supabase.storage.from("share-proofs").upload(path, file);
-        if (upErr) throw upErr;
-        proofUrl = path;
-      }
       const { error } = await supabase.from("campaign_shares").insert({
         user_id: profileId,
         campaign_id: campaign.id,
         cycle_id: cycleId,
-        proof_url: proofUrl,
         shared_link: link.trim(),
         instagram_usado: insta.trim() || null,
         post_type: postType,
@@ -756,7 +731,6 @@ function ShareDialog({ campaign, profileId, cycleId, registeredInstagram, onSubm
       setOpen(false);
       setLink("");
       setNotes("");
-      setFile(null);
       setPostType("");
       onSubmitted();
     } catch (e: any) {
@@ -801,10 +775,6 @@ function ShareDialog({ campaign, profileId, cycleId, registeredInstagram, onSubm
           <div>
             <Label>{t("campaigns.optionalNote")}</Label>
             <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t("campaigns.optionalNotePlaceholder")} />
-          </div>
-          <div>
-            <Label>{t("campaigns.proofOptional")}</Label>
-            <Input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
           </div>
           <Button onClick={submit} disabled={busy} className="w-full bg-gold-gradient text-primary-foreground">
             {busy ? t("campaigns.sending") : t("campaigns.sendForAnalysis")}

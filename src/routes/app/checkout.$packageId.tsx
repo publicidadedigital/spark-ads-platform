@@ -45,12 +45,12 @@ function CheckoutPage() {
     if (!supabase || !pkg || !profile || !user) return;
     setSubmitting(true);
     try {
-      const { data: sess } = await supabase.auth.getSession();
-      const accessToken = sess.session?.access_token;
-      if (!accessToken) throw new Error(t("checkout.sessionExpired"));
-      const order = await createCheckoutOrder({ data: { packageId: pkg.id, accessToken } });
-
       if (method === "internal_balance") {
+        const { data: sess } = await supabase.auth.getSession();
+        const accessToken = sess.session?.access_token;
+        if (!accessToken) throw new Error(t("checkout.sessionExpired"));
+        const order = await createCheckoutOrder({ data: { packageId: pkg.id, accessToken } });
+
         const result = await createCheckout({
           packageId: pkg.id,
           packageNome: pkg.nome,

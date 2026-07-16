@@ -32,19 +32,10 @@ function SuportePage() {
     setStatus("loading");
     setErrorMsg("");
     try {
-      const session = (await supabase?.auth.getSession())?.data.session;
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-contact`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session?.access_token ?? ""}`,
-          },
-          body: JSON.stringify({ category, subject: subject.trim(), message: message.trim() }),
-        },
-      );
-      if (!res.ok) throw new Error(await res.text());
+      const { error: fnError } = await supabase!.functions.invoke("send-contact", {
+        body: { category, subject: subject.trim(), message: message.trim() },
+      });
+      if (fnError) throw fnError;
       setStatus("success");
       setCategory("");
       setSubject("");

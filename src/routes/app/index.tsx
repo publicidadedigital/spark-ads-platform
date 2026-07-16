@@ -21,6 +21,7 @@ import {
   AlertTriangle,
   Award,
   Bell,
+  BookOpen,
   Crown,
   Gift,
   Goal,
@@ -231,6 +232,16 @@ function Dashboard() {
               </div>
               <div className="flex items-center gap-3">
                 <StatusBadge status={s.status} />
+                <Link to="/app/campanhas">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-primary/30 text-primary hover:bg-primary/10 gap-1.5"
+                  >
+                    <BookOpen className="h-4 w-4" />
+                    {t("dashboard.howItWorksBtn")}
+                  </Button>
+                </Link>
                 <button className="relative flex h-11 w-11 items-center justify-center rounded-full border border-primary/20 bg-background/60 text-muted-foreground">
                   <Bell className="h-5 w-5" />
                 </button>
@@ -745,3 +756,4 @@ function CycleWarningBanner({ cycle }: { cycle: Stats["cycle"] }) {
 
   return null;
 }
+

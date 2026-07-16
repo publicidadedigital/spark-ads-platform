@@ -21,6 +21,14 @@ function hoursAgo(createdAt: string) {
   return { label: `${d}d ${h % 24}h online`, warn: false };
 }
 
+const STATUS_FILTERS = [
+  { value: "pendente", label: "Pendentes" },
+  { value: "aprovada", label: "Aprovadas" },
+  { value: "rejeitada", label: "Rejeitadas" },
+  { value: "removida", label: "Removidas" },
+  { value: "todos", label: "Todas" },
+] as const;
+
 function AdminProvas() {
   const { supabase, user } = useAuth();
   const { campaignId } = Route.useSearch();
@@ -28,17 +36,22 @@ function AdminProvas() {
   const [motivos, setMotivos] = useState<Record<string,string>>({});
   const [metrics, setMetrics] = useState<Record<string, { views: string; likes: string; comments: string }>>({});
   const [proofUrls, setProofUrls] = useState<Record<string, string>>({});
+  const [filterStatus, setFilterStatus] = useState<string>("pendente");
+  const [loading, setLoading] = useState(false);
 
-  async function load() {
+  async function load(status = filterStatus) {
     if (!supabase) return;
+    setLoading(true);
     let query = supabase
       .from("campaign_shares")
       .select("*, profile:user_id(nome, instagram, seguidores_instagram), campaign:campaign_id(titulo), advertiser_campaign:advertiser_campaign_id(title), auto_validate_status, auto_validate_checked_at, auto_validate_detail")
-      .eq("status", "pendente")
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (status !== "todos") query = query.eq("status", status);
     if (campaignId) query = query.eq("advertiser_campaign_id", campaignId);
     const { data } = await query;
     setItems(data ?? []);
+    setLoading(false);
 
     const withProof = (data ?? []).filter((s) => s.proof_url);
     if (withProof.length) {
@@ -50,7 +63,7 @@ function AdminProvas() {
       setProofUrls(urls);
     }
   }
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [supabase, campaignId]);
+  useEffect(() => { load(filterStatus); /* eslint-disable-next-line */ }, [supabase, campaignId, filterStatus]);
 
   async function approve(item: any) {
     if (!supabase) return;
@@ -85,7 +98,7 @@ function AdminProvas() {
     }
 
     toast.success("Aprovada");
-    load();
+    load(filterStatus);
   }
   async function reject(id: string) {
     if (!supabase) return;
@@ -95,7 +108,7 @@ function AdminProvas() {
       .eq("id", id);
     if (error) return toast.error(error.message);
     toast.success("Rejeitada");
-    load();
+    load(filterStatus);
   }
 
   async function removeFraud(id: string) {
@@ -106,7 +119,7 @@ function AdminProvas() {
       .eq("id", id);
     if (error) return toast.error(error.message);
     toast.success("Envio removido por fraude");
-    load();
+    load(filterStatus);
   }
 
   async function runAutoApprove() {
@@ -114,24 +127,43 @@ function AdminProvas() {
     const { error } = await supabase.rpc("auto_approve_validated_shares");
     if (error) return toast.error(error.message);
     toast.success("Aprovação automática executada");
-    load();
+    load(filterStatus);
   }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Provas pendentes</h1>
+          <h1 className="text-2xl font-bold">Provas</h1>
           <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
             <Bot className="h-3 w-3" /> Publicações com 23h+ online e verificadas automaticamente são aprovadas a cada 30 min pelo sistema.
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={runAutoApprove} className="gap-2">
-          <RefreshCw className="h-4 w-4" /> Rodar aprovação automática agora
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {STATUS_FILTERS.map((f) => (
+            <Button
+              key={f.value}
+              size="sm"
+              variant={filterStatus === f.value ? "default" : "outline"}
+              onClick={() => setFilterStatus(f.value)}
+            >
+              {f.label}
+            </Button>
+          ))}
+          <Button variant="outline" size="sm" onClick={() => load(filterStatus)} className="gap-2">
+            <RefreshCw className="h-4 w-4" /> Atualizar
+          </Button>
+          {filterStatus === "pendente" && (
+            <Button variant="outline" size="sm" onClick={runAutoApprove} className="gap-2">
+              <Bot className="h-4 w-4" /> Aprovar automático agora
+            </Button>
+          )}
+        </div>
       </div>
-      {items.length === 0 ? (
-        <Card className="p-8 bg-card/50 border-border/50 text-center text-muted-foreground">Sem provas pendentes.</Card>
+      {loading ? (
+        <Card className="p-8 bg-card/50 border-border/50 text-center text-muted-foreground">Carregando...</Card>
+      ) : items.length === 0 ? (
+        <Card className="p-8 bg-card/50 border-border/50 text-center text-muted-foreground">Nenhuma prova encontrada.</Card>
       ) : items.map((s) => {
         const timeInfo = hoursAgo(s.created_at);
         return (
@@ -190,31 +222,36 @@ function AdminProvas() {
                   </div>
                 )}
               </div>
-              <div className="flex flex-col gap-2 w-full md:w-72">
-                <Label className="text-xs text-muted-foreground">Métricas do print de Insights</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  <div>
-                    <Label className="text-[11px] text-muted-foreground flex items-center gap-1"><Eye className="h-3 w-3" /> Views</Label>
-                    <Input type="number" min={0} value={metrics[s.id]?.views ?? ""} onChange={(e) => setMetrics({ ...metrics, [s.id]: { ...(metrics[s.id] ?? { views: "", likes: "", comments: "" }), views: e.target.value } })} />
+              {s.status === "pendente" && (
+                <div className="flex flex-col gap-2 w-full md:w-72">
+                  <Label className="text-xs text-muted-foreground">Métricas do print de Insights</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <Label className="text-[11px] text-muted-foreground flex items-center gap-1"><Eye className="h-3 w-3" /> Views</Label>
+                      <Input type="number" min={0} value={metrics[s.id]?.views ?? ""} onChange={(e) => setMetrics({ ...metrics, [s.id]: { ...(metrics[s.id] ?? { views: "", likes: "", comments: "" }), views: e.target.value } })} />
+                    </div>
+                    <div>
+                      <Label className="text-[11px] text-muted-foreground flex items-center gap-1"><Heart className="h-3 w-3" /> Likes</Label>
+                      <Input type="number" min={0} value={metrics[s.id]?.likes ?? ""} onChange={(e) => setMetrics({ ...metrics, [s.id]: { ...(metrics[s.id] ?? { views: "", likes: "", comments: "" }), likes: e.target.value } })} />
+                    </div>
+                    <div>
+                      <Label className="text-[11px] text-muted-foreground flex items-center gap-1"><MessageCircle className="h-3 w-3" /> Coment.</Label>
+                      <Input type="number" min={0} value={metrics[s.id]?.comments ?? ""} onChange={(e) => setMetrics({ ...metrics, [s.id]: { ...(metrics[s.id] ?? { views: "", likes: "", comments: "" }), comments: e.target.value } })} />
+                    </div>
                   </div>
-                  <div>
-                    <Label className="text-[11px] text-muted-foreground flex items-center gap-1"><Heart className="h-3 w-3" /> Likes</Label>
-                    <Input type="number" min={0} value={metrics[s.id]?.likes ?? ""} onChange={(e) => setMetrics({ ...metrics, [s.id]: { ...(metrics[s.id] ?? { views: "", likes: "", comments: "" }), likes: e.target.value } })} />
+                  <Input placeholder="Motivo da rejeição / fraude" value={motivos[s.id] || ""} onChange={(e) => setMotivos({...motivos, [s.id]: e.target.value})} />
+                  <div className="flex gap-2">
+                    <Button size="sm" className="flex-1 bg-gold-gradient text-primary-foreground" onClick={() => approve(s)}>Aprovar</Button>
+                    <Button size="sm" variant="destructive" className="flex-1" onClick={() => reject(s.id)}>Rejeitar</Button>
                   </div>
-                  <div>
-                    <Label className="text-[11px] text-muted-foreground flex items-center gap-1"><MessageCircle className="h-3 w-3" /> Coment.</Label>
-                    <Input type="number" min={0} value={metrics[s.id]?.comments ?? ""} onChange={(e) => setMetrics({ ...metrics, [s.id]: { ...(metrics[s.id] ?? { views: "", likes: "", comments: "" }), comments: e.target.value } })} />
-                  </div>
+                  <Button size="sm" variant="outline" className="border-destructive/40 text-destructive hover:bg-destructive/10" onClick={() => removeFraud(s.id)}>
+                    Excluir envio fraudulento
+                  </Button>
                 </div>
-                <Input placeholder="Motivo da rejeição / fraude" value={motivos[s.id] || ""} onChange={(e) => setMotivos({...motivos, [s.id]: e.target.value})} />
-                <div className="flex gap-2">
-                  <Button size="sm" className="flex-1 bg-gold-gradient text-primary-foreground" onClick={() => approve(s)}>Aprovar</Button>
-                  <Button size="sm" variant="destructive" className="flex-1" onClick={() => reject(s.id)}>Rejeitar</Button>
-                </div>
-                <Button size="sm" variant="outline" className="border-destructive/40 text-destructive hover:bg-destructive/10" onClick={() => removeFraud(s.id)}>
-                  Excluir envio fraudulento
-                </Button>
-              </div>
+              )}
+              {s.status !== "pendente" && s.motivo_rejeicao && (
+                <div className="text-xs text-destructive mt-1 md:w-72">Motivo: {s.motivo_rejeicao}</div>
+              )}
             </div>
           </Card>
         );

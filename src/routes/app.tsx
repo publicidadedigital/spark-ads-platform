@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   LayoutDashboard, Megaphone, Receipt, Users, RefreshCw,
-  LogOut, Menu, ShieldCheck, Wallet, Building2, UserCircle, Package, Lock,
+  LogOut, Menu, ShieldCheck, Wallet, Building2, UserCircle, Package, Lock, MessageCircle,
 } from "lucide-react";
 import {
   Sheet, SheetContent, SheetTrigger,
@@ -28,6 +28,7 @@ const nav = [
   { to: "/app/renovacao", labelKey: "appNav.renovacao", icon: RefreshCw },
   { to: "/app/seguranca", labelKey: "appNav.seguranca", icon: ShieldCheck },
   { to: "/app/perfil", labelKey: "appNav.perfil", icon: UserCircle },
+  { to: "/app/suporte", labelKey: "appNav.suporte", icon: MessageCircle },
 ];
 
 function AppLayout() {

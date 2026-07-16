@@ -85,6 +85,7 @@ function CampanhasPage() {
   const [advertiserShares, setAdvertiserShares] = useState<Share[]>([]);
   const [sharesToday, setSharesToday] = useState<Share[]>([]);
   const [monthBonuses, setMonthBonuses] = useState<Bonus[]>([]);
+  const [historyShares, setHistoryShares] = useState<Share[]>([]);
   const [profileId, setProfileId] = useState<string | null>(null);
   const [registeredInstagram, setRegisteredInstagram] = useState<string>("");
   const [cycleId, setCycleId] = useState<string | null>(null);
@@ -120,7 +121,7 @@ function CampanhasPage() {
     const monthStart = new Date(today);
     monthStart.setDate(1);
 
-    const [{ data: cycle }, { data: cs }, { data: shares }, { data: bonuses }, { data: advCampaigns }, { data: advShares }] = await Promise.all([
+    const [{ data: cycle }, { data: cs }, { data: shares }, { data: bonuses }, { data: advCampaigns }, { data: advShares }, { data: history }] = await Promise.all([
       supabase
         .from("user_cycles")
         .select("id,valor_pacote")
@@ -157,6 +158,14 @@ function CampanhasPage() {
         .select("id,advertiser_campaign_id,shared_link,status,motivo_rejeicao,created_at,auto_validate_status,auto_validate_at,auto_validate_checked_at")
         .eq("user_id", prof.id)
         .not("advertiser_campaign_id", "is", null),
+      supabase
+        .from("campaign_shares")
+        .select("id,campaign_id,shared_link,status,motivo_rejeicao,created_at,campaigns:campaign_id(titulo,media_url,tipo_midia)")
+        .eq("user_id", prof.id)
+        .not("campaign_id", "is", null)
+        .lt("created_at", today.toISOString())
+        .order("created_at", { ascending: false })
+        .limit(60),
     ]);
 
     const activeCycle = cycle as ActiveCycle | null;
@@ -167,6 +176,7 @@ function CampanhasPage() {
     setMonthBonuses((bonuses ?? []) as Bonus[]);
     setAdvertiserCampaigns((advCampaigns ?? []) as AdvertiserCampaign[]);
     setAdvertiserShares((advShares ?? []) as unknown as Share[]);
+    setHistoryShares((history ?? []) as Share[]);
     setLoading(false);
   }
 
@@ -367,6 +377,45 @@ function CampanhasPage() {
                     <ClientAutoValidateBadge status={s.auto_validate_status} validateAt={s.auto_validate_at} shareStatus={s.status} />
                   </div>
                 ))}
+              </div>
+            </Card>
+          )}
+          {historyShares.length > 0 && (
+            <Card className="border-primary/15 bg-card/50 p-5">
+              <h2 className="font-semibold mb-3">{t("campaigns.historyTitle")}</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[600px] text-sm">
+                  <thead className="text-xs text-muted-foreground">
+                    <tr className="border-b border-border/50">
+                      <th className="px-3 py-2 text-left font-medium">{t("campaigns.colAd")}</th>
+                      <th className="px-3 py-2 text-left font-medium">{t("campaigns.colLinkSent")}</th>
+                      <th className="px-3 py-2 text-left font-medium">{t("campaigns.colStatus")}</th>
+                      <th className="px-3 py-2 text-left font-medium">{t("campaigns.colSentAt")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {historyShares.map((s) => {
+                      const camp = (s as any).campaigns;
+                      return (
+                        <tr key={s.id} className="border-b border-border/30 last:border-0">
+                          <td className="px-3 py-2">
+                            <div className="flex items-center gap-2">
+                              {camp?.media_url && <img src={camp.media_url} alt="" className="h-8 w-8 rounded object-cover" />}
+                              <span className="max-w-[180px] truncate font-medium">{camp?.titulo ?? "—"}</span>
+                            </div>
+                          </td>
+                          <td className="px-3 py-2">
+                            <a href={s.shared_link} target="_blank" rel="noreferrer" className="flex items-center gap-1 max-w-[200px] truncate text-muted-foreground hover:text-primary">
+                              {s.shared_link} <ExternalLink className="h-3 w-3 shrink-0" />
+                            </a>
+                          </td>
+                          <td className="px-3 py-2"><StatusBadge status={s.status} /></td>
+                          <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">{formatTime(s.created_at)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             </Card>
           )}

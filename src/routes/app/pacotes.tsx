@@ -23,7 +23,7 @@ type Payment = {
   amount_usd: number | string;
   status: string;
   method: string | null;
-  packages?: { nome: string | null } | null;
+  cycle?: { pkg?: { nome: string | null } | null } | null;
 };
 
 type Tab = "pacotes" | "historico";
@@ -82,7 +82,7 @@ function PacotesPage() {
         prof
           ? supabase
               .from("payment_orders")
-              .select("id,created_at,amount_usd,status,method,packages:package_id(nome)")
+              .select("id,created_at,amount_usd,status,method,cycle:cycle_id(pkg:package_id(nome))")
               .eq("user_id", prof.id)
               .order("created_at", { ascending: false })
               .limit(50)
@@ -209,7 +209,7 @@ function PacotesPage() {
               </thead>
               <tbody>
                 {payments.map((p) => {
-                  const pkg = p.packages as any;
+                  const pkg = (p.cycle as any)?.pkg;
                   const meta = paymentStatusMeta[p.status] ?? { label: p.status, className: "border-border/50 text-muted-foreground" };
                   return (
                     <tr key={p.id} className="border-b border-border/30">

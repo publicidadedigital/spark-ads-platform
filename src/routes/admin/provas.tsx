@@ -147,7 +147,7 @@ function AdminProvas() {
                 <div className="text-xs text-muted-foreground mt-1 break-all">{s.shared_link}</div>
                 <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                   <Clock className="h-3 w-3 shrink-0" />
-                  Link enviado em {new Date(s.created_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                  Link enviado em {new Date(s.created_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" })}
                 </div>
                 {s.instagram_usado && <div className="text-xs">Insta usado: @{s.instagram_usado}</div>}
                 <div className="mt-2 flex flex-wrap gap-2">

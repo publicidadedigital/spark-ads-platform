@@ -8,11 +8,23 @@ import { markApprovedWithdrawalsPaidBatch, markWithdrawalPaid, reviewWithdrawal 
 import { getTwoFactorStatus } from "@/lib/security/totp.functions";
 import { TwoFactorReminderBanner } from "@/components/TwoFactorSetup";
 import { createFileRoute } from "@tanstack/react-router";
-import { CheckCircle2, Clock, Megaphone, RefreshCcw, Send, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, Megaphone, RefreshCcw, Send, XCircle, Wallet } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/saques")({ component: AdminWithdrawalsPage });
+
+type AdvWithdrawalRequest = {
+  id: string;
+  created_at: string;
+  amount_usd: number;
+  method: string;
+  destination_key: string;
+  destination_holder: string | null;
+  status: string;
+  admin_notes: string | null;
+  advertiser_profile?: { company_name: string | null; email: string | null } | null;
+};
 
 type AdvertiserBonus = {
   id: string;
@@ -46,10 +58,13 @@ function AdminWithdrawalsPage() {
   const { supabase } = useAuth();
   const [items, setItems] = useState<Withdrawal[]>([]);
   const [bonuses, setBonuses] = useState<AdvertiserBonus[]>([]);
+  const [advWithdrawals, setAdvWithdrawals] = useState<AdvWithdrawalRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [bonusLoading, setBonusLoading] = useState(true);
+  const [advWdLoading, setAdvWdLoading] = useState(true);
   const [status, setStatus] = useState("todos");
   const [bonusStatus, setBonusStatus] = useState("todos");
+  const [advWdStatus, setAdvWdStatus] = useState("todos");
   const [cancelMotivo, setCancelMotivo] = useState<Record<string, string>>({});
   const [reference, setReference] = useState("");
   const [totpCode, setTotpCode] = useState("");
@@ -170,7 +185,39 @@ function AdminWithdrawalsPage() {
     }
   }
 
-  useEffect(() => { load(); loadBonuses(); loadTwoFactor(); }, []);
+  async function loadAdvWithdrawals() {
+    setAdvWdLoading(true);
+    const { data, error } = await supabase
+      .from("advertiser_withdrawal_requests")
+      .select("id,created_at,amount_usd,method,destination_key,destination_holder,status,admin_notes,advertiser_profile:advertiser_profile_id(company_name,email)")
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (error) toast.error(error.message);
+    setAdvWithdrawals((data ?? []) as unknown as AdvWithdrawalRequest[]);
+    setAdvWdLoading(false);
+  }
+
+  async function reviewAdvWithdrawal(id: string, newStatus: string) {
+    const { error } = await supabase
+      .from("advertiser_withdrawal_requests")
+      .update({ status: newStatus, reviewed_at: newStatus !== "solicitado" ? new Date().toISOString() : null })
+      .eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Saque ${newStatus === "aprovado" ? "aprovado" : newStatus === "recusado" ? "recusado" : "atualizado"}`);
+    loadAdvWithdrawals();
+  }
+
+  async function payAdvWithdrawal(id: string) {
+    const { error } = await supabase
+      .from("advertiser_withdrawal_requests")
+      .update({ status: "pago", paid_at: new Date().toISOString() })
+      .eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Saque de anunciante marcado como pago");
+    loadAdvWithdrawals();
+  }
+
+  useEffect(() => { load(); loadBonuses(); loadTwoFactor(); loadAdvWithdrawals(); }, []);
 
   return (
     <div className="space-y-6">
@@ -352,6 +399,78 @@ function AdminWithdrawalsPage() {
                           </Button>
                         </div>
                       )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+        </div>
+      </div>
+      {/* ── Saques de Anunciantes ── */}
+      <div>
+        <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg border border-amber-400/40 bg-amber-500/15 p-2 text-amber-300">
+              <Wallet className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold">Saques de Anunciantes</h2>
+              <p className="text-sm text-muted-foreground">Solicitações de retirada de comissão de indicação pelos anunciantes</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <select
+              className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+              value={advWdStatus}
+              onChange={(e) => setAdvWdStatus(e.target.value)}
+            >
+              <option value="todos">Todos</option>
+              <option value="solicitado">Solicitado</option>
+              <option value="em_analise">Em análise</option>
+              <option value="aprovado">Aprovado</option>
+              <option value="pago">Pago</option>
+              <option value="recusado">Recusado</option>
+            </select>
+            <Button variant="outline" size="sm" onClick={loadAdvWithdrawals} disabled={advWdLoading}>
+              <RefreshCcw className="mr-2 h-4 w-4" /> Atualizar
+            </Button>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {advWdLoading ? (
+            <Card><CardContent className="p-6 text-muted-foreground">Carregando saques de anunciantes...</CardContent></Card>
+          ) : advWithdrawals.filter((w) => advWdStatus === "todos" || w.status === advWdStatus).length === 0 ? (
+            <Card><CardContent className="p-6 text-muted-foreground">Nenhum saque de anunciante encontrado.</CardContent></Card>
+          ) : advWithdrawals
+              .filter((w) => advWdStatus === "todos" || w.status === advWdStatus)
+              .map((w) => {
+                const prof = Array.isArray(w.advertiser_profile) ? w.advertiser_profile[0] : w.advertiser_profile;
+                return (
+                  <Card key={w.id} className="border-border/70">
+                    <CardContent className="grid gap-4 p-5 lg:grid-cols-[1fr_auto] lg:items-center">
+                      <div className="space-y-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge variant="outline">{w.status}</Badge>
+                          <Badge variant="secondary">{w.method.toUpperCase()}</Badge>
+                          <span className="text-xs text-muted-foreground">{new Date(w.created_at).toLocaleString("pt-BR")}</span>
+                        </div>
+                        <h2 className="text-xl font-semibold">{usd.format(Number(w.amount_usd))}</h2>
+                        <p className="text-sm text-muted-foreground">Anunciante: {prof?.company_name ?? "—"} {prof?.email ? `(${prof.email})` : ""}</p>
+                        <p className="text-sm text-muted-foreground break-all">Destino: {w.destination_key}</p>
+                        {w.destination_holder && <p className="text-sm text-muted-foreground">Titular: {w.destination_holder}</p>}
+                        {w.admin_notes && <p className="text-sm italic text-muted-foreground">{w.admin_notes}</p>}
+                      </div>
+                      <div className="flex flex-wrap gap-2 lg:justify-end">
+                        <Button size="sm" variant="outline" onClick={() => reviewAdvWithdrawal(w.id, "aprovado")} disabled={!["solicitado", "em_analise"].includes(w.status)}>
+                          <CheckCircle2 className="mr-2 h-4 w-4" /> Aprovar
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => reviewAdvWithdrawal(w.id, "recusado")} disabled={!["solicitado", "em_analise"].includes(w.status)} className="border-destructive/40 text-destructive hover:bg-destructive/10">
+                          <XCircle className="mr-2 h-4 w-4" /> Recusar
+                        </Button>
+                        <Button size="sm" onClick={() => payAdvWithdrawal(w.id)} disabled={w.status !== "aprovado"}>
+                          <Send className="mr-2 h-4 w-4" /> Pagar
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 );

@@ -18,6 +18,8 @@ type Ticket = {
   message: string;
   status: "aberto" | "respondido" | "fechado";
   admin_notes: string | null;
+  admin_reply: string | null;
+  admin_reply_at: string | null;
 };
 
 const STATUS_META: Record<string, { label: string; className: string }> = {
@@ -49,6 +51,7 @@ function AdminSuportePage() {
   const [filterStatus, setFilterStatus] = useState<string>("aberto");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [notes, setNotes] = useState<Record<string, string>>({});
+  const [replies, setReplies] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState<string | null>(null);
 
   async function load(status: string) {
@@ -56,7 +59,7 @@ function AdminSuportePage() {
     setLoading(true);
     let q = supabase
       .from("support_tickets")
-      .select("id,created_at,user_name,user_email,category,subject,message,status,admin_notes")
+      .select("id,created_at,user_name,user_email,category,subject,message,status,admin_notes,admin_reply,admin_reply_at")
       .order("created_at", { ascending: false })
       .limit(100);
     if (status !== "todos") q = q.eq("status", status);
@@ -67,12 +70,26 @@ function AdminSuportePage() {
 
   useEffect(() => { load(filterStatus); }, [supabase, filterStatus]);
 
-  async function updateTicket(id: string, status: string, adminNotes: string) {
+  async function updateTicket(id: string, status: string, adminNotes: string, adminReply: string) {
     if (!supabase) return;
     setSaving(id);
-    await supabase.from("support_tickets").update({ status, admin_notes: adminNotes || null }).eq("id", id);
+    const replyChanged = adminReply !== (tickets.find((t) => t.id === id)?.admin_reply ?? "");
+    await supabase.from("support_tickets").update({
+      status,
+      admin_notes: adminNotes || null,
+      admin_reply: adminReply || null,
+      ...(replyChanged && adminReply ? { admin_reply_at: new Date().toISOString() } : {}),
+    }).eq("id", id);
     setSaving(null);
-    setTickets((prev) => prev.map((t) => t.id === id ? { ...t, status: status as Ticket["status"], admin_notes: adminNotes || null } : t));
+    setTickets((prev) => prev.map((t) =>
+      t.id === id ? {
+        ...t,
+        status: status as Ticket["status"],
+        admin_notes: adminNotes || null,
+        admin_reply: adminReply || null,
+        admin_reply_at: replyChanged && adminReply ? new Date().toISOString() : t.admin_reply_at,
+      } : t
+    ));
   }
 
   const counts = { aberto: 0, respondido: 0, fechado: 0, todos: tickets.length };
@@ -106,6 +123,7 @@ function AdminSuportePage() {
             const isOpen = expanded === t.id;
             const meta = STATUS_META[t.status] ?? STATUS_META.aberto;
             const noteVal = notes[t.id] ?? t.admin_notes ?? "";
+            const replyVal = replies[t.id] ?? t.admin_reply ?? "";
             return (
               <Card key={t.id} className="bg-card/50 border-border/50 overflow-hidden">
                 <button
@@ -134,9 +152,23 @@ function AdminSuportePage() {
                     </div>
 
                     <div className="space-y-2">
+                      <label className="text-xs font-medium text-blue-400 uppercase tracking-wide">Resposta ao usuário</label>
+                      <textarea
+                        rows={4}
+                        value={replyVal}
+                        onChange={(e) => setReplies((prev) => ({ ...prev, [t.id]: e.target.value }))}
+                        placeholder="Esta mensagem será visível para o usuário no painel dele..."
+                        className="w-full rounded-md border border-blue-400/40 bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 resize-none"
+                      />
+                      {t.admin_reply_at && (
+                        <p className="text-xs text-muted-foreground">Última resposta enviada em {fmtDate(t.admin_reply_at)}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
                       <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Notas internas</label>
                       <textarea
-                        rows={3}
+                        rows={2}
                         value={noteVal}
                         onChange={(e) => setNotes((prev) => ({ ...prev, [t.id]: e.target.value }))}
                         placeholder="Anotações internas (não visíveis ao usuário)"
@@ -152,11 +184,20 @@ function AdminSuportePage() {
                           size="sm"
                           variant={t.status === s ? "default" : "outline"}
                           disabled={saving === t.id}
-                          onClick={() => updateTicket(t.id, s, noteVal)}
+                          onClick={() => updateTicket(t.id, s, noteVal, replyVal)}
                         >
                           {STATUS_META[s].label}
                         </Button>
                       ))}
+                      <Button
+                        size="sm"
+                        variant="default"
+                        disabled={saving === t.id}
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                        onClick={() => updateTicket(t.id, replyVal ? "respondido" : t.status, noteVal, replyVal)}
+                      >
+                        Salvar resposta
+                      </Button>
                       {t.user_email && (
                         <a href={`mailto:${t.user_email}?subject=Re: ${encodeURIComponent(t.subject)}`} target="_blank" rel="noreferrer">
                           <Button size="sm" variant="outline">Responder por e-mail</Button>

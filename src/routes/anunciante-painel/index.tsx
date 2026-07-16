@@ -4,17 +4,20 @@ import { useAuth } from "@/lib/supabase/auth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Building2, Mail, MapPin, Phone, UserCircle, LogOut, Calendar, CheckCircle2,
-  Info, ChevronDown, ChevronUp, Megaphone, Clock, TrendingUp, Users,
+  Info, ChevronDown, ChevronUp, Megaphone, Clock, TrendingUp, Users, DollarSign, Send,
 } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/anunciante-painel/")({
   validateSearch: (s) => ({ tab: (s.tab as Tab) || "pagamentos" }),
   component: AdvertiserDashboard,
 });
 
-type Tab = "pagamentos" | "historico" | "campanhas";
+type Tab = "pagamentos" | "historico" | "campanhas" | "comissoes";
 
 type AdvertiserProfile = {
   id: string;
@@ -45,6 +48,28 @@ type PaymentOrder = {
   amount_usd: number | string | null;
   status: string;
   advertising_package: { name: string | null; duration_days: number | null } | null;
+};
+
+type BonusEvent = {
+  id: string;
+  created_at: string;
+  referrer_bonus: number;
+  gross_amount: number;
+  status: string;
+  available_at: string | null;
+  motivo: string | null;
+  advertiser: { company_name: string | null } | null;
+};
+
+type AdvWithdrawal = {
+  id: string;
+  created_at: string;
+  amount_usd: number;
+  method: string;
+  destination_key: string;
+  destination_holder: string | null;
+  status: string;
+  admin_notes: string | null;
 };
 
 type Campaign = {
@@ -117,6 +142,10 @@ function AdvertiserDashboard() {
   const { tab: initialTab } = Route.useSearch();
   const [tab, setTab] = useState<Tab>(initialTab ?? "pagamentos");
   const [howOpen, setHowOpen] = useState(false);
+  const [bonuses, setBonuses] = useState<BonusEvent[]>([]);
+  const [advWithdrawals, setAdvWithdrawals] = useState<AdvWithdrawal[]>([]);
+  const [withdrawForm, setWithdrawForm] = useState({ amount: "", method: "pix" as "pix" | "crypto", key: "", holder: "" });
+  const [submittingWithdraw, setSubmittingWithdraw] = useState(false);
 
   useEffect(() => {
     if (!loading && !session) navigate({ to: "/login" });
@@ -149,6 +178,32 @@ function AdvertiserDashboard() {
       setProfile(prof as AdvertiserProfile | null);
       setPackages((pkgs ?? []) as Pkg[]);
       setPayments((payRows ?? []) as unknown as PaymentOrder[]);
+
+      // Load commissions earned by this user as referrer (via users_profile)
+      const { data: upRow } = await supabase
+        .from("users_profile")
+        .select("id")
+        .eq("auth_user_id", user.id)
+        .maybeSingle();
+
+      if (upRow?.id) {
+        const [{ data: bonusRows }, { data: wdRows }] = await Promise.all([
+          supabase
+            .from("advertiser_bonus_events")
+            .select("id,created_at,referrer_bonus,gross_amount,status,available_at,motivo,advertiser:advertiser_id(company_name)")
+            .eq("referrer_user_id", upRow.id)
+            .order("created_at", { ascending: false })
+            .limit(100),
+          supabase
+            .from("advertiser_withdrawal_requests")
+            .select("id,created_at,amount_usd,method,destination_key,destination_holder,status,admin_notes")
+            .eq("advertiser_profile_id", prof?.id ?? "")
+            .order("created_at", { ascending: false })
+            .limit(50),
+        ]);
+        setBonuses((bonusRows ?? []) as unknown as BonusEvent[]);
+        setAdvWithdrawals((wdRows ?? []) as unknown as AdvWithdrawal[]);
+      }
 
       // Fetch metrics per campaign
       const rawCampaigns = (campRows ?? []) as any[];
@@ -184,6 +239,39 @@ function AdvertiserDashboard() {
       setProfileLoading(false);
     })();
   }, [supabase, user]);
+
+  async function requestWithdrawal() {
+    if (!supabase || !profile) return;
+    const amt = parseFloat(withdrawForm.amount);
+    if (!amt || amt <= 0) return toast.error("Informe um valor válido");
+    if (amt < 10) return toast.error("Valor mínimo para saque é $10,00");
+    if (!withdrawForm.key.trim()) return toast.error("Informe a chave de destino");
+    setSubmittingWithdraw(true);
+    try {
+      const { error } = await supabase.from("advertiser_withdrawal_requests").insert({
+        advertiser_profile_id: profile.id,
+        amount_usd: amt,
+        method: withdrawForm.method,
+        destination_key: withdrawForm.key.trim(),
+        destination_holder: withdrawForm.holder.trim() || null,
+      });
+      if (error) throw error;
+      toast.success("Solicitação de saque enviada com sucesso!");
+      setWithdrawForm({ amount: "", method: "pix", key: "", holder: "" });
+      // Reload withdrawals
+      const { data: wdRows } = await supabase
+        .from("advertiser_withdrawal_requests")
+        .select("id,created_at,amount_usd,method,destination_key,destination_holder,status,admin_notes")
+        .eq("advertiser_profile_id", profile.id)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      setAdvWithdrawals((wdRows ?? []) as unknown as AdvWithdrawal[]);
+    } catch (e: any) {
+      toast.error(e.message ?? "Erro ao solicitar saque");
+    } finally {
+      setSubmittingWithdraw(false);
+    }
+  }
 
   if (loading || profileLoading) return <div className="text-muted-foreground">Carregando...</div>;
   if (!session) return null;
@@ -289,6 +377,9 @@ function AdvertiserDashboard() {
         <Button size="sm" variant={tab === "campanhas" ? "default" : "outline"} onClick={() => setTab("campanhas")}>
           Campanhas {campaigns.length > 0 && <span className="ml-1 text-xs opacity-70">({campaigns.length})</span>}
         </Button>
+        <Button size="sm" variant={tab === "comissoes" ? "default" : "outline"} onClick={() => setTab("comissoes")}>
+          Comissões {bonuses.length > 0 && <span className="ml-1 text-xs opacity-70">({bonuses.length})</span>}
+        </Button>
       </div>
 
       {/* Tab: Pagamentos */}
@@ -375,6 +466,166 @@ function AdvertiserDashboard() {
             </table>
           )}
         </Card>
+      )}
+
+      {/* Tab: Comissões */}
+      {tab === "comissoes" && (
+        <div className="space-y-6">
+          {/* Balance summary */}
+          {(() => {
+            const released = bonuses.filter((b) => b.status === "liberado").reduce((s, b) => s + Number(b.referrer_bonus ?? 0), 0);
+            const withdrawn = advWithdrawals.filter((w) => ["aprovado", "pago"].includes(w.status)).reduce((s, w) => s + Number(w.amount_usd ?? 0), 0);
+            const available = Math.max(0, released - withdrawn);
+            return (
+              <div className="grid gap-4 sm:grid-cols-3">
+                <Card className="p-4 bg-card/50 border-border/50 text-center">
+                  <p className="text-xs text-muted-foreground mb-1">Total liberado</p>
+                  <p className="text-2xl font-bold text-success">{usd.format(released)}</p>
+                </Card>
+                <Card className="p-4 bg-card/50 border-border/50 text-center">
+                  <p className="text-xs text-muted-foreground mb-1">Já sacado / aprovado</p>
+                  <p className="text-2xl font-bold">{usd.format(withdrawn)}</p>
+                </Card>
+                <Card className="p-4 bg-card/50 border-border/50 text-center">
+                  <p className="text-xs text-muted-foreground mb-1">Disponível para saque</p>
+                  <p className="text-2xl font-bold text-primary">{usd.format(available)}</p>
+                </Card>
+              </div>
+            );
+          })()}
+
+          {/* Withdrawal request form */}
+          <Card className="p-5 bg-card/50 border-border/50 space-y-4">
+            <div className="flex items-center gap-2 mb-1">
+              <DollarSign className="h-5 w-5 text-primary" />
+              <h3 className="font-semibold">Solicitar Saque</h3>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1">
+                <Label className="text-xs">Valor (USD)</Label>
+                <Input
+                  type="number"
+                  placeholder="Ex: 50.00"
+                  value={withdrawForm.amount}
+                  onChange={(e) => setWithdrawForm((f) => ({ ...f, amount: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Forma de pagamento</Label>
+                <select
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                  value={withdrawForm.method}
+                  onChange={(e) => setWithdrawForm((f) => ({ ...f, method: e.target.value as "pix" | "crypto" }))}
+                >
+                  <option value="pix">PIX</option>
+                  <option value="crypto">Cripto</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">{withdrawForm.method === "pix" ? "Chave PIX" : "Endereço da carteira"}</Label>
+                <Input
+                  placeholder={withdrawForm.method === "pix" ? "CPF, e-mail, telefone ou chave aleatória" : "Endereço da rede (USDT/BTC...)"}
+                  value={withdrawForm.key}
+                  onChange={(e) => setWithdrawForm((f) => ({ ...f, key: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Titular (opcional)</Label>
+                <Input
+                  placeholder="Nome do titular"
+                  value={withdrawForm.holder}
+                  onChange={(e) => setWithdrawForm((f) => ({ ...f, holder: e.target.value }))}
+                />
+              </div>
+            </div>
+            <Button onClick={requestWithdrawal} disabled={submittingWithdraw} className="bg-primary text-primary-foreground gap-2">
+              <Send className="h-4 w-4" /> {submittingWithdraw ? "Enviando..." : "Solicitar saque"}
+            </Button>
+          </Card>
+
+          {/* Commission history */}
+          <div>
+            <h3 className="font-semibold mb-3">Histórico de Comissões</h3>
+            {bonuses.length === 0 ? (
+              <Card className="p-6 text-center text-muted-foreground bg-card/50 border-border/50">
+                Nenhuma comissão de indicação registrada ainda.
+              </Card>
+            ) : (
+              <Card className="bg-card/50 border-border/50 overflow-x-auto">
+                <table className="w-full text-sm min-w-[500px]">
+                  <thead className="border-b border-border/50 text-xs uppercase text-muted-foreground">
+                    <tr>
+                      <th className="text-left p-3">Data</th>
+                      <th className="text-left p-3">Anunciante indicado</th>
+                      <th className="text-left p-3">Comissão</th>
+                      <th className="text-left p-3">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bonuses.map((b) => {
+                      const adv = Array.isArray(b.advertiser) ? b.advertiser[0] : b.advertiser;
+                      const bonusStatusMeta: Record<string, { label: string; className: string }> = {
+                        liberado: { label: "Liberado", className: "border-success/30 bg-success/15 text-success hover:bg-success/15" },
+                        pendente: { label: "Pendente", className: "border-amber-400/30 bg-amber-500/15 text-amber-300 hover:bg-amber-500/15" },
+                        cancelado: { label: "Cancelado", className: "border-destructive/30 bg-destructive/15 text-destructive hover:bg-destructive/15" },
+                      };
+                      const bMeta = bonusStatusMeta[b.status] ?? { label: b.status, className: "" };
+                      return (
+                        <tr key={b.id} className="border-b border-border/30 hover:bg-card/40">
+                          <td className="p-3 text-muted-foreground">{fmtDate(b.created_at)}</td>
+                          <td className="p-3">{adv?.company_name ?? "—"}</td>
+                          <td className="p-3 font-semibold text-success">{usd.format(Number(b.referrer_bonus ?? 0))}</td>
+                          <td className="p-3"><Badge className={bMeta.className}>{bMeta.label}</Badge></td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </Card>
+            )}
+          </div>
+
+          {/* Withdrawal history */}
+          {advWithdrawals.length > 0 && (
+            <div>
+              <h3 className="font-semibold mb-3">Solicitações de Saque</h3>
+              <Card className="bg-card/50 border-border/50 overflow-x-auto">
+                <table className="w-full text-sm min-w-[500px]">
+                  <thead className="border-b border-border/50 text-xs uppercase text-muted-foreground">
+                    <tr>
+                      <th className="text-left p-3">Data</th>
+                      <th className="text-left p-3">Valor</th>
+                      <th className="text-left p-3">Método</th>
+                      <th className="text-left p-3">Destino</th>
+                      <th className="text-left p-3">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {advWithdrawals.map((w) => {
+                      const wMeta: Record<string, { label: string; className: string }> = {
+                        solicitado: { label: "Solicitado", className: "border-amber-400/30 bg-amber-500/15 text-amber-300 hover:bg-amber-500/15" },
+                        em_analise: { label: "Em análise", className: "border-amber-400/30 bg-amber-500/15 text-amber-300 hover:bg-amber-500/15" },
+                        aprovado: { label: "Aprovado", className: "border-success/30 bg-success/15 text-success hover:bg-success/15" },
+                        pago: { label: "Pago", className: "border-success/30 bg-success/15 text-success hover:bg-success/15" },
+                        recusado: { label: "Recusado", className: "border-destructive/30 bg-destructive/15 text-destructive hover:bg-destructive/15" },
+                      };
+                      const sm = wMeta[w.status] ?? { label: w.status, className: "" };
+                      return (
+                        <tr key={w.id} className="border-b border-border/30 hover:bg-card/40">
+                          <td className="p-3 text-muted-foreground">{fmtDate(w.created_at)}</td>
+                          <td className="p-3 font-semibold">{usd.format(Number(w.amount_usd))}</td>
+                          <td className="p-3">{w.method.toUpperCase()}</td>
+                          <td className="p-3 text-muted-foreground text-xs break-all">{w.destination_key}</td>
+                          <td className="p-3"><Badge className={sm.className}>{sm.label}</Badge></td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </Card>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Tab: Campanhas */}

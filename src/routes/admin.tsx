@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/supabase/auth";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { LogOut, Users, Megaphone, CheckSquare, Package, ShieldAlert, ShieldCheck, Bug, Send, DollarSign, Lock, RefreshCw, Trophy, Building2, CreditCard, Zap, Menu, Network, Wallet } from "lucide-react";
+import { LogOut, Users, Megaphone, CheckSquare, Package, ShieldAlert, ShieldCheck, Bug, Send, DollarSign, Lock, RefreshCw, Trophy, Building2, CreditCard, Zap, Menu, Network, Wallet, MessageCircle } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({ component: AdminLayout });
 
@@ -26,15 +26,16 @@ const nav = [
   { to: "/admin/seguranca", label: "Segurança", icon: Lock },
   { to: "/admin/ativacao", label: "Ativação Manual", icon: Zap },
   { to: "/admin/logs", label: "Logs do Sistema", icon: Bug },
+  { to: "/admin/suporte", label: "Suporte", icon: MessageCircle, countKey: "suporte" },
 ] as const;
 
-type PendingCounts = { campanhasAnunciantes: number; saques: number };
+type PendingCounts = { campanhasAnunciantes: number; saques: number; suporte: number };
 
 function AdminLayout() {
   const { session, loading, isAdmin, signOut, supabase } = useAuth();
   const navigate = useNavigate();
   const loc = useLocation();
-  const [counts, setCounts] = useState<PendingCounts>({ campanhasAnunciantes: 0, saques: 0 });
+  const [counts, setCounts] = useState<PendingCounts>({ campanhasAnunciantes: 0, saques: 0, suporte: 0 });
 
   useEffect(() => {
     if (!loading && !session && loc.pathname !== "/admin/login") navigate({ to: "/admin/login" });
@@ -44,11 +45,12 @@ function AdminLayout() {
     if (!supabase || !isAdmin) return;
     const client = supabase;
     async function loadCounts() {
-      const [{ count: campCount }, { count: saqueCount }] = await Promise.all([
+      const [{ count: campCount }, { count: saqueCount }, { count: suporteCount }] = await Promise.all([
         client.from("advertiser_campaigns").select("id", { count: "exact", head: true }).eq("status", "em_analise"),
         client.from("withdrawal_requests").select("id", { count: "exact", head: true }).in("status", ["solicitado", "em_analise"]),
+        client.from("support_tickets").select("id", { count: "exact", head: true }).eq("status", "aberto"),
       ]);
-      setCounts({ campanhasAnunciantes: campCount ?? 0, saques: saqueCount ?? 0 });
+      setCounts({ campanhasAnunciantes: campCount ?? 0, saques: saqueCount ?? 0, suporte: suporteCount ?? 0 });
     }
     loadCounts();
     const interval = setInterval(loadCounts, 60_000);

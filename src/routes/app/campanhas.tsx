@@ -296,7 +296,7 @@ function CampanhasPage() {
             </div>
           </section>
 
-          <Card className="border-primary/15 bg-card/50 p-5">
+          <Card id="minhas-publicacoes" className="border-primary/15 bg-card/50 p-5">
             <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
                 <h2 className="text-xl font-semibold">{t("campaigns.myPostsToday")}</h2>
@@ -878,7 +878,12 @@ function ProgressPanel({ progress, approved, remaining }: { progress: number; ap
           <p className="mt-2 text-sm font-semibold text-primary">{progress}%</p>
         </div>
       </div>
-      <Button className="mt-5 w-full bg-primary text-primary-foreground">{t("campaigns.viewMyPosts")}</Button>
+      <Button
+        className="mt-5 w-full bg-primary text-primary-foreground"
+        onClick={() => document.getElementById("minhas-publicacoes")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+      >
+        {t("campaigns.viewMyPosts")}
+      </Button>
     </Card>
   );
 }

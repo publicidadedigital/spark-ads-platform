@@ -21,6 +21,8 @@ import {
   AlertTriangle,
   Award,
   Bell,
+  BookOpen,
+  CheckCircle2,
   Crown,
   Gift,
   Goal,
@@ -35,6 +37,7 @@ import {
   TrendingUp,
   Users,
   Wallet,
+  X,
 } from "lucide-react";
 
 export const Route = createFileRoute("/app/")({ component: Dashboard });
@@ -80,6 +83,7 @@ function Dashboard() {
   const [s, setS] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
 
   useEffect(() => {
     if (!supabase || !user) return;
@@ -217,6 +221,7 @@ function Dashboard() {
 
   return (
     <div className="dashboard-page space-y-4">
+      {showHowItWorks && <HowItWorksModal onClose={() => setShowHowItWorks(false)} />}
       {!twoFactorEnabled && <TwoFactorReminderBanner to="/app/seguranca" />}
       <CycleWarningBanner cycle={s.cycle} />
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_290px]">
@@ -231,6 +236,15 @@ function Dashboard() {
               </div>
               <div className="flex items-center gap-3">
                 <StatusBadge status={s.status} />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-primary/30 text-primary hover:bg-primary/10 gap-1.5"
+                  onClick={() => setShowHowItWorks(true)}
+                >
+                  <BookOpen className="h-4 w-4" />
+                  {t("dashboard.howItWorksBtn")}
+                </Button>
                 <button className="relative flex h-11 w-11 items-center justify-center rounded-full border border-primary/20 bg-background/60 text-muted-foreground">
                   <Bell className="h-5 w-5" />
                 </button>
@@ -744,4 +758,104 @@ function CycleWarningBanner({ cycle }: { cycle: Stats["cycle"] }) {
   }
 
   return null;
+}
+
+function HowItWorksModal({ onClose }: { onClose: () => void }) {
+  const { t } = useLanguage();
+
+  const steps = [
+    {
+      num: 1,
+      title: t("howItWorks.step1Title"),
+      desc: t("howItWorks.step1Desc"),
+      color: "bg-primary/15 text-primary border-primary/30",
+    },
+    {
+      num: 2,
+      title: t("howItWorks.step2Title"),
+      desc: t("howItWorks.step2Desc"),
+      color: "bg-violet-500/15 text-violet-300 border-violet-400/30",
+    },
+    {
+      num: 3,
+      title: t("howItWorks.step3Title"),
+      desc: t("howItWorks.step3Desc"),
+      color: "bg-amber-500/15 text-amber-300 border-amber-400/30",
+    },
+    {
+      num: 4,
+      title: t("howItWorks.step4Title"),
+      desc: t("howItWorks.step4Desc"),
+      color: "bg-blue-500/15 text-blue-300 border-blue-400/30",
+    },
+    {
+      num: 5,
+      title: t("howItWorks.step5Title"),
+      desc: t("howItWorks.step5Desc"),
+      color: "bg-green-500/15 text-green-300 border-green-400/30",
+    },
+  ];
+
+  const rules = [
+    t("howItWorks.rule1"),
+    t("howItWorks.rule2"),
+    t("howItWorks.rule3"),
+    t("howItWorks.rule4"),
+    t("howItWorks.rule5"),
+    t("howItWorks.rule6"),
+  ];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl border border-border/60 bg-background shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border/40 bg-background px-6 py-4">
+          <div className="flex items-center gap-2">
+            <BookOpen className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-bold">{t("howItWorks.title")}</h2>
+          </div>
+          <button onClick={onClose} className="rounded-full p-1.5 text-muted-foreground hover:bg-card hover:text-foreground transition">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-6">
+          <p className="text-sm text-muted-foreground">{t("howItWorks.intro")}</p>
+
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{t("howItWorks.stepsTitle")}</h3>
+            {steps.map((step) => (
+              <div key={step.num} className={`flex gap-4 rounded-lg border p-4 ${step.color}`}>
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-current/10 font-bold text-sm">
+                  {step.num}
+                </div>
+                <div>
+                  <p className="font-semibold text-sm">{step.title}</p>
+                  <p className="text-xs mt-0.5 opacity-80 leading-relaxed">{step.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{t("howItWorks.rulesTitle")}</h3>
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 space-y-2">
+              {rules.map((rule, i) => (
+                <div key={i} className="flex items-start gap-2 text-sm">
+                  <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-destructive" />
+                  <span>{rule}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-primary/25 bg-primary/5 p-4 text-sm text-center text-muted-foreground">
+            {t("howItWorks.footer")}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

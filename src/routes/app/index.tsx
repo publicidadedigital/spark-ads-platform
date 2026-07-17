@@ -477,7 +477,7 @@ function ActivityCard({ shares }: { shares: Share[] }) {
               <div className="text-right">
                 <p className="text-xs text-muted-foreground">{formatShortDate(item.created_at)}</p>
                 <Badge variant="outline" className={item.status === "aprovada" ? "border-success/30 text-success" : "border-amber-400/30 text-amber-300"}>
-                  {item.status === "aprovada" ? t("dashboard.pointsAbbrev") : t("dashboard.pending")}
+                  {item.status === "aprovada" ? t("campaigns.statusValidated") : t("dashboard.pending")}
                 </Badge>
               </div>
             </div>

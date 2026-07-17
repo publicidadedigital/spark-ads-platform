@@ -30,6 +30,28 @@ function fmtDate(iso: string) {
   return d.toLocaleDateString("pt-BR") + " " + d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }
 
+type Ticket = {
+  id: string;
+  created_at: string;
+  category: string;
+  subject: string;
+  message: string;
+  status: "aberto" | "respondido" | "fechado";
+  admin_reply: string | null;
+  admin_reply_at: string | null;
+};
+
+const STATUS_META: Record<string, { label: string; className: string }> = {
+  aberto: { label: "Aberto", className: "bg-amber-500/15 text-amber-300 border border-amber-400/30" },
+  respondido: { label: "Respondido", className: "bg-blue-500/15 text-blue-300 border border-blue-400/30" },
+  fechado: { label: "Fechado", className: "bg-muted/20 text-muted-foreground border border-border/40" },
+};
+
+function fmtDate(iso: string) {
+  const d = new Date(iso);
+  return d.toLocaleDateString("pt-BR") + " " + d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
+
 const CATEGORIES = [
   { value: "pagamento", labelKey: "support.catPayment" },
   { value: "saque", labelKey: "support.catWithdrawal" },

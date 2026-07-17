@@ -107,7 +107,7 @@ function Dashboard() {
           .maybeSingle();
 
         if (advertiser) {
-          navigate({ to: "/anunciante-painel" });
+          navigate({ to: "/anunciante-painel" } as any);
           return;
         }
 
@@ -170,7 +170,7 @@ function Dashboard() {
         ganhosEquipe: sumBy("equipe"),
         totalBonus,
         points: Math.round((pointEvents ?? []).reduce((total, row) => total + moneyValue(row.points), 0)),
-        recentShares: (recentShares ?? []) as Share[],
+        recentShares: (recentShares ?? []) as unknown as Share[],
         bonuses: releasedBonuses as Bonus[],
       });
       setLoading(false);

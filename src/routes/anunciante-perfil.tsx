@@ -26,7 +26,7 @@ function AdvertiserProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
 
   useEffect(() => {
-    if (!loading && !session) navigate({ to: "/login" });
+    if (!loading && !session) navigate({ to: "/login" } as any);
   }, [loading, session, navigate]);
 
   useEffect(() => {
@@ -47,7 +47,7 @@ function AdvertiserProfilePage() {
     <div className="min-h-screen bg-noir-gradient">
       <header className="border-b border-border/50 bg-background/80">
         <div className="container mx-auto flex items-center justify-between px-4 py-3">
-          <Link to="/anunciante-painel" className="flex items-center gap-2">
+          <Link to={"/anunciante-painel" as any} className="flex items-center gap-2">
             <Logo className="h-8 w-auto max-w-[160px]" />
             <span className="text-primary text-xs font-bold tracking-wider">ANUNCIANTE</span>
           </Link>
@@ -61,7 +61,7 @@ function AdvertiserProfilePage() {
       </header>
 
       <div className="container mx-auto px-4 py-6 space-y-4">
-        <Link to="/anunciante-painel" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+        <Link to={"/anunciante-painel" as any} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> Voltar ao painel
         </Link>
 

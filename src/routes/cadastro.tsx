@@ -215,7 +215,7 @@ function CadastroPage() {
       toast.warning(confirmationError?.message || "Cadastro criado, mas o envio de confirmacao precisa ser revisado.");
     } finally {
       setLoading(false);
-      navigate({ to: "/login" });
+      navigate({ to: "/login" } as any);
     }
   }
 
@@ -326,7 +326,7 @@ function CadastroPage() {
         </form>
 
         <p className="text-sm text-center text-muted-foreground mt-6">
-          Ja tem conta? <Link to="/login" className="text-gold hover:underline">Entrar</Link>
+          Ja tem conta? <Link to={"/login" as any} className="text-gold hover:underline">Entrar</Link>
         </p>
       </Card>
     </div>

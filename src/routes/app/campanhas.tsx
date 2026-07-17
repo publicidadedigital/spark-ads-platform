@@ -181,11 +181,11 @@ function CampanhasPage() {
     setCycleId(activeCycle?.id ?? null);
     setCyclePackageValue(Number(activeCycle?.valor_pacote ?? 0));
     setCampaigns((cs ?? []) as Campaign[]);
-    setSharesToday((shares ?? []) as Share[]);
+    setSharesToday((shares ?? []) as unknown as Share[]);
     setMonthBonuses((bonuses ?? []) as Bonus[]);
     setAdvertiserCampaigns((advCampaigns ?? []) as AdvertiserCampaign[]);
     setAdvertiserShares((advShares ?? []) as unknown as Share[]);
-    setHistoryShares((history ?? []) as Share[]);
+    setHistoryShares((history ?? []) as unknown as Share[]);
     const bonusByDay: Record<string, string> = {};
     for (const b of (allDailyBonuses ?? []) as any[]) {
       const day = b.operational_day ?? b.created_at?.slice(0, 10);

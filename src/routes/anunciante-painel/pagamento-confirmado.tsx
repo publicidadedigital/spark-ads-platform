@@ -56,7 +56,7 @@ function PagamentoConfirmado() {
                 <Megaphone className="h-4 w-4" /> Criar primeira campanha
               </Button>
             </Link>
-            <Link to="/anunciante-painel/">
+            <Link to={"/anunciante-painel/" as any}>
               <Button variant="ghost" className="w-full">Ir para o dashboard</Button>
             </Link>
           </>
@@ -69,7 +69,7 @@ function PagamentoConfirmado() {
             <p className="text-sm text-muted-foreground">
               Seu pagamento está sendo processado. Assim que for confirmado, sua conta será ativada automaticamente. Isso pode levar alguns minutos.
             </p>
-            <Link to="/anunciante-painel/">
+            <Link to={"/anunciante-painel/" as any}>
               <Button variant="outline" className="w-full">Voltar ao dashboard</Button>
             </Link>
           </>

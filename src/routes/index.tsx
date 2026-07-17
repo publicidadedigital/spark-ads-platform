@@ -49,8 +49,8 @@ function Header() {
         </nav>
         <div className="flex items-center gap-2">
           <LanguageSwitcher />
-          <Link to="/login"><Button variant="ghost" size="sm">{t("nav.entrar")}</Button></Link>
-          <Link to="/cadastro"><Button size="sm" className="bg-gold-gradient text-primary-foreground">{t("nav.cadastrar")}</Button></Link>
+          <Link to={"/login" as any}><Button variant="ghost" size="sm">{t("nav.entrar")}</Button></Link>
+          <Link to={"/cadastro" as any}><Button size="sm" className="bg-gold-gradient text-primary-foreground">{t("nav.cadastrar")}</Button></Link>
         </div>
       </div>
     </header>
@@ -70,7 +70,7 @@ function Hero() {
             {t("hero.subtitle")}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
-            <Link to="/cadastro">
+            <Link to={"/cadastro" as any}>
               <Button size="lg" className="bg-gold-gradient text-primary-foreground shadow-gold">
                 {t("hero.cta")} <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
@@ -184,7 +184,7 @@ function Showcase() {
           <p className="text-muted-foreground mb-6">
             {t("showcase.comunidade.text")}
           </p>
-          <Link to="/cadastro">
+          <Link to={"/cadastro" as any}>
             <Button size="lg" className="bg-gold-gradient text-primary-foreground shadow-gold">
               {t("showcase.comunidade.cta")} <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
@@ -285,7 +285,7 @@ function Plans() {
               <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> {t("plans.cursoExclusivo")} {p.n}</li>
               <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-gold" /> {t("plans.afiliados")}</li>
             </ul>
-            <Link to="/cadastro" className="block mt-6">
+            <Link to={"/cadastro" as any} className="block mt-6">
               <Button className="w-full bg-gold-gradient text-primary-foreground">{t("plans.cta")}</Button>
             </Link>
           </Card>
@@ -351,7 +351,7 @@ function CTA() {
     <section className="container mx-auto px-4 py-20 text-center">
       <h2 className="text-3xl md:text-5xl font-bold mb-4">{t("cta.title")}</h2>
       <p className="text-muted-foreground mb-8">{t("cta.subtitle")}</p>
-      <Link to="/cadastro">
+      <Link to={"/cadastro" as any}>
         <Button size="lg" className="bg-gold-gradient text-primary-foreground shadow-gold">
           {t("cta.button")} <ArrowRight className="ml-2 h-4 w-4" />
         </Button>

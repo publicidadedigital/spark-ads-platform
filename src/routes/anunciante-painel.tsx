@@ -1,5 +1,6 @@
 import { Logo } from "@/components/Logo";
 import { ExchangeRateTicker } from "@/components/ExchangeRateTicker";
+import type React from "react";
 import { createFileRoute, Outlet, Link, useNavigate, useLocation } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useAuth } from "@/lib/supabase/auth";
@@ -11,11 +12,11 @@ export const Route = createFileRoute("/anunciante-painel")({ component: Advertis
 
 const nav = [
   { to: "/anunciante-painel", search: {}, label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { to: "/anunciante-painel/campanhas", search: {}, label: "Campanhas", icon: Megaphone },
-  { to: "/anunciante-painel/campanhas", search: {}, label: "Relatórios", icon: BarChart2 },
+  { to: "/anunciante-painel/campanhas", search: {}, label: "Campanhas", icon: Megaphone, exact: false },
+  { to: "/anunciante-painel/campanhas", search: {}, label: "Relatórios", icon: BarChart2, exact: false },
   { to: "/anunciante-painel", search: { tab: "historico" }, label: "Pagamentos", icon: CreditCard, exact: true },
-  { to: "/anunciante-perfil", search: {}, label: "Perfil", icon: UserCircle },
-] as const;
+  { to: "/anunciante-perfil", search: {}, label: "Perfil", icon: UserCircle, exact: false },
+] satisfies Array<{ to: string; search: Record<string, unknown>; label: string; icon: React.ComponentType<{ className?: string }>; exact: boolean }>;
 
 function AdvertiserLayout() {
   const { session, loading, signOut, user } = useAuth();
@@ -23,7 +24,7 @@ function AdvertiserLayout() {
   const location = useLocation();
 
   useEffect(() => {
-    if (!loading && !session) navigate({ to: "/login" });
+    if (!loading && !session) navigate({ to: "/login" } as any);
   }, [loading, session, navigate]);
 
   if (loading || !session) {
@@ -47,7 +48,7 @@ function AdvertiserLayout() {
                 <SidebarContent pathname={location.pathname} />
               </SheetContent>
             </Sheet>
-            <Link to="/anunciante-painel" className="flex items-center gap-2">
+            <Link to={"/anunciante-painel" as any} className="flex items-center gap-2">
               <Logo className="h-8 w-auto max-w-[140px]" />
               <span className="text-primary text-xs font-bold tracking-wider">ANUNCIANTE</span>
             </Link>

@@ -28,6 +28,7 @@ import { Route as LegalRenovacaoRouteImport } from './routes/legal/renovacao'
 import { Route as LegalPrivacidadeRouteImport } from './routes/legal/privacidade'
 import { Route as LegalBonificacaoRouteImport } from './routes/legal/bonificacao'
 import { Route as LegalAntifraudeRouteImport } from './routes/legal/antifraude'
+import { Route as AppSuporteRouteImport } from './routes/app/suporte'
 import { Route as AppSegurancaRouteImport } from './routes/app/seguranca'
 import { Route as AppSaqueRouteImport } from './routes/app/saque'
 import { Route as AppRenovacaoRouteImport } from './routes/app/renovacao'
@@ -41,6 +42,7 @@ import { Route as ApiConfigRouteImport } from './routes/api/config'
 import { Route as AnunciantePainelPagamentoConfirmadoRouteImport } from './routes/anunciante-painel/pagamento-confirmado'
 import { Route as AnunciantePainelNovaCampanhaRouteImport } from './routes/anunciante-painel/nova-campanha'
 import { Route as AnunciantePainelCampanhasRouteImport } from './routes/anunciante-painel/campanhas'
+import { Route as AdminSuporteRouteImport } from './routes/admin/suporte'
 import { Route as AdminSegurancaRouteImport } from './routes/admin/seguranca'
 import { Route as AdminSaquesRouteImport } from './routes/admin/saques'
 import { Route as AdminRenovacaoRouteImport } from './routes/admin/renovacao'
@@ -161,6 +163,11 @@ const LegalAntifraudeRoute = LegalAntifraudeRouteImport.update({
   path: '/antifraude',
   getParentRoute: () => LegalRoute,
 } as any)
+const AppSuporteRoute = AppSuporteRouteImport.update({
+  id: '/suporte',
+  path: '/suporte',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppSegurancaRoute = AppSegurancaRouteImport.update({
   id: '/seguranca',
   path: '/seguranca',
@@ -229,6 +236,11 @@ const AnunciantePainelCampanhasRoute =
     path: '/campanhas',
     getParentRoute: () => AnunciantePainelRoute,
   } as any)
+const AdminSuporteRoute = AdminSuporteRouteImport.update({
+  id: '/suporte',
+  path: '/suporte',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminSegurancaRoute = AdminSegurancaRouteImport.update({
   id: '/seguranca',
   path: '/seguranca',
@@ -384,6 +396,7 @@ export interface FileRoutesByFullPath {
   '/admin/renovacao': typeof AdminRenovacaoRoute
   '/admin/saques': typeof AdminSaquesRoute
   '/admin/seguranca': typeof AdminSegurancaRoute
+  '/admin/suporte': typeof AdminSuporteRoute
   '/anunciante-painel/campanhas': typeof AnunciantePainelCampanhasRouteWithChildren
   '/anunciante-painel/nova-campanha': typeof AnunciantePainelNovaCampanhaRoute
   '/anunciante-painel/pagamento-confirmado': typeof AnunciantePainelPagamentoConfirmadoRoute
@@ -397,6 +410,7 @@ export interface FileRoutesByFullPath {
   '/app/renovacao': typeof AppRenovacaoRoute
   '/app/saque': typeof AppSaqueRoute
   '/app/seguranca': typeof AppSegurancaRoute
+  '/app/suporte': typeof AppSuporteRoute
   '/legal/antifraude': typeof LegalAntifraudeRoute
   '/legal/bonificacao': typeof LegalBonificacaoRoute
   '/legal/privacidade': typeof LegalPrivacidadeRoute
@@ -439,6 +453,7 @@ export interface FileRoutesByTo {
   '/admin/renovacao': typeof AdminRenovacaoRoute
   '/admin/saques': typeof AdminSaquesRoute
   '/admin/seguranca': typeof AdminSegurancaRoute
+  '/admin/suporte': typeof AdminSuporteRoute
   '/anunciante-painel/campanhas': typeof AnunciantePainelCampanhasRouteWithChildren
   '/anunciante-painel/nova-campanha': typeof AnunciantePainelNovaCampanhaRoute
   '/anunciante-painel/pagamento-confirmado': typeof AnunciantePainelPagamentoConfirmadoRoute
@@ -452,6 +467,7 @@ export interface FileRoutesByTo {
   '/app/renovacao': typeof AppRenovacaoRoute
   '/app/saque': typeof AppSaqueRoute
   '/app/seguranca': typeof AppSegurancaRoute
+  '/app/suporte': typeof AppSuporteRoute
   '/legal/antifraude': typeof LegalAntifraudeRoute
   '/legal/bonificacao': typeof LegalBonificacaoRoute
   '/legal/privacidade': typeof LegalPrivacidadeRoute
@@ -498,6 +514,7 @@ export interface FileRoutesById {
   '/admin/renovacao': typeof AdminRenovacaoRoute
   '/admin/saques': typeof AdminSaquesRoute
   '/admin/seguranca': typeof AdminSegurancaRoute
+  '/admin/suporte': typeof AdminSuporteRoute
   '/anunciante-painel/campanhas': typeof AnunciantePainelCampanhasRouteWithChildren
   '/anunciante-painel/nova-campanha': typeof AnunciantePainelNovaCampanhaRoute
   '/anunciante-painel/pagamento-confirmado': typeof AnunciantePainelPagamentoConfirmadoRoute
@@ -511,6 +528,7 @@ export interface FileRoutesById {
   '/app/renovacao': typeof AppRenovacaoRoute
   '/app/saque': typeof AppSaqueRoute
   '/app/seguranca': typeof AppSegurancaRoute
+  '/app/suporte': typeof AppSuporteRoute
   '/legal/antifraude': typeof LegalAntifraudeRoute
   '/legal/bonificacao': typeof LegalBonificacaoRoute
   '/legal/privacidade': typeof LegalPrivacidadeRoute
@@ -558,6 +576,7 @@ export interface FileRouteTypes {
     | '/admin/renovacao'
     | '/admin/saques'
     | '/admin/seguranca'
+    | '/admin/suporte'
     | '/anunciante-painel/campanhas'
     | '/anunciante-painel/nova-campanha'
     | '/anunciante-painel/pagamento-confirmado'
@@ -571,6 +590,7 @@ export interface FileRouteTypes {
     | '/app/renovacao'
     | '/app/saque'
     | '/app/seguranca'
+    | '/app/suporte'
     | '/legal/antifraude'
     | '/legal/bonificacao'
     | '/legal/privacidade'
@@ -613,6 +633,7 @@ export interface FileRouteTypes {
     | '/admin/renovacao'
     | '/admin/saques'
     | '/admin/seguranca'
+    | '/admin/suporte'
     | '/anunciante-painel/campanhas'
     | '/anunciante-painel/nova-campanha'
     | '/anunciante-painel/pagamento-confirmado'
@@ -626,6 +647,7 @@ export interface FileRouteTypes {
     | '/app/renovacao'
     | '/app/saque'
     | '/app/seguranca'
+    | '/app/suporte'
     | '/legal/antifraude'
     | '/legal/bonificacao'
     | '/legal/privacidade'
@@ -671,6 +693,7 @@ export interface FileRouteTypes {
     | '/admin/renovacao'
     | '/admin/saques'
     | '/admin/seguranca'
+    | '/admin/suporte'
     | '/anunciante-painel/campanhas'
     | '/anunciante-painel/nova-campanha'
     | '/anunciante-painel/pagamento-confirmado'
@@ -684,6 +707,7 @@ export interface FileRouteTypes {
     | '/app/renovacao'
     | '/app/saque'
     | '/app/seguranca'
+    | '/app/suporte'
     | '/legal/antifraude'
     | '/legal/bonificacao'
     | '/legal/privacidade'
@@ -858,6 +882,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LegalAntifraudeRouteImport
       parentRoute: typeof LegalRoute
     }
+    '/app/suporte': {
+      id: '/app/suporte'
+      path: '/suporte'
+      fullPath: '/app/suporte'
+      preLoaderRoute: typeof AppSuporteRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/seguranca': {
       id: '/app/seguranca'
       path: '/seguranca'
@@ -948,6 +979,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/anunciante-painel/campanhas'
       preLoaderRoute: typeof AnunciantePainelCampanhasRouteImport
       parentRoute: typeof AnunciantePainelRoute
+    }
+    '/admin/suporte': {
+      id: '/admin/suporte'
+      path: '/suporte'
+      fullPath: '/admin/suporte'
+      preLoaderRoute: typeof AdminSuporteRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/admin/seguranca': {
       id: '/admin/seguranca'
@@ -1137,6 +1175,7 @@ interface AdminRouteChildren {
   AdminRenovacaoRoute: typeof AdminRenovacaoRoute
   AdminSaquesRoute: typeof AdminSaquesRoute
   AdminSegurancaRoute: typeof AdminSegurancaRoute
+  AdminSuporteRoute: typeof AdminSuporteRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -1157,6 +1196,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminRenovacaoRoute: AdminRenovacaoRoute,
   AdminSaquesRoute: AdminSaquesRoute,
   AdminSegurancaRoute: AdminSegurancaRoute,
+  AdminSuporteRoute: AdminSuporteRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
@@ -1205,6 +1245,7 @@ interface AppRouteChildren {
   AppRenovacaoRoute: typeof AppRenovacaoRoute
   AppSaqueRoute: typeof AppSaqueRoute
   AppSegurancaRoute: typeof AppSegurancaRoute
+  AppSuporteRoute: typeof AppSuporteRoute
   AppIndexRoute: typeof AppIndexRoute
   AppCheckoutPackageIdRoute: typeof AppCheckoutPackageIdRoute
 }
@@ -1219,6 +1260,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppRenovacaoRoute: AppRenovacaoRoute,
   AppSaqueRoute: AppSaqueRoute,
   AppSegurancaRoute: AppSegurancaRoute,
+  AppSuporteRoute: AppSuporteRoute,
   AppIndexRoute: AppIndexRoute,
   AppCheckoutPackageIdRoute: AppCheckoutPackageIdRoute,
 }

@@ -296,49 +296,6 @@ function CampanhasPage() {
             </div>
           </section>
 
-          <Card id="minhas-publicacoes" className="border-primary/15 bg-card/50 p-5">
-            <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div>
-                <h2 className="text-xl font-semibold">{t("campaigns.myPostsToday")}</h2>
-                <p className="text-sm text-muted-foreground">{t("campaigns.trackStatus")}</p>
-              </div>
-              <Button variant="outline" onClick={refresh}>
-                <RefreshCw className="mr-2 h-4 w-4" /> {t("campaigns.update")}
-              </Button>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[820px] text-sm">
-                <thead className="text-xs text-muted-foreground">
-                  <tr className="border-b border-border/50">
-                    <th className="px-3 py-3 text-left font-medium">{t("campaigns.colNumber")}</th>
-                    <th className="px-3 py-3 text-left font-medium">{t("campaigns.colAd")}</th>
-                    <th className="px-3 py-3 text-left font-medium">{t("campaigns.colLinkSent")}</th>
-                    <th className="px-3 py-3 text-left font-medium">{t("campaigns.colStatus")}</th>
-                    <th className="px-3 py-3 text-left font-medium">{t("campaigns.colSentAt")}</th>
-                    <th className="px-3 py-3 text-left font-medium">{t("campaigns.colBonus")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {campaigns.slice(0, DAILY_GOAL).map((campaign, index) => {
-                    const share = sharesToday.find((item) => item.campaign_id === campaign.id);
-                    return (
-                      <ShareRow
-                        key={campaign.id}
-                        index={index + 1}
-                        campaign={campaign}
-                        share={share}
-                        dailyBonus={dailyBonus}
-                        profileId={profileId}
-                        cycleId={cycleId}
-                        registeredInstagram={registeredInstagram}
-                        onSubmitted={refresh}
-                      />
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </Card>
 
           {advertiserCampaigns.length > 0 && (
             <section>

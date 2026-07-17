@@ -394,13 +394,11 @@ function CampanhasPage() {
                           </td>
                           <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">{formatTime(s.created_at)}</td>
                           <td className="px-3 py-2">
-                            {bonusStatus === "liberado" && (
+                            {bonusStatus === "liberado" ? (
                               <span className="text-xs font-medium text-success">Liberado</span>
-                            )}
-                            {(bonusStatus === "pendente" || (!bonusStatus && isToday)) && (
+                            ) : s.status === "pendente" || bonusStatus === "pendente" || isToday ? (
                               <span className="text-xs font-medium text-amber-300">Pendente</span>
-                            )}
-                            {!bonusStatus && !isToday && (
+                            ) : (
                               <span className="text-xs font-medium text-destructive">Rejeitado</span>
                             )}
                           </td>

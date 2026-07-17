@@ -85,6 +85,7 @@ function CampanhasPage() {
   const [advertiserShares, setAdvertiserShares] = useState<Share[]>([]);
   const [sharesToday, setSharesToday] = useState<Share[]>([]);
   const [monthBonuses, setMonthBonuses] = useState<Bonus[]>([]);
+  const [dailyBonusByDay, setDailyBonusByDay] = useState<Record<string, string>>({});
   const [historyShares, setHistoryShares] = useState<Share[]>([]);
   const [profileId, setProfileId] = useState<string | null>(null);
   const [registeredInstagram, setRegisteredInstagram] = useState<string>("");
@@ -121,7 +122,7 @@ function CampanhasPage() {
     const monthStart = new Date(today);
     monthStart.setDate(1);
 
-    const [{ data: cycle }, { data: cs }, { data: shares }, { data: bonuses }, { data: advCampaigns }, { data: advShares }, { data: history }] = await Promise.all([
+    const [{ data: cycle }, { data: cs }, { data: shares }, { data: bonuses }, { data: advCampaigns }, { data: advShares }, { data: history }, { data: allDailyBonuses }] = await Promise.all([
       supabase
         .from("user_cycles")
         .select("id,valor_pacote")
@@ -143,11 +144,12 @@ function CampanhasPage() {
         .order("created_at", { ascending: false }),
       supabase
         .from("bonuses")
-        .select("valor,created_at")
+        .select("valor,created_at,status")
         .eq("user_id", prof.id)
         .eq("tipo", "diario")
         .eq("status", "liberado")
         .gte("created_at", monthStart.toISOString()),
+
       supabase
         .from("advertiser_campaigns")
         .select("id,title,media_url,media_type,caption,destination_url")
@@ -166,6 +168,13 @@ function CampanhasPage() {
         .not("campaign_id", "is", null)
         .order("created_at", { ascending: false })
         .limit(60),
+      supabase
+        .from("bonuses")
+        .select("status,created_at,operational_day")
+        .eq("user_id", prof.id)
+        .eq("tipo", "diario")
+        .order("created_at", { ascending: false })
+        .limit(90),
     ]);
 
     const activeCycle = cycle as ActiveCycle | null;
@@ -177,6 +186,12 @@ function CampanhasPage() {
     setAdvertiserCampaigns((advCampaigns ?? []) as AdvertiserCampaign[]);
     setAdvertiserShares((advShares ?? []) as unknown as Share[]);
     setHistoryShares((history ?? []) as Share[]);
+    const bonusByDay: Record<string, string> = {};
+    for (const b of (allDailyBonuses ?? []) as any[]) {
+      const day = b.operational_day ?? b.created_at?.slice(0, 10);
+      if (day && !bonusByDay[day]) bonusByDay[day] = b.status;
+    }
+    setDailyBonusByDay(bonusByDay);
     setLoading(false);
   }
 
@@ -348,11 +363,14 @@ function CampanhasPage() {
                       <th className="px-3 py-2 text-left font-medium">{t("campaigns.colLinkSent")}</th>
                       <th className="px-3 py-2 text-left font-medium">{t("campaigns.colStatus")}</th>
                       <th className="px-3 py-2 text-left font-medium">{t("campaigns.colSentAt")}</th>
+                      <th className="px-3 py-2 text-left font-medium">Bônus</th>
                     </tr>
                   </thead>
                   <tbody>
                     {historyShares.map((s) => {
                       const camp = (s as any).campaigns;
+                      const day = s.created_at?.slice(0, 10);
+                      const bonusStatus = day ? dailyBonusByDay[day] : undefined;
                       return (
                         <tr key={s.id} className="border-b border-border/30 last:border-0">
                           <td className="px-3 py-2">
@@ -373,6 +391,17 @@ function CampanhasPage() {
                             )}
                           </td>
                           <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">{formatTime(s.created_at)}</td>
+                          <td className="px-3 py-2">
+                            {bonusStatus === "liberado" && (
+                              <span className="text-xs font-medium text-success">Liberado</span>
+                            )}
+                            {bonusStatus === "pendente" && (
+                              <span className="text-xs font-medium text-amber-300">Pendente</span>
+                            )}
+                            {!bonusStatus && (
+                              <span className="text-xs text-destructive">Não liberado — mínimo de 5 publicações aprovadas não atingido</span>
+                            )}
+                          </td>
                         </tr>
                       );
                     })}

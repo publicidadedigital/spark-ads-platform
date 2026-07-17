@@ -528,6 +528,11 @@ function ScoreCard({ points }: { points: number }) {
       </div>
       <div className="mt-5 space-y-3 border-t border-border/35 pt-4 text-sm">
         <ScoreRow label={t("dashboard.pointsAccumulated")} value={`${formatNumber(points)} pts`} positive={points > 0} />
+        <Link to="/app/pontos">
+          <Button size="sm" variant="outline" className="w-full mt-2 border-violet-400/30 text-violet-300 hover:bg-violet-500/10">
+            Ver histórico de pontos
+          </Button>
+        </Link>
       </div>
     </Card>
   );

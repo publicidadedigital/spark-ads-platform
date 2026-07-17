@@ -401,7 +401,7 @@ function CampanhasPage() {
                               <span className="text-xs font-medium text-amber-300">Pendente</span>
                             )}
                             {!bonusStatus && !isToday && (
-                              <span className="text-xs text-destructive">Não liberado — mínimo de 5 publicações aprovadas não atingido</span>
+                              <span className="text-xs font-medium text-destructive">Rejeitado</span>
                             )}
                           </td>
                         </tr>

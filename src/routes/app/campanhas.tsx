@@ -369,8 +369,8 @@ function CampanhasPage() {
                   <tbody>
                     {historyShares.map((s) => {
                       const camp = (s as any).campaigns;
-                      const day = s.created_at ? new Date(s.created_at).toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" }) : undefined;
-                      const todayStr = new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
+                      const day = s.created_at?.slice(0, 10);
+                      const todayStr = new Date().toLocaleDateString("sv-SE"); // YYYY-MM-DD in local time
                       const isToday = day === todayStr;
                       const bonusStatus = day ? dailyBonusByDay[day] : undefined;
                       return (
@@ -394,11 +394,13 @@ function CampanhasPage() {
                           </td>
                           <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">{formatTime(s.created_at)}</td>
                           <td className="px-3 py-2">
-                            {bonusStatus === "liberado" ? (
+                            {bonusStatus === "liberado" && (
                               <span className="text-xs font-medium text-success">Liberado</span>
-                            ) : s.status === "pendente" || bonusStatus === "pendente" || isToday ? (
+                            )}
+                            {(bonusStatus === "pendente" || (!bonusStatus && isToday)) && (
                               <span className="text-xs font-medium text-amber-300">Pendente</span>
-                            ) : (
+                            )}
+                            {!bonusStatus && !isToday && (
                               <span className="text-xs font-medium text-destructive">Rejeitado</span>
                             )}
                           </td>

@@ -5,6 +5,38 @@ const STORY_RE = /instagram\.com\/(stories|s)\//i;
 
 function isStoryLink(url: string): boolean { return STORY_RE.test(url); }
 
+function extractUsername(url: string): string | null {
+  const m = url.match(/instagram\.com\/(?:stories|s)\/([^/?#]+)/i);
+  return m ? m[1] : null;
+}
+
+async function isProfilePrivate(username: string): Promise<boolean | null> {
+  try {
+    const controller = new AbortController();
+    const tid = setTimeout(() => controller.abort(), 10_000);
+    const res = await fetch(`https://www.instagram.com/${username}/`, {
+      method: "GET",
+      signal: controller.signal,
+      redirect: "follow",
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",
+      },
+    });
+    clearTimeout(tid);
+    if (!res.ok) return null;
+    const html = await res.text();
+    if (/\"is_private\"\s*:\s*true/i.test(html)) return true;
+    if (/\"isPrivate\"\s*:\s*true/i.test(html)) return true;
+    if (/this account is private/i.test(html)) return true;
+    if (/esta conta é privada/i.test(html)) return true;
+    return false;
+  } catch {
+    return null;
+  }
+}
+
 async function checkLink(url: string): Promise<{ status: string; detail: string }> {
   try {
     const controller = new AbortController();
@@ -19,13 +51,20 @@ async function checkLink(url: string): Promise<{ status: string; detail: string 
       },
     });
     clearTimeout(tid);
-    const detail = `HTTP ${res.status}`;
-    if (res.status === 200) return { status: "live", detail };
-    if (res.status === 404 || res.status === 410) return { status: "removed", detail };
-    if (res.status === 429 || res.status === 503 || res.status === 502) return { status: "check_failed", detail };
-    if (res.status === 403 || res.status === 401) return { status: "private", detail };
-    if (res.status >= 400 && res.status < 500) return { status: "check_failed", detail };
-    return { status: "check_failed", detail };
+    const httpDetail = `HTTP ${res.status}`;
+    if (res.status === 404 || res.status === 410) return { status: "removed", detail: httpDetail };
+    if (res.status === 403 || res.status === 401) return { status: "private", detail: httpDetail };
+    if (res.status === 429 || res.status === 503 || res.status === 502) return { status: "check_failed", detail: httpDetail };
+    if (res.status >= 400 && res.status < 500) return { status: "check_failed", detail: httpDetail };
+    if (res.status === 200) {
+      const html = await res.text();
+      if (/\"is_private\"\s*:\s*true/i.test(html) || /\"isPrivate\"\s*:\s*true/i.test(html) ||
+          /this account is private/i.test(html) || /esta conta é privada/i.test(html)) {
+        return { status: "private", detail: `${httpDetail} (private profile detected in body)` };
+      }
+      return { status: "live", detail: httpDetail };
+    }
+    return { status: "check_failed", detail: httpDetail };
   } catch (e: unknown) {
     return { status: "check_failed", detail: (e as Error).message ?? "fetch error" };
   }
@@ -47,6 +86,18 @@ async function processShare(
     const r = await checkLink(url);
     validateStatus = r.status;
     detail = r.detail + (isStoryLink(url) ? " (story)" : "");
+
+    // For stories: also check the profile page directly for private accounts
+    if ((validateStatus === "live" || validateStatus === "check_failed") && isStoryLink(url)) {
+      const username = extractUsername(url);
+      if (username) {
+        const privateResult = await isProfilePrivate(username);
+        if (privateResult === true) {
+          validateStatus = "private";
+          detail = `${detail} + perfil @${username} é privado`;
+        }
+      }
+    }
   }
 
   const checkedAt = new Date().toISOString();

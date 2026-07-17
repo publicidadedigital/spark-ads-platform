@@ -276,7 +276,7 @@ function CampanhasPage() {
             </div>
 
             <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-5">
-              {campaigns.slice(0, DAILY_GOAL).map((campaign, index) => (
+              {campaigns.map((campaign, index) => (
                 <CampaignCard
                   key={campaign.id}
                   campaign={campaign}

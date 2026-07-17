@@ -366,7 +366,12 @@ function CampanhasPage() {
                               {s.shared_link} <ExternalLink className="h-3 w-3 shrink-0" />
                             </a>
                           </td>
-                          <td className="px-3 py-2"><StatusBadge status={s.status} /></td>
+                          <td className="px-3 py-2">
+                            <StatusBadge status={s.status} />
+                            {s.motivo_rejeicao && (
+                              <p className="mt-1 text-xs text-destructive">{s.motivo_rejeicao}</p>
+                            )}
+                          </td>
                           <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">{formatTime(s.created_at)}</td>
                         </tr>
                       );

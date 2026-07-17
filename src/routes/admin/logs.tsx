@@ -64,6 +64,7 @@ function AdminSystemLogsPage() {
   }, [logs, module, search, severity, status]);
 
   async function loadLogs() {
+    if (!supabase) return;
     setLoading(true);
     setError(null);
     const { data, error: loadError } = await supabase
@@ -82,6 +83,7 @@ function AdminSystemLogsPage() {
   }
 
   async function markResolved(log: SystemLog) {
+    if (!supabase) return;
     const { error: updateError } = await supabase
       .from("system_error_logs")
       .update({ status: "resolvido", resolved_at: new Date().toISOString(), resolved_by: user?.id ?? null })

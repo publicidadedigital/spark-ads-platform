@@ -76,6 +76,7 @@ function AdminWithdrawalsPage() {
   const approvedTotal = items.filter((item) => item.status === "aprovado").reduce((sum, item) => sum + Number(item.amount_usd ?? 0), 0);
 
   async function getToken() {
+    if (!supabase) throw new Error("Sessao expirada");
     const { data } = await supabase.auth.getSession();
     const token = data.session?.access_token;
     if (!token) throw new Error("Sessao expirada");
@@ -83,6 +84,7 @@ function AdminWithdrawalsPage() {
   }
 
   async function load() {
+    if (!supabase) return;
     setLoading(true);
     const { data, error } = await supabase
       .from("withdrawal_requests")
@@ -91,11 +93,12 @@ function AdminWithdrawalsPage() {
       .limit(200);
 
     if (error) toast.error(error.message);
-    setItems((data ?? []) as Withdrawal[]);
+    setItems((data ?? []) as unknown as Withdrawal[]);
     setLoading(false);
   }
 
   async function loadBonuses() {
+    if (!supabase) return;
     setBonusLoading(true);
     await supabase.rpc("release_due_advertiser_bonuses");
     const { data, error } = await supabase
@@ -109,6 +112,7 @@ function AdminWithdrawalsPage() {
   }
 
   async function releaseBonus(id: string) {
+    if (!supabase) return;
     const { error } = await supabase.rpc("admin_release_advertiser_bonus", { p_bonus_id: id });
     if (error) { toast.error(error.message); return; }
     toast.success("Comissão liberada com sucesso");
@@ -116,6 +120,7 @@ function AdminWithdrawalsPage() {
   }
 
   async function cancelBonus(id: string) {
+    if (!supabase) return;
     const motivo = cancelMotivo[id]?.trim() || "Cancelado pelo administrador";
     const { error } = await supabase.rpc("admin_cancel_advertiser_bonus", { p_bonus_id: id, p_motivo: motivo });
     if (error) { toast.error(error.message); return; }
@@ -186,6 +191,7 @@ function AdminWithdrawalsPage() {
   }
 
   async function loadAdvWithdrawals() {
+    if (!supabase) return;
     setAdvWdLoading(true);
     const { data, error } = await supabase
       .from("advertiser_withdrawal_requests")
@@ -198,6 +204,7 @@ function AdminWithdrawalsPage() {
   }
 
   async function reviewAdvWithdrawal(id: string, newStatus: string) {
+    if (!supabase) return;
     const { error } = await supabase
       .from("advertiser_withdrawal_requests")
       .update({ status: newStatus, reviewed_at: newStatus !== "solicitado" ? new Date().toISOString() : null })
@@ -208,6 +215,7 @@ function AdminWithdrawalsPage() {
   }
 
   async function payAdvWithdrawal(id: string) {
+    if (!supabase) return;
     const { error } = await supabase
       .from("advertiser_withdrawal_requests")
       .update({ status: "pago", paid_at: new Date().toISOString() })

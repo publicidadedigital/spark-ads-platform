@@ -93,7 +93,7 @@ function AdvertiserCampaigns() {
             </Button>
           </Link>
         ) : (
-          <Link to="/anunciante-painel/" search={{ tab: "pagamentos" }}>
+          <Link to={"/anunciante-painel/" as any} search={{ tab: "pagamentos" } as any}>
             <Button variant="outline" className="border-amber-400/30 text-amber-300">
               Contrate um pacote para criar uma nova campanha
             </Button>

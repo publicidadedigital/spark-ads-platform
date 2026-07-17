@@ -148,7 +148,7 @@ function AdvertiserDashboard() {
   const [submittingWithdraw, setSubmittingWithdraw] = useState(false);
 
   useEffect(() => {
-    if (!loading && !session) navigate({ to: "/login" });
+    if (!loading && !session) navigate({ to: "/login" } as any);
   }, [loading, session, navigate]);
 
   useEffect(() => {
@@ -286,7 +286,7 @@ function AdvertiserDashboard() {
           </p>
           <div className="flex gap-2 justify-center">
             <Link to="/app"><Button variant="outline">Ir para o painel do associado</Button></Link>
-            <Button variant="ghost" onClick={() => { signOut(); navigate({ to: "/login" }); }}>
+            <Button variant="ghost" onClick={() => { signOut(); navigate({ to: "/login" } as any); }}>
               <LogOut className="h-4 w-4 mr-2" /> Sair
             </Button>
           </div>

@@ -37,9 +37,9 @@ export async function awardPackagePoints(admin: SupabaseClient, input: AwardPack
       .from("users_profile")
       .select("indicador_id")
       .eq("id", currentId)
-      .maybeSingle();
+      .maybeSingle() as { data: { indicador_id: string | null } | null };
 
-    const indicadorId = profile?.indicador_id ?? null;
+    const indicadorId: string | null = profile?.indicador_id ?? null;
     if (!indicadorId) break;
 
     rows.push({

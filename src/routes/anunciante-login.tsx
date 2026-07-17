@@ -50,7 +50,7 @@ function AnuncianteLoginPage() {
     if (advertiser) {
       setLoading(false);
       toast.success("Bem-vindo de volta!");
-      return navigate({ to: "/anunciante-painel" });
+      return navigate({ to: "/anunciante-painel" } as any);
     }
 
     await supabase.auth.signOut();
@@ -84,7 +84,7 @@ function AnuncianteLoginPage() {
           Nao tem conta? <Link to="/cadastro" search={{ tipo: "anunciante", ref: "" }} className="text-gold hover:underline">Crie sua conta PJ</Link>
         </p>
         <p className="text-sm text-center text-muted-foreground mt-2">
-          E associado da Viral Hub? <Link to="/login" className="text-gold hover:underline">Entrar como associado</Link>
+          E associado da Viral Hub? <Link to={"/login" as any} className="text-gold hover:underline">Entrar como associado</Link>
         </p>
       </Card>
     </div>

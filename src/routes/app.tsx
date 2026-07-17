@@ -39,7 +39,7 @@ function AppLayout() {
   const [hasCycle, setHasCycle] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (!loading && !session) navigate({ to: "/login" });
+    if (!loading && !session) navigate({ to: "/login" } as any);
   }, [loading, session, navigate]);
 
   useEffect(() => {

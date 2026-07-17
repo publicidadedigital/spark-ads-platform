@@ -169,7 +169,7 @@ function LoginPage() {
         )}
 
         <p className="text-sm text-center text-muted-foreground mt-6">
-          Nao tem conta? <Link to="/cadastro" className="text-gold hover:underline">Cadastre-se</Link>
+          Nao tem conta? <Link to={"/cadastro" as any} className="text-gold hover:underline">Cadastre-se</Link>
         </p>
         <p className="text-sm text-center text-muted-foreground mt-2">
           Nao recebeu o e-mail?{" "}

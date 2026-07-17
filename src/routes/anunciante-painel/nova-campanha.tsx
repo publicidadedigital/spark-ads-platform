@@ -195,7 +195,7 @@ function NovaCampanha() {
         <p className="text-sm text-muted-foreground mb-4">
           Você já utilizou todas as campanhas disponíveis para os pacotes contratados. Contrate um novo pacote para criar outra campanha.
         </p>
-        <Link to="/anunciante-painel/" search={{ tab: "pagamentos" }}>
+        <Link to={"/anunciante-painel/" as any} search={{ tab: "pagamentos" } as any}>
           <Button className="bg-gold-gradient text-primary-foreground">Contratar pacote</Button>
         </Link>
       </Card>
@@ -207,7 +207,7 @@ function NovaCampanha() {
   return (
     <div className="space-y-5 pb-24 lg:pb-6">
       {/* Back link */}
-      <Link to="/anunciante-painel" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+      <Link to={"/anunciante-painel" as any} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
         <ArrowLeft className="h-4 w-4" />
         Voltar para Dashboard
       </Link>

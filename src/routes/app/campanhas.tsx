@@ -181,11 +181,11 @@ function CampanhasPage() {
     setCycleId(activeCycle?.id ?? null);
     setCyclePackageValue(Number(activeCycle?.valor_pacote ?? 0));
     setCampaigns((cs ?? []) as Campaign[]);
-    setSharesToday((shares ?? []) as Share[]);
+    setSharesToday((shares ?? []) as unknown as Share[]);
     setMonthBonuses((bonuses ?? []) as Bonus[]);
     setAdvertiserCampaigns((advCampaigns ?? []) as AdvertiserCampaign[]);
     setAdvertiserShares((advShares ?? []) as unknown as Share[]);
-    setHistoryShares((history ?? []) as Share[]);
+    setHistoryShares((history ?? []) as unknown as Share[]);
     const bonusByDay: Record<string, string> = {};
     for (const b of (allDailyBonuses ?? []) as any[]) {
       const day = b.operational_day ?? b.created_at?.slice(0, 10);
@@ -370,6 +370,8 @@ function CampanhasPage() {
                     {historyShares.map((s) => {
                       const camp = (s as any).campaigns;
                       const day = s.created_at?.slice(0, 10);
+                      const todayStr = new Date().toLocaleDateString("sv-SE"); // YYYY-MM-DD in local time
+                      const isToday = day === todayStr;
                       const bonusStatus = day ? dailyBonusByDay[day] : undefined;
                       return (
                         <tr key={s.id} className="border-b border-border/30 last:border-0">
@@ -395,10 +397,10 @@ function CampanhasPage() {
                             {bonusStatus === "liberado" && (
                               <span className="text-xs font-medium text-success">Liberado</span>
                             )}
-                            {bonusStatus === "pendente" && (
+                            {(bonusStatus === "pendente" || (!bonusStatus && isToday)) && (
                               <span className="text-xs font-medium text-amber-300">Pendente</span>
                             )}
-                            {!bonusStatus && (
+                            {!bonusStatus && !isToday && (
                               <span className="text-xs text-destructive">Não liberado — mínimo de 5 publicações aprovadas não atingido</span>
                             )}
                           </td>

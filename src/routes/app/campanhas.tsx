@@ -157,13 +157,13 @@ function CampanhasPage() {
         .from("campaign_shares")
         .select("id,advertiser_campaign_id,shared_link,status,motivo_rejeicao,created_at,auto_validate_status,auto_validate_at,auto_validate_checked_at")
         .eq("user_id", prof.id)
-        .not("advertiser_campaign_id", "is", null),
+        .not("advertiser_campaign_id", "is", null)
+        .gte("created_at", today.toISOString()),
       supabase
         .from("campaign_shares")
         .select("id,campaign_id,shared_link,status,motivo_rejeicao,created_at,campaigns:campaign_id(titulo,media_url,tipo_midia)")
         .eq("user_id", prof.id)
         .not("campaign_id", "is", null)
-        .lt("created_at", today.toISOString())
         .order("created_at", { ascending: false })
         .limit(60),
     ]);

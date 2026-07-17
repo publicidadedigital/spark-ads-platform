@@ -164,7 +164,6 @@ function CampanhasPage() {
         .select("id,campaign_id,shared_link,status,motivo_rejeicao,created_at,campaigns:campaign_id(titulo,media_url,tipo_midia)")
         .eq("user_id", prof.id)
         .not("campaign_id", "is", null)
-        .lt("created_at", today.toISOString())
         .order("created_at", { ascending: false })
         .limit(60),
     ]);

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, ChevronDown, ChevronUp, Clock } from "lucide-react";
 
-export const Route = createFileRoute("/admin/suporte" as any)({ component: AdminSuportePage });
+export const Route = createFileRoute("/admin/suporte")({ component: AdminSuportePage });
 
 type Ticket = {
   id: string;

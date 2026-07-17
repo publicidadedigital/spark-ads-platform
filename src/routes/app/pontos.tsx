@@ -23,7 +23,7 @@ function fmtDate(iso: string) {
 }
 
 function EventIcon({ event }: { event: string }) {
-  if (event === "compra_pacote") return (
+  if (event === "compra_pacote" || event === "renovacao_pacote") return (
     <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-amber-500/15 text-amber-300">
       <Package className="h-4 w-4" />
     </div>

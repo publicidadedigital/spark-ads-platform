@@ -13,6 +13,7 @@ type PointEvent = {
   points: string | number;
   status: string;
   created_at: string;
+  source_user_id: string | null;
   source_nome: string | null;
   source_instagram: string | null;
 };
@@ -72,26 +73,42 @@ function PontosPage() {
         .maybeSingle();
       if (!prof) { setLoading(false); return; }
 
-      const { data } = await supabase!
+      const { data: rawEvents } = await supabase!
         .from("point_events")
-        .select("id,source_event,points,status,created_at,source_user:source_user_id(nome,instagram)")
+        .select("id,source_event,points,status,created_at,source_user_id")
         .eq("user_id", prof.id)
         .eq("status", "valid")
         .order("created_at", { ascending: false })
         .limit(100);
 
-      const rows = ((data ?? []) as any[]).map((r) => ({
+      const rows = (rawEvents ?? []) as any[];
+
+      // Fetch names for source_user_ids
+      const sourceIds = [...new Set(rows.map((r) => r.source_user_id).filter(Boolean))];
+      let userMap: Record<string, { nome: string | null; instagram: string | null }> = {};
+      if (sourceIds.length > 0) {
+        const { data: profiles } = await supabase!
+          .from("users_profile")
+          .select("id,nome,instagram")
+          .in("id", sourceIds);
+        for (const p of profiles ?? []) {
+          userMap[p.id] = { nome: p.nome, instagram: p.instagram };
+        }
+      }
+
+      const enriched: PointEvent[] = rows.map((r) => ({
         id: r.id,
         source_event: r.source_event,
         points: r.points,
         status: r.status,
         created_at: r.created_at,
-        source_nome: r.source_user?.nome ?? null,
-        source_instagram: r.source_user?.instagram ?? null,
-      })) as PointEvent[];
+        source_user_id: r.source_user_id,
+        source_nome: userMap[r.source_user_id]?.nome ?? null,
+        source_instagram: userMap[r.source_user_id]?.instagram ?? null,
+      }));
 
-      setEvents(rows);
-      setTotal(rows.reduce((s, r) => s + Number(r.points ?? 0), 0));
+      setEvents(enriched);
+      setTotal(enriched.reduce((s, r) => s + Number(r.points ?? 0), 0));
       setLoading(false);
     }
     load();

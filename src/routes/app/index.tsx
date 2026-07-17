@@ -477,7 +477,7 @@ function ActivityCard({ shares }: { shares: Share[] }) {
               <div className="text-right">
                 <p className="text-xs text-muted-foreground">{formatShortDate(item.created_at)}</p>
                 <Badge variant="outline" className={item.status === "aprovada" ? "border-success/30 text-success" : "border-amber-400/30 text-amber-300"}>
-                  {item.status === "aprovada" ? t("dashboard.pointsAbbrev") : t("dashboard.pending")}
+                  {item.status === "aprovada" ? t("campaigns.statusValidated") : t("dashboard.pending")}
                 </Badge>
               </div>
             </div>
@@ -528,6 +528,11 @@ function ScoreCard({ points }: { points: number }) {
       </div>
       <div className="mt-5 space-y-3 border-t border-border/35 pt-4 text-sm">
         <ScoreRow label={t("dashboard.pointsAccumulated")} value={`${formatNumber(points)} pts`} positive={points > 0} />
+        <Link to="/app/pontos">
+          <Button size="sm" variant="outline" className="w-full mt-2 border-violet-400/30 text-violet-300 hover:bg-violet-500/10">
+            Ver histórico de pontos
+          </Button>
+        </Link>
       </div>
     </Card>
   );

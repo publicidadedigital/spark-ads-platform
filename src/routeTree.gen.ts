@@ -33,6 +33,7 @@ import { Route as AppSegurancaRouteImport } from './routes/app/seguranca'
 import { Route as AppSaqueRouteImport } from './routes/app/saque'
 import { Route as AppRenovacaoRouteImport } from './routes/app/renovacao'
 import { Route as AppRedeRouteImport } from './routes/app/rede'
+import { Route as AppPontosRouteImport } from './routes/app/pontos'
 import { Route as AppPerfilRouteImport } from './routes/app/perfil'
 import { Route as AppPacotesRouteImport } from './routes/app/pacotes'
 import { Route as AppIndicacaoAnuncianteRouteImport } from './routes/app/indicacao-anunciante'
@@ -186,6 +187,11 @@ const AppRenovacaoRoute = AppRenovacaoRouteImport.update({
 const AppRedeRoute = AppRedeRouteImport.update({
   id: '/rede',
   path: '/rede',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPontosRoute = AppPontosRouteImport.update({
+  id: '/pontos',
+  path: '/pontos',
   getParentRoute: () => AppRoute,
 } as any)
 const AppPerfilRoute = AppPerfilRouteImport.update({
@@ -406,6 +412,7 @@ export interface FileRoutesByFullPath {
   '/app/indicacao-anunciante': typeof AppIndicacaoAnuncianteRoute
   '/app/pacotes': typeof AppPacotesRoute
   '/app/perfil': typeof AppPerfilRoute
+  '/app/pontos': typeof AppPontosRoute
   '/app/rede': typeof AppRedeRoute
   '/app/renovacao': typeof AppRenovacaoRoute
   '/app/saque': typeof AppSaqueRoute
@@ -463,6 +470,7 @@ export interface FileRoutesByTo {
   '/app/indicacao-anunciante': typeof AppIndicacaoAnuncianteRoute
   '/app/pacotes': typeof AppPacotesRoute
   '/app/perfil': typeof AppPerfilRoute
+  '/app/pontos': typeof AppPontosRoute
   '/app/rede': typeof AppRedeRoute
   '/app/renovacao': typeof AppRenovacaoRoute
   '/app/saque': typeof AppSaqueRoute
@@ -524,6 +532,7 @@ export interface FileRoutesById {
   '/app/indicacao-anunciante': typeof AppIndicacaoAnuncianteRoute
   '/app/pacotes': typeof AppPacotesRoute
   '/app/perfil': typeof AppPerfilRoute
+  '/app/pontos': typeof AppPontosRoute
   '/app/rede': typeof AppRedeRoute
   '/app/renovacao': typeof AppRenovacaoRoute
   '/app/saque': typeof AppSaqueRoute
@@ -586,6 +595,7 @@ export interface FileRouteTypes {
     | '/app/indicacao-anunciante'
     | '/app/pacotes'
     | '/app/perfil'
+    | '/app/pontos'
     | '/app/rede'
     | '/app/renovacao'
     | '/app/saque'
@@ -643,6 +653,7 @@ export interface FileRouteTypes {
     | '/app/indicacao-anunciante'
     | '/app/pacotes'
     | '/app/perfil'
+    | '/app/pontos'
     | '/app/rede'
     | '/app/renovacao'
     | '/app/saque'
@@ -703,6 +714,7 @@ export interface FileRouteTypes {
     | '/app/indicacao-anunciante'
     | '/app/pacotes'
     | '/app/perfil'
+    | '/app/pontos'
     | '/app/rede'
     | '/app/renovacao'
     | '/app/saque'
@@ -915,6 +927,13 @@ declare module '@tanstack/react-router' {
       path: '/rede'
       fullPath: '/app/rede'
       preLoaderRoute: typeof AppRedeRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/pontos': {
+      id: '/app/pontos'
+      path: '/pontos'
+      fullPath: '/app/pontos'
+      preLoaderRoute: typeof AppPontosRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/perfil': {
@@ -1241,6 +1260,7 @@ interface AppRouteChildren {
   AppIndicacaoAnuncianteRoute: typeof AppIndicacaoAnuncianteRoute
   AppPacotesRoute: typeof AppPacotesRoute
   AppPerfilRoute: typeof AppPerfilRoute
+  AppPontosRoute: typeof AppPontosRoute
   AppRedeRoute: typeof AppRedeRoute
   AppRenovacaoRoute: typeof AppRenovacaoRoute
   AppSaqueRoute: typeof AppSaqueRoute
@@ -1256,6 +1276,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppIndicacaoAnuncianteRoute: AppIndicacaoAnuncianteRoute,
   AppPacotesRoute: AppPacotesRoute,
   AppPerfilRoute: AppPerfilRoute,
+  AppPontosRoute: AppPontosRoute,
   AppRedeRoute: AppRedeRoute,
   AppRenovacaoRoute: AppRenovacaoRoute,
   AppSaqueRoute: AppSaqueRoute,

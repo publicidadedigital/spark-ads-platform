@@ -117,10 +117,10 @@ function CampanhasPage() {
     setProfileId(prof.id);
     setRegisteredInstagram(prof.instagram ?? "");
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const monthStart = new Date(today);
-    monthStart.setDate(1);
+    const todayBRStr = new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
+    const monthStartBRStr = `${todayBRStr.slice(0, 7)}-01`;
+    // Brazil midnight = UTC+3h (UTC-3 offset)
+    const monthStart = new Date(monthStartBRStr + "T03:00:00.000Z");
 
     const [{ data: cycle }, { data: cs }, { data: shares }, { data: bonuses }, { data: advCampaigns }, { data: advShares }, { data: history }, { data: allDailyBonuses }] = await Promise.all([
       supabase
@@ -140,7 +140,7 @@ function CampanhasPage() {
         .from("campaign_shares")
         .select("id,campaign_id,shared_link,status,motivo_rejeicao,created_at,campaigns:campaign_id(titulo,media_url,tipo_midia)")
         .eq("user_id", prof.id)
-        .gte("created_at", today.toISOString())
+        .eq("operational_day", todayBRStr)
         .order("created_at", { ascending: false }),
       supabase
         .from("bonuses")
@@ -160,7 +160,7 @@ function CampanhasPage() {
         .select("id,advertiser_campaign_id,shared_link,status,motivo_rejeicao,created_at,auto_validate_status,auto_validate_at,auto_validate_checked_at")
         .eq("user_id", prof.id)
         .not("advertiser_campaign_id", "is", null)
-        .gte("created_at", today.toISOString()),
+        .eq("operational_day", todayBRStr),
       supabase
         .from("campaign_shares")
         .select("id,campaign_id,shared_link,status,motivo_rejeicao,created_at,campaigns:campaign_id(titulo,media_url,tipo_midia)")

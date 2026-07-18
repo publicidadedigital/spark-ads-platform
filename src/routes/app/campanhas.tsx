@@ -296,7 +296,7 @@ function CampanhasPage() {
                   key={campaign.id}
                   campaign={campaign}
                   index={index + 1}
-                  alreadyShared={sharedToday.has(campaign.id)}
+                  alreadyShared={false}
                   profileId={profileId}
                   cycleId={cycleId}
                   registeredInstagram={registeredInstagram}
@@ -324,7 +324,7 @@ function CampanhasPage() {
                     key={campaign.id}
                     campaign={campaign}
                     index={index + 1}
-                    alreadyShared={advertiserShares.some((s) => s.advertiser_campaign_id === campaign.id)}
+                    alreadyShared={false}
                     profileId={profileId}
                     cycleId={cycleId}
                     onSubmitted={refresh}
@@ -459,8 +459,7 @@ function CampaignCard({ campaign, index, alreadyShared, profileId, cycleId, regi
         >
           <Download className="h-3.5 w-3.5" /> {t("campaigns.download")} {campaign.tipo_midia === "video" ? t("campaigns.downloadVideo") : t("campaigns.downloadImage")}
         </Button>
-        {!alreadyShared && (
-          <InstagramShareGuide
+        <InstagramShareGuide
             onShare={() => shareToInstagram(campaign.media_url, `${campaign.titulo.replace(/\s+/g, "-")}.${ext}`, campaign.tipo_midia === "video" ? "video/mp4" : "image/jpeg", t("campaigns.shareInstagramFallback"))}
           >
             <Button
@@ -471,18 +470,11 @@ function CampaignCard({ campaign, index, alreadyShared, profileId, cycleId, regi
               <Instagram className="h-3.5 w-3.5" /> {t("campaigns.shareInstagram")}
             </Button>
           </InstagramShareGuide>
-        )}
-        {alreadyShared ? (
-          <Badge className="w-full justify-center border-success/30 bg-success/15 py-2 text-success hover:bg-success/15">
-            <ShieldCheck className="mr-1 h-3 w-3" /> {t("campaigns.sentToday")}
-          </Badge>
-        ) : (
-          <ShareDialog campaign={campaign} profileId={profileId} cycleId={cycleId} registeredInstagram={registeredInstagram} onSubmitted={onSubmitted}>
-            <Button size="sm" variant="outline" className="w-full" style={{ borderColor: `${color}88`, color }}>
-              {t("campaigns.useThisAd")}
-            </Button>
-          </ShareDialog>
-        )}
+        <ShareDialog campaign={campaign} profileId={profileId} cycleId={cycleId} registeredInstagram={registeredInstagram} onSubmitted={onSubmitted}>
+          <Button size="sm" variant="outline" className="w-full" style={{ borderColor: `${color}88`, color }}>
+            {t("campaigns.useThisAd")}
+          </Button>
+        </ShareDialog>
       </div>
     </Card>
   );
@@ -602,17 +594,11 @@ function AdvertiserCampaignCard({ campaign, index, alreadyShared, profileId, cyc
         >
           <Download className="h-3 w-3" /> {t("campaigns.download")} {campaign.media_type === "video" ? t("campaigns.downloadVideo") : t("campaigns.downloadImage")}
         </Button>
-        {alreadyShared ? (
-          <Badge className="h-7 w-full justify-center border-success/30 bg-success/15 text-[11px] text-success hover:bg-success/15">
-            <ShieldCheck className="mr-1 h-3 w-3" /> {t("campaigns.sentBadge")}
-          </Badge>
-        ) : (
-          <AdvertiserShareDialog campaign={campaign} profileId={profileId} cycleId={cycleId} onSubmitted={onSubmitted}>
-            <Button size="sm" variant="outline" className="h-auto min-h-7 w-full whitespace-normal px-1 py-1 text-[9px] leading-[1.1]" style={{ borderColor: `${color}88`, color }}>
-              {t("campaigns.shareCampaign")}
-            </Button>
-          </AdvertiserShareDialog>
-        )}
+        <AdvertiserShareDialog campaign={campaign} profileId={profileId} cycleId={cycleId} onSubmitted={onSubmitted}>
+          <Button size="sm" variant="outline" className="h-auto min-h-7 w-full whitespace-normal px-1 py-1 text-[9px] leading-[1.1]" style={{ borderColor: `${color}88`, color }}>
+            {t("campaigns.shareCampaign")}
+          </Button>
+        </AdvertiserShareDialog>
       </div>
     </Card>
   );

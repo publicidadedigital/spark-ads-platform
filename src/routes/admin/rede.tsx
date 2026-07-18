@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { ChevronDown, ChevronUp, Clock, Network, RefreshCw, Search, Users, XCircle, CheckCircle, AlertTriangle, Zap, CreditCard, FileText, ExternalLink } from "lucide-react";
+import { ChevronDown, ChevronUp, Clock, Network, RefreshCw, Search, Users, XCircle, CheckCircle, AlertTriangle, Zap, CreditCard, FileText, ExternalLink, Megaphone } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/rede")({ component: AdminRede });
@@ -530,7 +530,11 @@ function AdminRede() {
                       </td>
                       <td className="p-3">{TIPO_LABEL[row.tipo] ?? row.tipo}</td>
                       <td className="p-3">
-                        {isManual ? (
+                        {row.tipo === "diario" ? (
+                          <Badge className="border-blue-400/30 bg-blue-500/10 text-blue-300 gap-1">
+                            <Megaphone className="h-3 w-3" /> Campanha
+                          </Badge>
+                        ) : isManual ? (
                           <Badge className="border-violet-400/30 bg-violet-500/10 text-violet-300 gap-1">
                             <Zap className="h-3 w-3" /> Manual
                           </Badge>

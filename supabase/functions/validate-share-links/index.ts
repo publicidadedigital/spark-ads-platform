@@ -72,7 +72,7 @@ async function checkLink(url: string): Promise<{ status: string; detail: string 
 
 async function processShare(
   supabase: ReturnType<typeof createClient>,
-  share: { id: string; shared_link: string | null; user_id: string; advertiser_campaign_id: string | null; detected_followers: number | null },
+  share: { id: string; shared_link: string | null; user_id: string; advertiser_campaign_id: string | null; detected_followers: number | null; check_fail_count?: number | null },
   initialCheck: boolean,
 ): Promise<unknown> {
   const url: string = share.shared_link ?? "";
@@ -127,20 +127,36 @@ async function processShare(
     }
   } else {
     // 23h check: full decision
-    updateData.auto_validate_status = validateStatus;
+    if (validateStatus === "check_failed") {
+      // Instagram rate-limited or unreachable — schedule retry in 2h (up to 3 retries)
+      const retryCount = Number(share.check_fail_count ?? 0) + 1;
+      if (retryCount <= 3) {
+        const retryAt = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
+        updateData.auto_validate_status = "pending";
+        updateData.auto_validate_at = retryAt;
+        updateData.check_fail_count = retryCount;
+        updateData.auto_validate_detail = `${detail} (tentativa ${retryCount}/3, retry em 2h)`;
+      } else {
+        // After 3 retries, leave as check_failed for manual review
+        updateData.auto_validate_status = "check_failed";
+        updateData.auto_validate_detail = `${detail} (máx tentativas atingido — revisão manual necessária)`;
+      }
+    } else {
+      updateData.auto_validate_status = validateStatus;
 
-    if (validateStatus === "live") {
-      updateData.status = "aprovada";
-      updateData.reviewed_at = checkedAt;
-      updateData.motivo_rejeicao = null;
-    } else if (validateStatus === "removed") {
-      updateData.status = "rejeitada";
-      updateData.reviewed_at = checkedAt;
-      updateData.motivo_rejeicao = "Post removido antes de completar 24h";
-    } else if (validateStatus === "private") {
-      updateData.status = "rejeitada";
-      updateData.reviewed_at = checkedAt;
-      updateData.motivo_rejeicao = "Perfil privado — as campanhas exigem perfil público no Instagram";
+      if (validateStatus === "live") {
+        updateData.status = "aprovada";
+        updateData.reviewed_at = checkedAt;
+        updateData.motivo_rejeicao = null;
+      } else if (validateStatus === "removed") {
+        updateData.status = "rejeitada";
+        updateData.reviewed_at = checkedAt;
+        updateData.motivo_rejeicao = "Post removido antes de completar 24h";
+      } else if (validateStatus === "private") {
+        updateData.status = "rejeitada";
+        updateData.reviewed_at = checkedAt;
+        updateData.motivo_rejeicao = "Perfil privado — as campanhas exigem perfil público no Instagram";
+      }
     }
   }
 
@@ -182,7 +198,7 @@ Deno.serve(async (req: Request) => {
     // Immediate check for a specific share (called right after submission)
     const { data: share, error: fetchErr } = await supabase
       .from("campaign_shares")
-      .select("id, shared_link, user_id, advertiser_campaign_id, detected_followers")
+      .select("id, shared_link, user_id, advertiser_campaign_id, detected_followers, check_fail_count")
       .eq("id", shareId)
       .maybeSingle();
 
@@ -197,7 +213,7 @@ Deno.serve(async (req: Request) => {
   // Scheduled run: process all shares where auto_validate_at <= now
   const { data: shares, error: fetchErr } = await supabase
     .from("campaign_shares")
-    .select("id, shared_link, user_id, advertiser_campaign_id, detected_followers")
+    .select("id, shared_link, user_id, advertiser_campaign_id, detected_followers, check_fail_count")
     .eq("auto_validate_status", "pending")
     .not("auto_validate_at", "is", null)
     .lte("auto_validate_at", new Date().toISOString())

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Camera, KeyRound, User as UserIcon } from "lucide-react";
+import { Camera, Instagram, KeyRound, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
 
 type ProfileTable = "users_profile" | "advertiser_profiles";
@@ -130,8 +130,74 @@ export function ProfileEditor({
         {uploading && <p className="mt-3 text-xs text-muted-foreground">Enviando foto...</p>}
       </Card>
 
+      {table === "users_profile" && <InstagramCard />}
       <PasswordCard />
     </div>
+  );
+}
+
+function InstagramCard() {
+  const { supabase, user } = useAuth();
+  const [handle, setHandle] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!supabase || !user) return;
+    supabase
+      .from("users_profile")
+      .select("instagram")
+      .eq("auth_user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => setHandle((data as any)?.instagram ?? ""));
+  }, [supabase, user]);
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault();
+    if (!supabase || !user) return;
+    const cleaned = handle.replace(/^@+/, "").trim();
+    if (!cleaned) { toast.error("Digite um @ do Instagram válido"); return; }
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("users_profile")
+        .update({ instagram: cleaned })
+        .eq("auth_user_id", user.id);
+      if (error) throw error;
+      setHandle(cleaned);
+      toast.success("Instagram atualizado");
+    } catch (err: any) {
+      toast.error(err?.message || "Não foi possível atualizar o Instagram");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Card className="border-primary/20 bg-card/50 p-5">
+      <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
+        <Instagram className="h-5 w-5 text-pink-400" /> Instagram
+      </h2>
+      <form onSubmit={handleSave} className="grid gap-4 sm:max-w-md">
+        <div className="space-y-1.5">
+          <Label htmlFor="instagram-handle">@ do Instagram</Label>
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground text-sm">@</span>
+            <Input
+              id="instagram-handle"
+              value={handle}
+              onChange={(e) => setHandle(e.target.value.replace(/^@+/, ""))}
+              placeholder="seu_usuario"
+              autoComplete="off"
+              required
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">Digite sem o @. Ex: meu_perfil</p>
+        </div>
+        <Button type="submit" disabled={saving} className="bg-gold-gradient text-primary-foreground">
+          {saving ? "Salvando..." : "Salvar Instagram"}
+        </Button>
+      </form>
+    </Card>
   );
 }
 

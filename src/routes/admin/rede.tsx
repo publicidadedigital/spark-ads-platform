@@ -8,13 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { ChevronDown, ChevronUp, Clock, Network, RefreshCw, Search, Users, XCircle, CheckCircle, AlertTriangle, Zap, CreditCard, FileText, ExternalLink, Megaphone } from "lucide-react";
+import { ChevronDown, ChevronUp, Clock, Network, RefreshCw, Search, Users, XCircle, CheckCircle, AlertTriangle, Zap, CreditCard, FileText, ExternalLink, Megaphone, UserCheck } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/rede")({ component: AdminRede });
 
 type BonusRow = {
   id: string;
+  user_id: string;
   tipo: string;
   valor: number | string;
   status: string;
@@ -216,7 +217,7 @@ function AdminRede() {
     setLoading(true);
     const { data, error } = await supabase
       .from("bonuses")
-      .select("id,tipo,valor,status,nivel,created_at,origem_id,observacao,motivo_cancelamento,comprovante_url,users_profile:user_id(nome,email),balance_holds(release_at,status)")
+      .select("id,user_id,tipo,valor,status,nivel,created_at,origem_id,observacao,motivo_cancelamento,comprovante_url,users_profile:user_id(nome,email),balance_holds(release_at,status)")
       .order("created_at", { ascending: false })
       .limit(500);
     if (error) toast.error(error.message);
@@ -591,28 +592,31 @@ function AdminRede() {
                         </div>
                       </td>
                       <td className="p-3 text-right">
-                        {row.status === "pendente" && (
-                          <div className="flex gap-1.5 justify-end">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled={acting === row.id}
-                              onClick={() => liberarBonus(row)}
-                              className="text-xs text-success border-success/30 hover:bg-success/10"
-                            >
-                              Liberar
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              disabled={acting === row.id}
-                              onClick={() => setCancelState({ row, motivo: "", observacao: "" })}
-                              className="text-xs"
-                            >
-                              Cancelar
-                            </Button>
-                          </div>
-                        )}
+                        <div className="flex flex-col gap-1.5 items-end">
+                          <ImpersonateButton profileId={row.user_id} />
+                          {row.status === "pendente" && (
+                            <div className="flex gap-1.5 justify-end">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={acting === row.id}
+                                onClick={() => liberarBonus(row)}
+                                className="text-xs text-success border-success/30 hover:bg-success/10"
+                              >
+                                Liberar
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                disabled={acting === row.id}
+                                onClick={() => setCancelState({ row, motivo: "", observacao: "" })}
+                                className="text-xs"
+                              >
+                                Cancelar
+                              </Button>
+                            </div>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -703,5 +707,45 @@ function AdminRede() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function ImpersonateButton({ profileId }: { profileId: string }) {
+  const { supabase } = useAuth();
+  const [loading, setLoading] = useState(false);
+
+  async function handleImpersonate() {
+    if (!supabase) return;
+    setLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) { toast.error("Sessão inválida"); return; }
+
+      const res = await fetch(`/api/admin/impersonate/${profileId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json();
+      if (!res.ok) { toast.error(json.error ?? "Erro ao gerar acesso"); return; }
+
+      window.open(json.link, "_blank");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro inesperado");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <Button
+      size="sm"
+      variant="outline"
+      disabled={loading}
+      onClick={handleImpersonate}
+      className="text-xs gap-1 border-violet-400/30 text-violet-300 hover:bg-violet-500/10"
+    >
+      <UserCheck className="h-3 w-3" />
+      {loading ? "Gerando..." : "Assumir conta"}
+    </Button>
   );
 }

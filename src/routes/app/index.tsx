@@ -212,7 +212,7 @@ function Dashboard() {
   }
 
   const restantes = Math.max(0, s.metaDia - s.sharesHoje);
-  const cyclePercent = Math.min(100, Math.round((s.cycle?.percentual ?? 0) / 2));
+  const cyclePercent = Math.min(100, (s.cycle?.percentual ?? 0) / 2);
   const nextPrize = nextAchievement(s.points);
   const chartData = buildChartData(s.bonuses);
 
@@ -252,7 +252,7 @@ function Dashboard() {
               <TopMetric icon={Wallet} label={t("dashboard.cycleBalance")} value={formatMoney(s.saldo)} sub={t("dashboard.cycleBalanceSub")} tone="violet" />
               <TopMetric icon={Star} label={t("dashboard.accumulatedPoints")} value={formatNumber(s.points)} sub={t("dashboard.thisMonth")} tone="purple" />
               <TopMetric icon={Share2} label={t("dashboard.sharesToday")} value={`${s.sharesHoje} / ${s.metaDia}`} sub={restantes ? t("dashboard.remainingForBonus").replace("{n}", String(restantes)) : t("dashboard.goalCompleted")} tone="primary" />
-              <TopMetric icon={Goal} label={t("dashboard.cycleUntil200")} value={`${cyclePercent}%`} sub={t("dashboard.currentProgress")} tone="ring" progress={cyclePercent} />
+              <TopMetric icon={Goal} label={t("dashboard.cycleUntil200")} value={`${cyclePercent < 1 ? cyclePercent.toFixed(2) : cyclePercent.toFixed(1)}%`} sub={t("dashboard.currentProgress")} tone="ring" progress={cyclePercent} />
             </div>
           </Card>
 
@@ -262,7 +262,7 @@ function Dashboard() {
             <GainCard icon={TrendingUp} label={t("dashboard.dailyEarnings")} value={s.ganhosDiarios} tone="success" />
             <GainCard icon={Users} label={t("dashboard.referralEarnings")} value={s.ganhosIndicacao} tone="primary" />
             <GainCard icon={Crown} label={t("dashboard.teamEarnings")} value={s.ganhosEquipe} tone="warning" />
-            <GainCard icon={Wallet} label={t("dashboard.cycleBonus")} value={s.saldo} change={t("dashboard.cycleCompletedPercent").replace("{n}", String(cyclePercent))} tone="success" />
+            <GainCard icon={Wallet} label={t("dashboard.cycleBonus")} value={s.saldo} change={t("dashboard.cycleCompletedPercent").replace("{n}", cyclePercent < 1 ? cyclePercent.toFixed(2) : cyclePercent.toFixed(1))} tone="success" />
           </div>
 
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.96fr)]">
@@ -291,7 +291,6 @@ function Dashboard() {
           <DailyGoalCard shares={s.sharesHoje} goal={s.metaDia} />
           <ScoreCard points={s.points} />
           <RankingCard points={s.points} name={firstName(s.nome)} />
-          <DoubleBonusCard shares={s.sharesHoje} />
         </aside>
       </div>
     </div>
@@ -558,26 +557,6 @@ function RankingCard({ points, name }: { points: number; name: string }) {
   );
 }
 
-function DoubleBonusCard({ shares }: { shares: number }) {
-  const { t } = useLanguage();
-  return (
-    <Card className="border-primary/15 bg-[radial-gradient(circle_at_left,rgba(124,58,237,0.24),transparent_30%),rgba(15,23,42,0.5)] p-5">
-      <div className="flex gap-4">
-        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-violet-500/15 text-violet-300">
-          <Rocket className="h-6 w-6" />
-        </div>
-        <div>
-          <h3 className="font-semibold">{t("dashboard.doubleBonusTitle")}</h3>
-          <p className="mt-1 text-sm text-muted-foreground">{t("dashboard.doubleBonusDesc")}</p>
-        </div>
-      </div>
-      <div className="mt-4 flex items-center gap-3">
-        <Progress value={(shares / 7) * 100} className="h-2 bg-primary/10" />
-        <span className="shrink-0 text-xs text-muted-foreground">{Math.min(shares, 7)} / 7 {t("dashboard.daysAbbrev")}</span>
-      </div>
-    </Card>
-  );
-}
 
 function Ring({ value }: { value: number }) {
   return (

@@ -39,9 +39,11 @@ export const Route = createFileRoute("/api/admin/impersonate/$profileId")({
             return new Response(JSON.stringify({ error: "User not found" }), { status: 404, headers: { "content-type": "application/json" } });
           }
 
+          const appUrl = process.env.APP_PUBLIC_URL ?? process.env.APP_URL ?? "";
           const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
             type: "magiclink",
             email: profile.email,
+            options: { redirectTo: `${appUrl}/app` },
           });
 
           if (linkErr || !linkData?.properties?.action_link) {

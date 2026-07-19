@@ -728,7 +728,12 @@ function ImpersonateButton({ profileId }: { profileId: string }) {
       const json = await res.json();
       if (!res.ok) { toast.error(json.error ?? "Erro ao gerar acesso"); return; }
 
-      window.open(json.link, "_blank");
+      // Copy link to clipboard and show instruction to open in incognito
+      await navigator.clipboard.writeText(json.link).catch(() => {});
+      toast.info(
+        "Link copiado! Abra uma aba anônima (Ctrl+Shift+N) e cole o link para entrar como este usuário sem perder sua sessão.",
+        { duration: 8000 },
+      );
     } catch (e: any) {
       toast.error(e?.message ?? "Erro inesperado");
     } finally {

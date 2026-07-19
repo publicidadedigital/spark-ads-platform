@@ -48,6 +48,7 @@ import { Route as AdminSegurancaRouteImport } from './routes/admin/seguranca'
 import { Route as AdminSaquesRouteImport } from './routes/admin/saques'
 import { Route as AdminRenovacaoRouteImport } from './routes/admin/renovacao'
 import { Route as AdminRedeRouteImport } from './routes/admin/rede'
+import { Route as AdminUsuarioProfileIdRouteImport } from './routes/admin/usuario.$profileId'
 import { Route as AdminProvasRouteImport } from './routes/admin/provas'
 import { Route as AdminPontuacaoRouteImport } from './routes/admin/pontuacao'
 import { Route as AdminPagamentosRouteImport } from './routes/admin/pagamentos'
@@ -63,6 +64,7 @@ import { Route as AdminAdminsRouteImport } from './routes/admin/admins'
 import { Route as AppCheckoutPackageIdRouteImport } from './routes/app/checkout.$packageId'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments-webhook'
 import { Route as ApiPublicExchangeRateRouteImport } from './routes/api/public/exchange-rate'
+import { Route as ApiAdminImpersonateProfileIdRouteImport } from './routes/api/admin/impersonate.$profileId'
 import { Route as AnunciantePainelCampanhasCampaignIdRouteImport } from './routes/anunciante-painel/campanhas.$campaignId'
 import { Route as ApiPublicEmailConfirmationSendRouteImport } from './routes/api/public/email-confirmation/send'
 import { Route as ApiPublicEmailConfirmationConfirmRouteImport } from './routes/api/public/email-confirmation/confirm'
@@ -267,6 +269,11 @@ const AdminRedeRoute = AdminRedeRouteImport.update({
   path: '/rede',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminUsuarioProfileIdRoute = AdminUsuarioProfileIdRouteImport.update({
+  id: '/usuario/$profileId',
+  path: '/usuario/$profileId',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminProvasRoute = AdminProvasRouteImport.update({
   id: '/provas',
   path: '/provas',
@@ -344,6 +351,11 @@ const ApiPublicExchangeRateRoute = ApiPublicExchangeRateRouteImport.update({
   path: '/api/public/exchange-rate',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminImpersonateProfileIdRoute = ApiAdminImpersonateProfileIdRouteImport.update({
+  id: '/api/admin/impersonate/$profileId',
+  path: '/api/admin/impersonate/$profileId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AnunciantePainelCampanhasCampaignIdRoute =
   AnunciantePainelCampanhasCampaignIdRouteImport.update({
     id: '/$campaignId',
@@ -403,6 +415,7 @@ export interface FileRoutesByFullPath {
   '/admin/saques': typeof AdminSaquesRoute
   '/admin/seguranca': typeof AdminSegurancaRoute
   '/admin/suporte': typeof AdminSuporteRoute
+  '/admin/usuario/$profileId': typeof AdminUsuarioProfileIdRoute
   '/anunciante-painel/campanhas': typeof AnunciantePainelCampanhasRouteWithChildren
   '/anunciante-painel/nova-campanha': typeof AnunciantePainelNovaCampanhaRoute
   '/anunciante-painel/pagamento-confirmado': typeof AnunciantePainelPagamentoConfirmadoRoute
@@ -431,6 +444,7 @@ export interface FileRoutesByFullPath {
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
   '/app/checkout/$packageId': typeof AppCheckoutPackageIdRoute
   '/api/public/cakto/create-checkout': typeof ApiPublicCaktoCreateCheckoutRoute
+  '/api/admin/impersonate/$profileId': typeof ApiAdminImpersonateProfileIdRoute
   '/api/public/cakto/webhook': typeof ApiPublicCaktoWebhookRoute
   '/api/public/email-confirmation/confirm': typeof ApiPublicEmailConfirmationConfirmRoute
   '/api/public/email-confirmation/send': typeof ApiPublicEmailConfirmationSendRoute
@@ -461,6 +475,7 @@ export interface FileRoutesByTo {
   '/admin/saques': typeof AdminSaquesRoute
   '/admin/seguranca': typeof AdminSegurancaRoute
   '/admin/suporte': typeof AdminSuporteRoute
+  '/admin/usuario/$profileId': typeof AdminUsuarioProfileIdRoute
   '/anunciante-painel/campanhas': typeof AnunciantePainelCampanhasRouteWithChildren
   '/anunciante-painel/nova-campanha': typeof AnunciantePainelNovaCampanhaRoute
   '/anunciante-painel/pagamento-confirmado': typeof AnunciantePainelPagamentoConfirmadoRoute
@@ -489,6 +504,7 @@ export interface FileRoutesByTo {
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
   '/app/checkout/$packageId': typeof AppCheckoutPackageIdRoute
   '/api/public/cakto/create-checkout': typeof ApiPublicCaktoCreateCheckoutRoute
+  '/api/admin/impersonate/$profileId': typeof ApiAdminImpersonateProfileIdRoute
   '/api/public/cakto/webhook': typeof ApiPublicCaktoWebhookRoute
   '/api/public/email-confirmation/confirm': typeof ApiPublicEmailConfirmationConfirmRoute
   '/api/public/email-confirmation/send': typeof ApiPublicEmailConfirmationSendRoute
@@ -523,6 +539,7 @@ export interface FileRoutesById {
   '/admin/saques': typeof AdminSaquesRoute
   '/admin/seguranca': typeof AdminSegurancaRoute
   '/admin/suporte': typeof AdminSuporteRoute
+  '/admin/usuario/$profileId': typeof AdminUsuarioProfileIdRoute
   '/anunciante-painel/campanhas': typeof AnunciantePainelCampanhasRouteWithChildren
   '/anunciante-painel/nova-campanha': typeof AnunciantePainelNovaCampanhaRoute
   '/anunciante-painel/pagamento-confirmado': typeof AnunciantePainelPagamentoConfirmadoRoute
@@ -551,6 +568,7 @@ export interface FileRoutesById {
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
   '/app/checkout/$packageId': typeof AppCheckoutPackageIdRoute
   '/api/public/cakto/create-checkout': typeof ApiPublicCaktoCreateCheckoutRoute
+  '/api/admin/impersonate/$profileId': typeof ApiAdminImpersonateProfileIdRoute
   '/api/public/cakto/webhook': typeof ApiPublicCaktoWebhookRoute
   '/api/public/email-confirmation/confirm': typeof ApiPublicEmailConfirmationConfirmRoute
   '/api/public/email-confirmation/send': typeof ApiPublicEmailConfirmationSendRoute
@@ -586,6 +604,7 @@ export interface FileRouteTypes {
     | '/admin/saques'
     | '/admin/seguranca'
     | '/admin/suporte'
+    | '/admin/usuario/$profileId'
     | '/anunciante-painel/campanhas'
     | '/anunciante-painel/nova-campanha'
     | '/anunciante-painel/pagamento-confirmado'
@@ -644,6 +663,7 @@ export interface FileRouteTypes {
     | '/admin/saques'
     | '/admin/seguranca'
     | '/admin/suporte'
+    | '/admin/usuario/$profileId'
     | '/anunciante-painel/campanhas'
     | '/anunciante-painel/nova-campanha'
     | '/anunciante-painel/pagamento-confirmado'
@@ -705,6 +725,7 @@ export interface FileRouteTypes {
     | '/admin/saques'
     | '/admin/seguranca'
     | '/admin/suporte'
+    | '/admin/usuario/$profileId'
     | '/anunciante-painel/campanhas'
     | '/anunciante-painel/nova-campanha'
     | '/anunciante-painel/pagamento-confirmado'
@@ -757,6 +778,7 @@ export interface RootRouteChildren {
   ApiPublicCaktoWebhookRoute: typeof ApiPublicCaktoWebhookRoute
   ApiPublicEmailConfirmationConfirmRoute: typeof ApiPublicEmailConfirmationConfirmRoute
   ApiPublicEmailConfirmationSendRoute: typeof ApiPublicEmailConfirmationSendRoute
+  ApiAdminImpersonateProfileIdRoute: typeof ApiAdminImpersonateProfileIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1006,6 +1028,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSuporteRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/usuario/$profileId': {
+      id: '/admin/usuario/$profileId'
+      path: '/usuario/$profileId'
+      fullPath: '/admin/usuario/$profileId'
+      preLoaderRoute: typeof AdminUsuarioProfileIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/seguranca': {
       id: '/admin/seguranca'
       path: '/seguranca'
@@ -1174,6 +1203,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCaktoCreateCheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/impersonate/$profileId': {
+      id: '/api/admin/impersonate/$profileId'
+      path: '/api/admin/impersonate/$profileId'
+      fullPath: '/api/admin/impersonate/$profileId'
+      preLoaderRoute: typeof ApiAdminImpersonateProfileIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1196,6 +1232,7 @@ interface AdminRouteChildren {
   AdminSegurancaRoute: typeof AdminSegurancaRoute
   AdminSuporteRoute: typeof AdminSuporteRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminUsuarioProfileIdRoute: typeof AdminUsuarioProfileIdRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
@@ -1217,6 +1254,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminSegurancaRoute: AdminSegurancaRoute,
   AdminSuporteRoute: AdminSuporteRoute,
   AdminIndexRoute: AdminIndexRoute,
+  AdminUsuarioProfileIdRoute: AdminUsuarioProfileIdRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
@@ -1326,6 +1364,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicEmailConfirmationConfirmRoute:
     ApiPublicEmailConfirmationConfirmRoute,
   ApiPublicEmailConfirmationSendRoute: ApiPublicEmailConfirmationSendRoute,
+  ApiAdminImpersonateProfileIdRoute: ApiAdminImpersonateProfileIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

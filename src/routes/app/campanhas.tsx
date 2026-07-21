@@ -300,6 +300,7 @@ function CampanhasPage() {
                   profileId={profileId}
                   cycleId={cycleId}
                   registeredInstagram={registeredInstagram}
+                  approvedCount={approvedCount}
                   onSubmitted={refresh}
                 />
               ))}
@@ -434,13 +435,14 @@ function CampanhasPage() {
   );
 }
 
-function CampaignCard({ campaign, index, alreadyShared, profileId, cycleId, registeredInstagram, onSubmitted }: {
+function CampaignCard({ campaign, index, alreadyShared, profileId, cycleId, registeredInstagram, approvedCount, onSubmitted }: {
   campaign: Campaign;
   index: number;
   alreadyShared: boolean;
   profileId: string | null;
   cycleId: string | null;
   registeredInstagram: string;
+  approvedCount: number;
   onSubmitted: () => void;
 }) {
   const { t } = useLanguage();
@@ -482,7 +484,7 @@ function CampaignCard({ campaign, index, alreadyShared, profileId, cycleId, regi
               <Instagram className="h-3.5 w-3.5" /> {t("campaigns.shareInstagram")}
             </Button>
           </InstagramShareGuide>
-        <ShareDialog campaign={campaign} profileId={profileId} cycleId={cycleId} registeredInstagram={registeredInstagram} onSubmitted={onSubmitted}>
+        <ShareDialog campaign={campaign} profileId={profileId} cycleId={cycleId} registeredInstagram={registeredInstagram} approvedCount={approvedCount} onSubmitted={onSubmitted}>
           <Button size="sm" variant="outline" className="w-full" style={{ borderColor: `${color}88`, color }}>
             {t("campaigns.useThisAd")}
           </Button>
@@ -745,11 +747,12 @@ function ShareRow({ campaign, share, index, dailyBonus, profileId, cycleId, regi
   );
 }
 
-function ShareDialog({ campaign, profileId, cycleId, registeredInstagram, onSubmitted, children }: {
+function ShareDialog({ campaign, profileId, cycleId, registeredInstagram, approvedCount, onSubmitted, children }: {
   campaign: Campaign;
   profileId: string | null;
   cycleId: string | null;
   registeredInstagram?: string;
+  approvedCount?: number;
   onSubmitted: () => void;
   children: React.ReactNode;
 }) {
@@ -789,7 +792,13 @@ function ShareDialog({ campaign, profileId, cycleId, registeredInstagram, onSubm
         throw new Error(t("campaigns.profilePrivate"));
       }
 
-      toast.success(t("campaigns.sentForAnalysisToast"));
+      const sent = (approvedCount ?? 0) + 1;
+      const remaining = Math.max(0, DAILY_GOAL - sent);
+      if (remaining === 0) {
+        toast.success(`✅ Meta do dia concluída! Você enviou ${sent} de ${DAILY_GOAL} publicações. Bônus em processamento!`);
+      } else {
+        toast.success(`📤 Publicação enviada! Você tem ${sent} de ${DAILY_GOAL} — faltam ${remaining} para o bônus do dia.`);
+      }
       setOpen(false);
       setLink("");
       setNotes("");

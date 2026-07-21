@@ -85,7 +85,7 @@ function CampanhasPage() {
   const [advertiserShares, setAdvertiserShares] = useState<Share[]>([]);
   const [sharesToday, setSharesToday] = useState<Share[]>([]);
   const [monthBonuses, setMonthBonuses] = useState<Bonus[]>([]);
-  const [dailyBonusByDay, setDailyBonusByDay] = useState<Record<string, string>>({});
+  const [dailyBonusByDay, setDailyBonusByDay] = useState<Record<string, { status: string; observacao?: string | null }>>({});
   const [historyShares, setHistoryShares] = useState<Share[]>([]);
   const [profileId, setProfileId] = useState<string | null>(null);
   const [registeredInstagram, setRegisteredInstagram] = useState<string>("");
@@ -170,7 +170,7 @@ function CampanhasPage() {
         .limit(60),
       supabase
         .from("bonuses")
-        .select("status,created_at,operational_day")
+        .select("status,created_at,operational_day,observacao,motivo_cancelamento")
         .eq("user_id", prof.id)
         .eq("tipo", "diario")
         .order("created_at", { ascending: false })
@@ -186,10 +186,10 @@ function CampanhasPage() {
     setAdvertiserCampaigns((advCampaigns ?? []) as AdvertiserCampaign[]);
     setAdvertiserShares((advShares ?? []) as unknown as Share[]);
     setHistoryShares((history ?? []) as unknown as Share[]);
-    const bonusByDay: Record<string, string> = {};
+    const bonusByDay: Record<string, { status: string; observacao?: string | null }> = {};
     for (const b of (allDailyBonuses ?? []) as any[]) {
       const day = b.operational_day ?? b.created_at?.slice(0, 10);
-      if (day && !bonusByDay[day]) bonusByDay[day] = b.status;
+      if (day && !bonusByDay[day]) bonusByDay[day] = { status: b.status, observacao: b.observacao ?? b.motivo_cancelamento ?? null };
     }
     setDailyBonusByDay(bonusByDay);
     setLoading(false);
@@ -356,7 +356,7 @@ function CampanhasPage() {
             <Card className="border-primary/15 bg-card/50 p-5">
               <h2 className="font-semibold mb-3">{t("campaigns.historyTitle")}</h2>
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[600px] text-sm">
+                <table className="w-full min-w-[700px] text-sm">
                   <thead className="text-xs text-muted-foreground">
                     <tr className="border-b border-border/50">
                       <th className="px-3 py-2 text-left font-medium">{t("campaigns.colAd")}</th>
@@ -364,6 +364,7 @@ function CampanhasPage() {
                       <th className="px-3 py-2 text-left font-medium">{t("campaigns.colStatus")}</th>
                       <th className="px-3 py-2 text-left font-medium">{t("campaigns.colSentAt")}</th>
                       <th className="px-3 py-2 text-left font-medium">Bônus</th>
+                      <th className="px-3 py-2 text-left font-medium">Motivo</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -372,9 +373,10 @@ function CampanhasPage() {
                       const day = s.created_at ? new Date(s.created_at).toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" }) : undefined;
                       const todayStr = new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
                       const isToday = day === todayStr;
-                      const bonusStatus = day ? dailyBonusByDay[day] : undefined;
+                      const bonusInfo = day ? dailyBonusByDay[day] : undefined;
+                      const bonusStatus = bonusInfo?.status;
                       return (
-                        <tr key={s.id} className="border-b border-border/30 last:border-0">
+                        <tr key={s.id} className="border-b border-border/30 last:border-0 align-top">
                           <td className="px-3 py-2">
                             <div className="flex items-center gap-2">
                               {camp?.media_url && <img src={camp.media_url} alt="" className="h-8 w-8 rounded object-cover" />}
@@ -388,9 +390,6 @@ function CampanhasPage() {
                           </td>
                           <td className="px-3 py-2">
                             <StatusBadge status={s.status} />
-                            {s.motivo_rejeicao && (
-                              <p className="mt-1 text-xs text-destructive">{s.motivo_rejeicao}</p>
-                            )}
                           </td>
                           <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">{formatTime(s.created_at)}</td>
                           <td className="px-3 py-2">
@@ -400,6 +399,19 @@ function CampanhasPage() {
                               <span className="text-xs font-medium text-amber-300">Pendente</span>
                             ) : (
                               <span className="text-xs font-medium text-destructive">Rejeitado</span>
+                            )}
+                          </td>
+                          <td className="px-3 py-2 text-xs text-muted-foreground max-w-[200px]">
+                            {s.motivo_rejeicao ? (
+                              <span className="text-destructive">{s.motivo_rejeicao}</span>
+                            ) : bonusStatus === "liberado" ? (
+                              <span className="text-success">5 publicações aprovadas</span>
+                            ) : bonusInfo?.observacao ? (
+                              <span>{bonusInfo.observacao}</span>
+                            ) : bonusStatus === "cancelado" ? (
+                              <span>Mínimo de 5 aprovações não atingido</span>
+                            ) : (
+                              <span>—</span>
                             )}
                           </td>
                         </tr>

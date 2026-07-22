@@ -29,6 +29,10 @@ function LoginPage() {
   const [showResend, setShowResend] = useState(false);
   const [resendEmail, setResendEmail] = useState("");
   const [resendLoading, setResendLoading] = useState(false);
+  const [showForgot, setShowForgot] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
 
   useEffect(() => {
     if (search.email_confirmed === "1") {
@@ -104,6 +108,24 @@ function LoginPage() {
     navigate({ to: "/app" });
   }
 
+  async function handleForgot(e: React.FormEvent) {
+    e.preventDefault();
+    if (!forgotEmail || !supabase) return;
+    setForgotLoading(true);
+    try {
+      const appUrl = window.location.origin;
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+        redirectTo: `${appUrl}/redefinir-senha`,
+      });
+      if (error) throw error;
+      setForgotSent(true);
+    } catch (err: any) {
+      toast.error(err.message || "Não foi possível enviar o e-mail de redefinição.");
+    } finally {
+      setForgotLoading(false);
+    }
+  }
+
   async function handleResend(e: React.FormEvent) {
     e.preventDefault();
     if (!resendEmail || !supabase) return;
@@ -139,13 +161,50 @@ function LoginPage() {
             <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
           <div>
-            <Label htmlFor="password">Senha</Label>
+            <div className="flex items-center justify-between mb-1">
+              <Label htmlFor="password">Senha</Label>
+              <button
+                type="button"
+                className="text-xs text-gold hover:underline"
+                onClick={() => { setShowForgot((v) => !v); setForgotEmail(email); setForgotSent(false); }}
+              >
+                Esqueceu sua senha?
+              </button>
+            </div>
             <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
           <Button type="submit" className="w-full bg-gold-gradient text-primary-foreground" disabled={loading}>
             {loading ? "Entrando..." : "Entrar"}
           </Button>
         </form>
+
+        {showForgot && (
+          <div className="mt-5 rounded-lg border border-border/50 bg-muted/30 p-4 space-y-3">
+            {forgotSent ? (
+              <p className="text-sm text-success text-center font-medium">
+                ✅ E-mail enviado! Verifique sua caixa de entrada para redefinir a senha.
+              </p>
+            ) : (
+              <>
+                <p className="text-sm font-medium">Redefinir senha</p>
+                <p className="text-xs text-muted-foreground">Informe seu e-mail e enviaremos um link para criar uma nova senha.</p>
+                <form onSubmit={handleForgot} className="flex gap-2">
+                  <Input
+                    type="email"
+                    placeholder="Seu e-mail de cadastro"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    required
+                    className="flex-1 h-8 text-sm"
+                  />
+                  <Button type="submit" size="sm" disabled={forgotLoading} className="bg-gold-gradient text-primary-foreground">
+                    {forgotLoading ? "Enviando..." : "Enviar"}
+                  </Button>
+                </form>
+              </>
+            )}
+          </div>
+        )}
 
         {showResend && (
           <div className="mt-5 rounded-lg border border-amber-400/30 bg-amber-500/10 p-4 space-y-3">

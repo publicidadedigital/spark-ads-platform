@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LegalRouteImport } from './routes/legal'
+import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as CadastroAnuncianteRouteImport } from './routes/cadastro-anunciante'
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as AppRouteImport } from './routes/app'
@@ -79,6 +80,11 @@ const LoginRoute = LoginRouteImport.update({
 const LegalRoute = LegalRouteImport.update({
   id: '/legal',
   path: '/legal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RedefinirSenhaRoute = RedefinirSenhaRouteImport.update({
+  id: '/redefinir-senha',
+  path: '/redefinir-senha',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CadastroAnuncianteRoute = CadastroAnuncianteRouteImport.update({
@@ -398,6 +404,7 @@ export interface FileRoutesByFullPath {
   '/cadastro-anunciante': typeof CadastroAnuncianteRoute
   '/legal': typeof LegalRouteWithChildren
   '/login': typeof LoginRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/ativacao': typeof AdminAtivacaoRoute
   '/admin/campanhas': typeof AdminCampanhasRoute
@@ -458,6 +465,7 @@ export interface FileRoutesByTo {
   '/cadastro-anunciante': typeof CadastroAnuncianteRoute
   '/legal': typeof LegalRouteWithChildren
   '/login': typeof LoginRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/ativacao': typeof AdminAtivacaoRoute
   '/admin/campanhas': typeof AdminCampanhasRoute
@@ -522,6 +530,7 @@ export interface FileRoutesById {
   '/cadastro-anunciante': typeof CadastroAnuncianteRoute
   '/legal': typeof LegalRouteWithChildren
   '/login': typeof LoginRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/ativacao': typeof AdminAtivacaoRoute
   '/admin/campanhas': typeof AdminCampanhasRoute
@@ -587,6 +596,7 @@ export interface FileRouteTypes {
     | '/cadastro-anunciante'
     | '/legal'
     | '/login'
+    | '/redefinir-senha'
     | '/admin/admins'
     | '/admin/ativacao'
     | '/admin/campanhas'
@@ -646,6 +656,7 @@ export interface FileRouteTypes {
     | '/cadastro-anunciante'
     | '/legal'
     | '/login'
+    | '/redefinir-senha'
     | '/admin/admins'
     | '/admin/ativacao'
     | '/admin/campanhas'
@@ -708,6 +719,7 @@ export interface FileRouteTypes {
     | '/cadastro-anunciante'
     | '/legal'
     | '/login'
+    | '/redefinir-senha'
     | '/admin/admins'
     | '/admin/ativacao'
     | '/admin/campanhas'
@@ -771,6 +783,7 @@ export interface RootRouteChildren {
   CadastroAnuncianteRoute: typeof CadastroAnuncianteRoute
   LegalRoute: typeof LegalRouteWithChildren
   LoginRoute: typeof LoginRoute
+  RedefinirSenhaRoute: typeof RedefinirSenhaRoute
   ApiConfigRoute: typeof ApiConfigRoute
   ApiPublicExchangeRateRoute: typeof ApiPublicExchangeRateRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
@@ -809,6 +822,13 @@ declare module '@tanstack/react-router' {
       path: '/cadastro'
       fullPath: '/cadastro'
       preLoaderRoute: typeof CadastroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/redefinir-senha': {
+      id: '/redefinir-senha'
+      path: '/redefinir-senha'
+      fullPath: '/redefinir-senha'
+      preLoaderRoute: typeof RedefinirSenhaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app': {
@@ -1356,6 +1376,7 @@ const rootRouteChildren: RootRouteChildren = {
   CadastroAnuncianteRoute: CadastroAnuncianteRoute,
   LegalRoute: LegalRouteWithChildren,
   LoginRoute: LoginRoute,
+  RedefinirSenhaRoute: RedefinirSenhaRoute,
   ApiConfigRoute: ApiConfigRoute,
   ApiPublicExchangeRateRoute: ApiPublicExchangeRateRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,

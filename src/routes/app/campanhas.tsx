@@ -61,6 +61,7 @@ type Share = {
   shared_link: string;
   status: "pendente" | "aprovada" | "rejeitada" | string;
   created_at: string;
+  approved_at: string | null;
   motivo_rejeicao: string | null;
   campaigns?: { titulo: string; media_url: string; tipo_midia: string } | null;
 };
@@ -163,7 +164,7 @@ function CampanhasPage() {
         .eq("operational_day", todayBRStr),
       supabase
         .from("campaign_shares")
-        .select("id,campaign_id,shared_link,status,motivo_rejeicao,created_at,campaigns:campaign_id(titulo,media_url,tipo_midia)")
+        .select("id,campaign_id,shared_link,status,motivo_rejeicao,created_at,approved_at,campaigns:campaign_id(titulo,media_url,tipo_midia)")
         .eq("user_id", prof.id)
         .not("campaign_id", "is", null)
         .order("created_at", { ascending: false })
@@ -364,6 +365,7 @@ function CampanhasPage() {
                       <th className="px-3 py-2 text-left font-medium">{t("campaigns.colLinkSent")}</th>
                       <th className="px-3 py-2 text-left font-medium">{t("campaigns.colStatus")}</th>
                       <th className="px-3 py-2 text-left font-medium">{t("campaigns.colSentAt")}</th>
+                      <th className="px-3 py-2 text-left font-medium">Aprovado em</th>
                       <th className="px-3 py-2 text-left font-medium">Bônus</th>
                       <th className="px-3 py-2 text-left font-medium">Motivo</th>
                     </tr>
@@ -393,6 +395,9 @@ function CampanhasPage() {
                             <StatusBadge status={s.status} />
                           </td>
                           <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">{formatTime(s.created_at)}</td>
+                          <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">
+                            {s.approved_at ? formatTime(s.approved_at) : <span className="text-muted-foreground/40">—</span>}
+                          </td>
                           <td className="px-3 py-2">
                             {bonusStatus === "liberado" ? (
                               <span className="text-xs font-medium text-success">Liberado</span>

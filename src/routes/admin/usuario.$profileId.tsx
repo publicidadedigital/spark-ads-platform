@@ -16,7 +16,7 @@ const todayBRStr = new Date().toLocaleDateString("sv-SE", { timeZone: "America/S
 type Profile = { nome: string | null; email: string | null; status: string | null; packages: { nome: string; valor: number } | null };
 type Cycle = { saldo_bonificacoes: number; percentual_atual: number; status: string; started_at: string };
 type Bonus = { id: string; tipo: string; valor: string; status: string; created_at: string };
-type Share = { id: string; status: string; created_at: string; operational_day: string; shared_link: string; campaigns?: { titulo: string } | null };
+type Share = { id: string; status: string; created_at: string; approved_at: string | null; operational_day: string; shared_link: string; campaigns?: { titulo: string } | null };
 type NetMember = { id: string; nome: string | null; email: string | null; status: string | null };
 
 const TIPO_LABEL: Record<string, string> = {
@@ -80,7 +80,7 @@ export function AdminUserDashboard() {
           .limit(100),
         supabase
           .from("campaign_shares")
-          .select("id,status,created_at,operational_day,shared_link,campaigns:campaign_id(titulo)")
+          .select("id,status,created_at,approved_at,operational_day,shared_link,campaigns:campaign_id(titulo)")
           .eq("user_id", profileId)
           .order("created_at", { ascending: false })
           .limit(50),
@@ -239,21 +239,25 @@ export function AdminUserDashboard() {
                 <tr>
                   <th className="text-left py-1.5 pr-3">Campanha</th>
                   <th className="text-left py-1.5 pr-3">Status</th>
-                  <th className="text-left py-1.5">Data</th>
+                  <th className="text-left py-1.5 pr-3">Enviado em</th>
+                  <th className="text-left py-1.5">Aprovado em</th>
                 </tr>
               </thead>
               <tbody>
                 {shares.slice(0, 20).map((s) => (
                   <tr key={s.id} className="border-b border-border/20">
-                    <td className="py-1.5 pr-3 max-w-[160px] truncate">
+                    <td className="py-1.5 pr-3 max-w-[140px] truncate">
                       {(s.campaigns as any)?.titulo ?? <span className="text-muted-foreground">—</span>}
                     </td>
                     <td className="py-1.5 pr-3">{STATUS_BADGE[s.status] ?? s.status}</td>
-                    <td className="py-1.5 text-muted-foreground">{fmtDate(s.created_at)}</td>
+                    <td className="py-1.5 pr-3 text-muted-foreground whitespace-nowrap">{fmtDate(s.created_at)}</td>
+                    <td className="py-1.5 text-muted-foreground whitespace-nowrap">
+                      {s.approved_at ? fmtDate(s.approved_at) : <span className="text-muted-foreground/50">—</span>}
+                    </td>
                   </tr>
                 ))}
                 {shares.length === 0 && (
-                  <tr><td colSpan={3} className="py-3 text-center text-muted-foreground">Nenhum compartilhamento</td></tr>
+                  <tr><td colSpan={4} className="py-3 text-center text-muted-foreground">Nenhum compartilhamento</td></tr>
                 )}
               </tbody>
             </table>

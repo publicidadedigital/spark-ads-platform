@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LegalRouteImport } from './routes/legal'
+import { Route as ApiAdminUpdateEmailProfileIdRouteImport } from './routes/api/admin/update-email.$profileId'
 import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as CadastroAnuncianteRouteImport } from './routes/cadastro-anunciante'
 import { Route as CadastroRouteImport } from './routes/cadastro'
@@ -80,6 +81,11 @@ const LoginRoute = LoginRouteImport.update({
 const LegalRoute = LegalRouteImport.update({
   id: '/legal',
   path: '/legal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminUpdateEmailProfileIdRoute = ApiAdminUpdateEmailProfileIdRouteImport.update({
+  id: '/api/admin/update-email/$profileId',
+  path: '/api/admin/update-email/$profileId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RedefinirSenhaRoute = RedefinirSenhaRouteImport.update({
@@ -452,6 +458,7 @@ export interface FileRoutesByFullPath {
   '/app/checkout/$packageId': typeof AppCheckoutPackageIdRoute
   '/api/public/cakto/create-checkout': typeof ApiPublicCaktoCreateCheckoutRoute
   '/api/admin/impersonate/$profileId': typeof ApiAdminImpersonateProfileIdRoute
+  '/api/admin/update-email/$profileId': typeof ApiAdminUpdateEmailProfileIdRoute
   '/api/public/cakto/webhook': typeof ApiPublicCaktoWebhookRoute
   '/api/public/email-confirmation/confirm': typeof ApiPublicEmailConfirmationConfirmRoute
   '/api/public/email-confirmation/send': typeof ApiPublicEmailConfirmationSendRoute
@@ -513,6 +520,7 @@ export interface FileRoutesByTo {
   '/app/checkout/$packageId': typeof AppCheckoutPackageIdRoute
   '/api/public/cakto/create-checkout': typeof ApiPublicCaktoCreateCheckoutRoute
   '/api/admin/impersonate/$profileId': typeof ApiAdminImpersonateProfileIdRoute
+  '/api/admin/update-email/$profileId': typeof ApiAdminUpdateEmailProfileIdRoute
   '/api/public/cakto/webhook': typeof ApiPublicCaktoWebhookRoute
   '/api/public/email-confirmation/confirm': typeof ApiPublicEmailConfirmationConfirmRoute
   '/api/public/email-confirmation/send': typeof ApiPublicEmailConfirmationSendRoute
@@ -578,6 +586,7 @@ export interface FileRoutesById {
   '/app/checkout/$packageId': typeof AppCheckoutPackageIdRoute
   '/api/public/cakto/create-checkout': typeof ApiPublicCaktoCreateCheckoutRoute
   '/api/admin/impersonate/$profileId': typeof ApiAdminImpersonateProfileIdRoute
+  '/api/admin/update-email/$profileId': typeof ApiAdminUpdateEmailProfileIdRoute
   '/api/public/cakto/webhook': typeof ApiPublicCaktoWebhookRoute
   '/api/public/email-confirmation/confirm': typeof ApiPublicEmailConfirmationConfirmRoute
   '/api/public/email-confirmation/send': typeof ApiPublicEmailConfirmationSendRoute
@@ -792,6 +801,7 @@ export interface RootRouteChildren {
   ApiPublicEmailConfirmationConfirmRoute: typeof ApiPublicEmailConfirmationConfirmRoute
   ApiPublicEmailConfirmationSendRoute: typeof ApiPublicEmailConfirmationSendRoute
   ApiAdminImpersonateProfileIdRoute: typeof ApiAdminImpersonateProfileIdRoute
+  ApiAdminUpdateEmailProfileIdRoute: typeof ApiAdminUpdateEmailProfileIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1230,6 +1240,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminImpersonateProfileIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/update-email/$profileId': {
+      id: '/api/admin/update-email/$profileId'
+      path: '/api/admin/update-email/$profileId'
+      fullPath: '/api/admin/update-email/$profileId'
+      preLoaderRoute: typeof ApiAdminUpdateEmailProfileIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1386,6 +1403,7 @@ const rootRouteChildren: RootRouteChildren = {
     ApiPublicEmailConfirmationConfirmRoute,
   ApiPublicEmailConfirmationSendRoute: ApiPublicEmailConfirmationSendRoute,
   ApiAdminImpersonateProfileIdRoute: ApiAdminImpersonateProfileIdRoute,
+  ApiAdminUpdateEmailProfileIdRoute: ApiAdminUpdateEmailProfileIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

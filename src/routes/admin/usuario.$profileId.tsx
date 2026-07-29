@@ -4,7 +4,9 @@ import { useAuth } from "@/lib/supabase/auth";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, CheckCircle, Clock, TrendingUp, Users, Wallet, XCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, CheckCircle, Clock, Pencil, TrendingUp, Users, Wallet, XCircle } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/usuario/$profileId")({ component: AdminUserDashboard });
 
@@ -48,6 +50,9 @@ export function AdminUserDashboard() {
   const [bonuses, setBonuses] = useState<Bonus[]>([]);
   const [shares, setShares] = useState<Share[]>([]);
   const [network, setNetwork] = useState<NetMember[]>([]);
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [emailLoading, setEmailLoading] = useState(false);
 
   useEffect(() => {
     if (!supabase || !profileId) return;
@@ -101,6 +106,30 @@ export function AdminUserDashboard() {
     })();
   }, [supabase, profileId]);
 
+  async function handleUpdateEmail() {
+    if (!supabase || !newEmail.trim()) return;
+    setEmailLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const res = await fetch(`/api/admin/update-email/${profileId}`, {
+        method: "POST",
+        headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+        body: JSON.stringify({ email: newEmail.trim() }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Erro ao atualizar e-mail");
+      setProfile((p) => p ? { ...p, email: newEmail.trim() } : p);
+      setEditingEmail(false);
+      setNewEmail("");
+      toast.success("E-mail atualizado com sucesso!");
+    } catch (e: any) {
+      toast.error(e.message ?? "Erro ao atualizar e-mail");
+    } finally {
+      setEmailLoading(false);
+    }
+  }
+
   if (loading) return <p className="p-6 text-muted-foreground text-sm">Carregando...</p>;
   if (!profile) return <p className="p-6 text-muted-foreground text-sm">Usuário não encontrado.</p>;
 
@@ -127,11 +156,44 @@ export function AdminUserDashboard() {
             <ArrowLeft className="h-4 w-4" /> Voltar
           </Button>
         </Link>
-        <div>
+        <div className="flex-1 min-w-0">
           <h1 className="text-xl font-bold">{profile.nome ?? "—"}</h1>
-          <p className="text-sm text-muted-foreground">{profile.email}</p>
+          {editingEmail ? (
+            <form
+              onSubmit={(e) => { e.preventDefault(); handleUpdateEmail(); }}
+              className="flex items-center gap-2 mt-1"
+            >
+              <Input
+                type="email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                className="h-7 text-xs w-56"
+                placeholder={profile.email ?? "novo@email.com"}
+                autoFocus
+                required
+              />
+              <Button type="submit" size="sm" className="h-7 text-xs" disabled={emailLoading}>
+                {emailLoading ? "Salvando..." : "Salvar"}
+              </Button>
+              <Button type="button" size="sm" variant="ghost" className="h-7 text-xs" onClick={() => { setEditingEmail(false); setNewEmail(""); }}>
+                Cancelar
+              </Button>
+            </form>
+          ) : (
+            <div className="flex items-center gap-1.5">
+              <p className="text-sm text-muted-foreground">{profile.email}</p>
+              <button
+                type="button"
+                className="text-muted-foreground/50 hover:text-primary transition-colors"
+                onClick={() => { setEditingEmail(true); setNewEmail(profile.email ?? ""); }}
+                title="Editar e-mail"
+              >
+                <Pencil className="h-3 w-3" />
+              </button>
+            </div>
+          )}
         </div>
-        <Badge className="ml-auto" variant={profile.status === "ativo" ? "default" : "secondary"}>
+        <Badge variant={profile.status === "ativo" ? "default" : "secondary"}>
           {profile.status ?? "—"}
         </Badge>
       </div>

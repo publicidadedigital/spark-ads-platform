@@ -67,6 +67,9 @@ function AdminUsers() {
   const [editingIndicador, setEditingIndicador] = useState<string | null>(null);
   const [indicadorSearch, setIndicadorSearch] = useState("");
   const [indicadorResults, setIndicadorResults] = useState<{ id: string; nome: string }[]>([]);
+  const [editingEmail, setEditingEmail] = useState<string | null>(null);
+  const [emailDraft, setEmailDraft] = useState("");
+  const [emailSaving, setEmailSaving] = useState(false);
   const [activeCycles, setActiveCycles] = useState<Map<string, string>>(new Map());
   const [advOrderMap, setAdvOrderMap] = useState<Map<string, { pkg_id: string; source: string }>>(new Map());
   const [advPkgMap, setAdvPkgMap] = useState<Map<string, string>>(new Map());
@@ -206,6 +209,31 @@ function AdminUsers() {
     load();
   }
 
+  async function saveEmail(userId: string) {
+    const email = emailDraft.trim().toLowerCase();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast.error("E-mail inválido"); return; }
+    if (!supabase) return;
+    setEmailSaving(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(`/api/admin/update-email/${userId}`, {
+        method: "POST",
+        headers: { "content-type": "application/json", authorization: `Bearer ${session?.access_token}` },
+        body: JSON.stringify({ email }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Erro ao atualizar e-mail");
+      toast.success("E-mail atualizado!");
+      setEditingEmail(null);
+      setEmailDraft("");
+      load();
+    } catch (e: any) {
+      toast.error(e.message ?? "Erro ao atualizar e-mail");
+    } finally {
+      setEmailSaving(false);
+    }
+  }
+
   async function activateAdvPackage(advId: string) {
     const pkgId = selectedAdvPkg[advId];
     if (!pkgId || !supabase) return;
@@ -297,7 +325,20 @@ function AdminUsers() {
                   return (
                   <tr key={u.id} className="border-b border-border/30">
                     <td className="p-3">{u.nome}</td>
-                    <td className="p-3 text-muted-foreground">{u.email}</td>
+                    <td className="p-3">
+                      {editingEmail === u.id ? (
+                        <form onSubmit={(e) => { e.preventDefault(); saveEmail(u.id); }} className="flex items-center gap-1">
+                          <Input type="email" value={emailDraft} onChange={(e) => setEmailDraft(e.target.value)} className="h-7 text-xs w-44" autoFocus required />
+                          <button type="submit" disabled={emailSaving} className="text-success hover:opacity-80"><Check className="h-4 w-4" /></button>
+                          <button type="button" onClick={() => { setEditingEmail(null); setEmailDraft(""); }} className="text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
+                        </form>
+                      ) : (
+                        <button type="button" className="group flex items-center gap-1 text-left text-muted-foreground" onClick={() => { setEditingEmail(u.id); setEmailDraft(u.email ?? ""); }}>
+                          <span className="text-sm">{u.email}</span>
+                          <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-60 transition-opacity shrink-0" />
+                        </button>
+                      )}
+                    </td>
                     <td className="p-3">@{u.instagram}</td>
                     <td className="p-3 min-w-[180px]">
                       {editingIndicador === u.id ? (

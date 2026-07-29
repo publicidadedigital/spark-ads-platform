@@ -419,6 +419,7 @@ function AdminUsers() {
                     <td className="p-3 text-right space-x-1">
                       {u.status !== "ativo" && <Button size="sm" variant="outline" onClick={() => setStatus(u.id, "ativo")}>Aprovar</Button>}
                       {u.status !== "bloqueado" && <Button size="sm" variant="destructive" onClick={() => setStatus(u.id, "bloqueado")}>Bloquear</Button>}
+                      <ImpersonateButton profileId={u.id} supabase={supabase} />
                       {u.auth_user_id && (
                         <Button size="sm" variant="outline" className="border-destructive/40 text-destructive hover:bg-destructive/10" onClick={() => setUserToDelete({ authUserId: u.auth_user_id, label: u.nome ?? u.email })}>
                           <Trash2 className="h-3.5 w-3.5" />
@@ -590,5 +591,32 @@ function AdminUsers() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function ImpersonateButton({ profileId, supabase }: { profileId: string; supabase: any }) {
+  const [loading, setLoading] = useState(false);
+  async function handleImpersonate() {
+    if (!supabase) return;
+    setLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(`/api/admin/impersonate/${profileId}`, {
+        headers: { authorization: `Bearer ${session?.access_token}` },
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Erro ao gerar link");
+      await navigator.clipboard.writeText(json.link);
+      toast.success("Link copiado! Abra uma aba anônima e cole o link para acessar como este usuário.");
+    } catch (e: any) {
+      toast.error(e.message ?? "Erro ao assumir conta");
+    } finally {
+      setLoading(false);
+    }
+  }
+  return (
+    <Button size="sm" variant="outline" disabled={loading} onClick={handleImpersonate} title="Assumir conta">
+      {loading ? "..." : "Assumir"}
+    </Button>
   );
 }

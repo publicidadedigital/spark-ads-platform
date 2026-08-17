@@ -71,7 +71,11 @@ function AdminWithdrawalsPage() {
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
 
   const canProcessToday = isWithdrawalProcessingDay();
-  const filtered = useMemo(() => items.filter((item) => status === "todos" || item.status === status), [items, status]);
+  const STATUS_ORDER = ["solicitado", "em_analise", "aprovado", "em_processamento", "pago", "recusado", "cancelado"];
+  const filtered = useMemo(() => {
+    const list = items.filter((item) => status === "todos" || item.status === status);
+    return [...list].sort((a, b) => STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status));
+  }, [items, status]);
   const approvedCount = items.filter((item) => item.status === "aprovado").length;
   const approvedTotal = items.filter((item) => item.status === "aprovado").reduce((sum, item) => sum + Number(item.amount_usd ?? 0), 0);
 
@@ -289,8 +293,11 @@ function AdminWithdrawalsPage() {
                   <span className="text-xs text-muted-foreground">{new Date(item.created_at).toLocaleString("pt-BR")}</span>
                 </div>
                 <h2 className="text-xl font-semibold">{usd.format(Number(item.amount_usd ?? 0))}</h2>
-                <p className="text-sm text-muted-foreground">Usuario: {item.users_profile?.nome ?? item.user_id}</p>
-                <p className="text-sm text-muted-foreground break-all">Destino: {item.destination_key}</p>
+                <p className="text-sm text-muted-foreground">
+                  Usuario: <span className="font-medium text-foreground">{item.users_profile?.nome ?? item.user_id}</span>
+                  {item.users_profile?.email && <span className="ml-1 text-xs">({item.users_profile.email})</span>}
+                </p>
+                <p className="text-sm text-muted-foreground break-all">Chave PIX: <span className="font-medium text-foreground">{item.destination_key}</span></p>
                 {item.destination_holder && <p className="text-sm text-muted-foreground">Titular: {item.destination_holder}</p>}
               </div>
               <div className="flex flex-wrap gap-2 lg:justify-end">

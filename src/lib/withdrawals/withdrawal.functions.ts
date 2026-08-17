@@ -68,14 +68,11 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
       destinationKey: z.string().min(3),
       destinationHolder: z.string().optional(),
       destinationDocument: z.string().min(3),
-      totpCode: z.string().min(6).max(6),
     }).parse(input),
   )
   .handler(async ({ data }) => {
     const admin = getAdminClient();
-    const { authUserId, profileId, document } = await requireProfile(data.accessToken);
-
-    await verifyTwoFactorCode(authUserId, data.totpCode);
+    const { profileId, document } = await requireProfile(data.accessToken);
 
     if (!document || onlyDigits(document) !== onlyDigits(data.destinationDocument)) {
       throw new Error("O saque só pode ser realizado para o CPF cadastrado na sua conta.");

@@ -293,7 +293,7 @@ function WithdrawalRequestCard({
   const { t } = useLanguage();
   const { supabase } = useAuth();
   const [amount, setAmount] = useState("");
-  const [documentCpf, setDocumentCpf] = useState("");
+  const [documentCpf, setDocumentCpf] = useState(cpf ?? "");
   const [submitting, setSubmitting] = useState(false);
 
   async function submit() {
@@ -352,8 +352,12 @@ function WithdrawalRequestCard({
       </div>
       <div>
         <Label>{t("withdrawal.cpfLabel")}</Label>
-        <Input value={documentCpf} onChange={(e) => setDocumentCpf(e.target.value)} placeholder={cpf ?? t("withdrawal.cpfPlaceholder")} />
-        <p className="mt-1 text-xs text-muted-foreground">{t("withdrawal.cpfHelp")}</p>
+        {cpf ? (
+          <Input value={documentCpf} readOnly className="bg-muted/40 cursor-default select-all" />
+        ) : (
+          <Input value={documentCpf} onChange={(e) => setDocumentCpf(e.target.value)} placeholder={t("withdrawal.cpfPlaceholder")} />
+        )}
+        <p className="mt-1 text-xs text-muted-foreground">{cpf ? t("withdrawal.cpfHelp") : t("withdrawal.cpfPlaceholder")}</p>
       </div>
       <Button onClick={submit} disabled={submitting} className="w-full bg-gold-gradient text-primary-foreground">
         {t("withdrawal.requestWithdrawal")}

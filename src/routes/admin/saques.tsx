@@ -296,7 +296,7 @@ function AdminWithdrawalsPage() {
                 <Button size="sm" onClick={() => payOne(item.id)} disabled={item.status !== 'aprovado'}>
                   <Send className="mr-2 h-4 w-4" /> Pagar
                 </Button>
-                {item.status === "pago" && (
+                {["aprovado", "em_processamento", "pago"].includes(item.status) && (
                   <label className="cursor-pointer">
                     <input type="file" accept="image/*,application/pdf" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadReceipt(item.id, f); e.target.value = ""; }} />
                     <span className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs font-medium hover:bg-muted transition-colors">

@@ -47,16 +47,11 @@ async function requireAdmin(accessToken: string) {
 async function getAvailableBalance(userId: string) {
   const admin = getAdminClient();
   const { data } = await admin
-    .from("wallet_transactions")
-    .select("tipo,valor")
-    .eq("user_id", userId);
-
-  return (data ?? []).reduce((sum, row: any) => {
-    const value = Number(row.valor ?? 0);
-    if (row.tipo === "credito") return sum + value;
-    if (row.tipo === "debito" || row.tipo === "saque") return sum - value;
-    return sum;
-  }, 0);
+    .from("wallet_balances")
+    .select("saldo_disponivel")
+    .eq("user_id", userId)
+    .maybeSingle();
+  return Number(data?.saldo_disponivel ?? 0);
 }
 
 export const requestWithdrawal = createServerFn({ method: "POST" })

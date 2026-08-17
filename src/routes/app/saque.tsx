@@ -9,8 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { requestWithdrawal } from "@/lib/withdrawals/withdrawal.functions";
-import { getTwoFactorStatus } from "@/lib/security/totp.functions";
-import { TwoFactorReminderBanner } from "@/components/TwoFactorSetup";
 import { MIN_WITHDRAWAL_USD, MAX_WITHDRAWAL_USD } from "@/lib/business/rules";
 import { Clock, Info, Wallet, XCircle } from "lucide-react";
 
@@ -71,7 +69,6 @@ function SaquePage() {
   const [saldoCancelado, setSaldoCancelado] = useState(0);
   const [holds, setHolds] = useState<BalanceHold[]>([]);
   const [cpf, setCpf] = useState<string | null>(null);
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
   const [requests, setRequests] = useState<WithdrawalRequest[]>([]);
 
   async function load() {
@@ -90,14 +87,6 @@ function SaquePage() {
     }
 
     setCpf(prof.cpf ?? null);
-
-    const { data: session } = await supabase.auth.getSession();
-    const accessToken = session.session?.access_token;
-    if (accessToken) {
-      getTwoFactorStatus({ data: { accessToken } })
-        .then((status) => setTwoFactorEnabled(status.enabled))
-        .catch(() => {});
-    }
 
     const [{ data: wallet }, { data: holdsData }, { data: canceledBonuses }, { data: withdrawals }] = await Promise.all([
       supabase
@@ -250,7 +239,7 @@ function SaquePage() {
           </div>
         </Card>
 
-        <WithdrawalRequestCard balance={balance} saldoAguardando={saldoAguardando} cpf={cpf} twoFactorEnabled={twoFactorEnabled} onSubmitted={load} />
+        <WithdrawalRequestCard balance={balance} saldoAguardando={saldoAguardando} cpf={cpf} onSubmitted={load} />
       </div>
     </div>
   );
@@ -260,20 +249,17 @@ function WithdrawalRequestCard({
   balance,
   saldoAguardando,
   cpf,
-  twoFactorEnabled,
   onSubmitted,
 }: {
   balance: number;
   saldoAguardando: number;
   cpf: string | null;
-  twoFactorEnabled: boolean;
   onSubmitted: () => void;
 }) {
   const { t } = useLanguage();
   const { supabase } = useAuth();
   const [amount, setAmount] = useState("");
   const [documentCpf, setDocumentCpf] = useState("");
-  const [totpCode, setTotpCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   async function submit() {
@@ -284,7 +270,6 @@ function WithdrawalRequestCard({
     if (amountUsd > MAX_WITHDRAWAL_USD) return toast.error(t("withdrawal.maxValue").replace("{value}", formatMoney(MAX_WITHDRAWAL_USD)));
     if (amountUsd > balance) return toast.error(t("withdrawal.insufficientBalance"));
     if (!documentCpf.trim()) return toast.error(t("withdrawal.informCpf"));
-    if (!/^\d{6}$/.test(totpCode)) return toast.error(t("withdrawal.informTotp"));
 
     setSubmitting(true);
     try {
@@ -299,14 +284,12 @@ function WithdrawalRequestCard({
           method: "pix",
           destinationKey: documentCpf.trim(),
           destinationDocument: documentCpf.trim(),
-          totpCode,
         },
       });
 
       toast.success(t("withdrawal.requestSent"));
       setAmount("");
       setDocumentCpf("");
-      setTotpCode("");
       onSubmitted();
     } catch (error: any) {
       toast.error(error.message ?? t("withdrawal.requestError"));
@@ -322,19 +305,10 @@ function WithdrawalRequestCard({
         <p className="text-xs text-muted-foreground">{t("withdrawal.availableLabel").replace("{value}", formatMoney(balance))}{saldoAguardando > 0 ? t("withdrawal.waitingLabel").replace("{value}", formatMoney(saldoAguardando)) : ""}</p>
       </div>
 
-      {!twoFactorEnabled && <TwoFactorReminderBanner to="/app/seguranca" />}
-
       <div className="flex items-start gap-2 rounded-lg border border-amber-400/35 bg-amber-500/10 p-3 text-xs text-amber-200">
         <Info className="mt-0.5 h-4 w-4 shrink-0" />
         <p>
           {t("withdrawal.minMaxNotice").replace("{min}", formatMoney(MIN_WITHDRAWAL_USD)).replace("{max}", formatMoney(MAX_WITHDRAWAL_USD))}
-        </p>
-      </div>
-
-      <div className="flex items-start gap-2 rounded-lg border border-sky-400/35 bg-sky-500/10 p-3 text-xs text-sky-200">
-        <Info className="mt-0.5 h-4 w-4 shrink-0" />
-        <p>
-          {t("withdrawal.paymentScheduleNotice")}
         </p>
       </div>
 
@@ -346,10 +320,6 @@ function WithdrawalRequestCard({
         <Label>{t("withdrawal.cpfLabel")}</Label>
         <Input value={documentCpf} onChange={(e) => setDocumentCpf(e.target.value)} placeholder={cpf ?? t("withdrawal.cpfPlaceholder")} />
         <p className="mt-1 text-xs text-muted-foreground">{t("withdrawal.cpfHelp")}</p>
-      </div>
-      <div>
-        <Label>{t("withdrawal.totpLabel")}</Label>
-        <Input value={totpCode} onChange={(e) => setTotpCode(e.target.value)} placeholder="000000" maxLength={6} />
       </div>
       <Button onClick={submit} disabled={submitting} className="w-full bg-gold-gradient text-primary-foreground">
         {t("withdrawal.requestWithdrawal")}

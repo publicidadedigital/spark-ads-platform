@@ -5,8 +5,6 @@ import { Input } from "@/components/ui/input";
 import { MAX_WITHDRAWAL_USD, MIN_WITHDRAWAL_USD, isWithdrawalProcessingDay } from "@/lib/business/rules";
 import { useAuth } from "@/lib/supabase/auth";
 import { markApprovedWithdrawalsPaidBatch, markWithdrawalPaid, reviewWithdrawal } from "@/lib/withdrawals/withdrawal.functions";
-import { getTwoFactorStatus } from "@/lib/security/totp.functions";
-import { TwoFactorReminderBanner } from "@/components/TwoFactorSetup";
 import { createFileRoute } from "@tanstack/react-router";
 import { CheckCircle2, Clock, Megaphone, Paperclip, RefreshCcw, Send, XCircle, Wallet } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -68,8 +66,6 @@ function AdminWithdrawalsPage() {
   const [advWdStatus, setAdvWdStatus] = useState("todos");
   const [cancelMotivo, setCancelMotivo] = useState<Record<string, string>>({});
   const [reference, setReference] = useState("");
-  const [totpCode, setTotpCode] = useState("");
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
 
   const canProcessToday = isWithdrawalProcessingDay();
   const STATUS_ORDER = ["solicitado", "em_analise", "aprovado", "em_processamento", "pago", "recusado", "cancelado"];
@@ -134,22 +130,11 @@ function AdminWithdrawalsPage() {
     loadBonuses();
   }
 
-  function requireTotp() {
-    if (!/^\d{6}$/.test(totpCode)) {
-      toast.error("Informe o código de 6 dígitos do Google Authenticator");
-      return null;
-    }
-    return totpCode;
-  }
-
   async function review(id: string, action: "approve" | "reject") {
-    const code = requireTotp();
-    if (!code) return;
     try {
       const accessToken = await getToken();
-      await reviewWithdrawal({ data: { accessToken, withdrawalId: id, action, totpCode: code } });
+      await reviewWithdrawal({ data: { accessToken, withdrawalId: id, action } });
       toast.success(action === "approve" ? "Saque aprovado" : "Saque recusado");
-      setTotpCode("");
       load();
     } catch (error: any) {
       toast.error(error.message ?? "Erro ao revisar saque");
@@ -157,14 +142,11 @@ function AdminWithdrawalsPage() {
   }
 
   async function payOne(id: string) {
-    const code = requireTotp();
-    if (!code) return;
     try {
       const accessToken = await getToken();
-      await markWithdrawalPaid({ data: { accessToken, withdrawalId: id, providerReference: reference || undefined, totpCode: code } });
+      await markWithdrawalPaid({ data: { accessToken, withdrawalId: id, providerReference: reference || undefined, forceOutsideProcessingDay: true } });
       toast.success("Saque marcado como pago");
       setReference("");
-      setTotpCode("");
       load();
     } catch (error: any) {
       toast.error(error.message ?? "Erro ao pagar saque");
@@ -172,13 +154,10 @@ function AdminWithdrawalsPage() {
   }
 
   async function payBatch() {
-    const code = requireTotp();
-    if (!code) return;
     try {
       const accessToken = await getToken();
-      const result = await markApprovedWithdrawalsPaidBatch({ data: { accessToken, notes: "Disparo em massa manual", totpCode: code } });
+      const result = await markApprovedWithdrawalsPaidBatch({ data: { accessToken, notes: "Disparo em massa manual", forceOutsideProcessingDay: true } });
       toast.success(`Lote processado: ${result.paid} saque(s)`);
-      setTotpCode("");
       load();
     } catch (error: any) {
       toast.error(error.message ?? "Erro no disparo em massa");
@@ -250,7 +229,7 @@ function AdminWithdrawalsPage() {
     loadAdvWithdrawals();
   }
 
-  useEffect(() => { load(); loadBonuses(); loadTwoFactor(); loadAdvWithdrawals(); }, []);
+  useEffect(() => { load(); loadBonuses(); loadAdvWithdrawals(); }, []);
 
   return (
     <div className="space-y-6">
@@ -264,19 +243,12 @@ function AdminWithdrawalsPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={load} disabled={loading}><RefreshCcw className="mr-2 h-4 w-4" />Atualizar</Button>
-          <Button onClick={payBatch} disabled={!canProcessToday || approvedCount === 0} className="bg-primary text-primary-foreground">
+          <Button onClick={payBatch} disabled={approvedCount === 0} className="bg-primary text-primary-foreground">
             <Send className="mr-2 h-4 w-4" /> Pagar aprovados em massa
           </Button>
         </div>
       </div>
 
-      {!twoFactorEnabled && <TwoFactorReminderBanner to="/admin/seguranca" />}
-
-      {!canProcessToday && (
-        <div className="rounded-lg border border-amber-400/35 bg-amber-500/10 p-4 text-sm text-amber-200">
-          Hoje nao e dia 15 nem 30. O sistema bloqueia o disparo de pagamentos para preservar a regra operacional.
-        </div>
-      )}
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Aprovados para pagamento</CardTitle></CardHeader><CardContent className="text-3xl font-bold">{approvedCount}</CardContent></Card>
@@ -295,7 +267,6 @@ function AdminWithdrawalsPage() {
             <option value="recusado">Recusado</option>
           </select>
           <Input value={reference} onChange={(event) => setReference(event.target.value)} placeholder="Referencia manual do comprovante/pagamento" />
-          <Input value={totpCode} onChange={(event) => setTotpCode(event.target.value)} placeholder="Código 2FA (6 dígitos)" maxLength={6} className="max-w-[200px]" />
         </CardContent>
       </Card>
 

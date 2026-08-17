@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { requestWithdrawal } from "@/lib/withdrawals/withdrawal.functions";
 import { MIN_WITHDRAWAL_USD, MAX_WITHDRAWAL_USD } from "@/lib/business/rules";
-import { Clock, Info, Paperclip, Wallet, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, Info, Loader2, Paperclip, Wallet, XCircle } from "lucide-react";
 
 export const Route = createFileRoute("/app/saque")({ component: SaquePage });
 
@@ -68,6 +68,8 @@ function SaquePage() {
   const [balance, setBalance] = useState(0);
   const [saldoAguardando, setSaldoAguardando] = useState(0);
   const [saldoCancelado, setSaldoCancelado] = useState(0);
+  const [saldoEmAndamento, setSaldoEmAndamento] = useState(0);
+  const [saldoFinalizado, setSaldoFinalizado] = useState(0);
   const [holds, setHolds] = useState<BalanceHold[]>([]);
   const [cpf, setCpf] = useState<string | null>(null);
   const [requests, setRequests] = useState<WithdrawalRequest[]>([]);
@@ -114,11 +116,14 @@ function SaquePage() {
         .limit(20),
     ]);
 
+    const wds = (withdrawals ?? []) as WithdrawalRequest[];
     setBalance(Number(wallet?.saldo_disponivel ?? 0));
     setSaldoAguardando(Number(wallet?.saldo_a_liberar ?? 0));
     setSaldoCancelado((canceledBonuses ?? []).reduce((s: number, b: any) => s + Number(b.valor ?? 0), 0));
+    setSaldoEmAndamento(wds.filter(w => ["solicitado","em_analise","aprovado","em_processamento"].includes(w.status)).reduce((s, w) => s + Number(w.amount_usd ?? 0), 0));
+    setSaldoFinalizado(wds.filter(w => w.status === "pago").reduce((s, w) => s + Number(w.amount_usd ?? 0), 0));
     setHolds((holdsData ?? []) as BalanceHold[]);
-    setRequests((withdrawals ?? []) as WithdrawalRequest[]);
+    setRequests(wds);
     setLoading(false);
   }
 
@@ -132,7 +137,7 @@ function SaquePage() {
         <h1 className="text-3xl font-bold tracking-normal">{t("withdrawal.title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t("withdrawal.subtitle")}</p>
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <div className="mt-4 grid gap-3 sm:grid-cols-3 xl:grid-cols-5">
           <div className="flex items-center gap-3 rounded-lg border border-primary/20 bg-background/45 p-4">
             <div className="rounded-lg bg-primary/15 p-2 text-primary shrink-0">
               <Wallet className="h-5 w-5" />
@@ -158,6 +163,24 @@ function SaquePage() {
             <div className="min-w-0">
               <p className="text-xs text-muted-foreground">{t("withdrawal.canceled")}</p>
               <p className="text-xl font-bold text-destructive">{formatMoney(saldoCancelado)}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 rounded-lg border border-sky-400/25 bg-sky-500/10 p-4">
+            <div className="rounded-lg bg-sky-500/20 p-2 text-sky-300 shrink-0">
+              <Loader2 className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground">Em andamento</p>
+              <p className="text-xl font-bold text-sky-300">{formatMoney(saldoEmAndamento)}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 rounded-lg border border-success/25 bg-success/10 p-4">
+            <div className="rounded-lg bg-success/20 p-2 text-success shrink-0">
+              <CheckCircle2 className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground">Finalizado</p>
+              <p className="text-xl font-bold text-success">{formatMoney(saldoFinalizado)}</p>
             </div>
           </div>
         </div>

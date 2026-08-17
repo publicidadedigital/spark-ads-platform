@@ -120,8 +120,8 @@ function SaquePage() {
     setBalance(Number(wallet?.saldo_disponivel ?? 0));
     setSaldoAguardando(Number(wallet?.saldo_a_liberar ?? 0));
     setSaldoCancelado((canceledBonuses ?? []).reduce((s: number, b: any) => s + Number(b.valor ?? 0), 0));
-    setSaldoEmAndamento(wds.filter(w => ["solicitado","em_analise","aprovado","em_processamento"].includes(w.status)).reduce((s, w) => s + Number(w.amount_usd ?? 0), 0));
-    setSaldoFinalizado(wds.filter(w => w.status === "pago").reduce((s, w) => s + Number(w.amount_usd ?? 0), 0));
+    setSaldoEmAndamento(wds.filter(w => ["solicitado","em_analise","em_processamento"].includes(w.status)).reduce((s, w) => s + Number(w.amount_usd ?? 0), 0));
+    setSaldoFinalizado(wds.filter(w => ["aprovado","pago"].includes(w.status)).reduce((s, w) => s + Number(w.amount_usd ?? 0), 0));
     setHolds((holdsData ?? []) as BalanceHold[]);
     setRequests(wds);
     setLoading(false);

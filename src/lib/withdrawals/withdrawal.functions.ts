@@ -125,13 +125,11 @@ export const reviewWithdrawal = createServerFn({ method: "POST" })
       withdrawalId: z.string().uuid(),
       action: z.enum(["approve", "reject"]),
       notes: z.string().optional(),
-      totpCode: z.string().min(6).max(6),
     }).parse(input),
   )
   .handler(async ({ data }) => {
     const admin = getAdminClient();
     const adminUserId = await requireAdmin(data.accessToken);
-    await verifyTwoFactorCode(adminUserId, data.totpCode);
     const status = data.action === "approve" ? "aprovado" : "recusado";
 
     const { error } = await admin
@@ -157,13 +155,11 @@ export const markWithdrawalPaid = createServerFn({ method: "POST" })
       providerReference: z.string().optional(),
       notes: z.string().optional(),
       forceOutsideProcessingDay: z.boolean().optional(),
-      totpCode: z.string().min(6).max(6),
     }).parse(input),
   )
   .handler(async ({ data }) => {
     const admin = getAdminClient();
     const adminUserId = await requireAdmin(data.accessToken);
-    await verifyTwoFactorCode(adminUserId, data.totpCode);
 
     if (!data.forceOutsideProcessingDay && !isWithdrawalProcessingDay()) {
       throw new Error("Saques so podem ser disparados nos dias 15 e 30, salvo liberacao administrativa forçada.");
@@ -210,13 +206,11 @@ export const markApprovedWithdrawalsPaidBatch = createServerFn({ method: "POST" 
       accessToken: z.string().min(10),
       forceOutsideProcessingDay: z.boolean().optional(),
       notes: z.string().optional(),
-      totpCode: z.string().min(6).max(6),
     }).parse(input),
   )
   .handler(async ({ data }) => {
     const admin = getAdminClient();
     const adminUserId = await requireAdmin(data.accessToken);
-    await verifyTwoFactorCode(adminUserId, data.totpCode);
 
     if (!data.forceOutsideProcessingDay && !isWithdrawalProcessingDay()) {
       throw new Error("Disparo em massa permitido somente nos dias 15 e 30, salvo liberacao administrativa forçada.");

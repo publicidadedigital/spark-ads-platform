@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { requestWithdrawal } from "@/lib/withdrawals/withdrawal.functions";
 import { MIN_WITHDRAWAL_USD, MAX_WITHDRAWAL_USD } from "@/lib/business/rules";
-import { Clock, Info, Wallet, XCircle } from "lucide-react";
+import { Clock, Info, Paperclip, Wallet, XCircle } from "lucide-react";
 
 export const Route = createFileRoute("/app/saque")({ component: SaquePage });
 
@@ -22,6 +22,7 @@ type WithdrawalRequest = {
   destination_key: string;
   status: string;
   admin_notes: string | null;
+  receipt_url: string | null;
 };
 
 function getStatusLabels(t: (key: string) => string): Record<string, string> {
@@ -107,7 +108,7 @@ function SaquePage() {
         .eq("status", "cancelado"),
       supabase
         .from("withdrawal_requests")
-        .select("id,created_at,amount_usd,method,destination_key,status,admin_notes")
+        .select("id,created_at,amount_usd,method,destination_key,status,admin_notes,receipt_url")
         .eq("user_id", prof.id)
         .order("created_at", { ascending: false })
         .limit(20),
@@ -218,6 +219,7 @@ function SaquePage() {
                     <th className="px-3 py-3 text-left font-medium">{t("withdrawal.value")}</th>
                     <th className="px-3 py-3 text-left font-medium">{t("withdrawal.key")}</th>
                     <th className="px-3 py-3 text-left font-medium">{t("withdrawal.status")}</th>
+                    <th className="px-3 py-3 text-left font-medium">Comprovante</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -230,6 +232,15 @@ function SaquePage() {
                         <Badge className={`${statusStyles[item.status] ?? ""} hover:bg-transparent`}>
                           {statusLabels[item.status] ?? item.status}
                         </Badge>
+                      </td>
+                      <td className="px-3 py-3">
+                        {item.receipt_url ? (
+                          <a href={item.receipt_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary underline underline-offset-2">
+                            <Paperclip className="h-3 w-3" /> Ver
+                          </a>
+                        ) : (
+                          <span className="text-muted-foreground/40 text-xs">—</span>
+                        )}
                       </td>
                     </tr>
                   ))}

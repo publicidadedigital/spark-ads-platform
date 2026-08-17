@@ -8,7 +8,7 @@ import { markApprovedWithdrawalsPaidBatch, markWithdrawalPaid, reviewWithdrawal 
 import { getTwoFactorStatus } from "@/lib/security/totp.functions";
 import { TwoFactorReminderBanner } from "@/components/TwoFactorSetup";
 import { createFileRoute } from "@tanstack/react-router";
-import { CheckCircle2, Clock, Megaphone, RefreshCcw, Send, XCircle, Wallet } from "lucide-react";
+import { CheckCircle2, Clock, Megaphone, Paperclip, RefreshCcw, Send, XCircle, Wallet } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -49,6 +49,7 @@ type Withdrawal = {
   status: string;
   requested_processing_day: number | null;
   admin_notes: string | null;
+  receipt_url: string | null;
   users_profile?: { nome: string | null; email: string | null } | null;
 };
 
@@ -92,7 +93,7 @@ function AdminWithdrawalsPage() {
     setLoading(true);
     const { data, error } = await supabase
       .from("withdrawal_requests")
-      .select("id,created_at,user_id,amount_usd,method,destination_key,destination_holder,status,requested_processing_day,admin_notes,users_profile:user_id(nome,email)")
+      .select("id,created_at,user_id,amount_usd,method,destination_key,destination_holder,status,requested_processing_day,admin_notes,receipt_url,users_profile:user_id(nome,email)")
       .order("created_at", { ascending: false })
       .limit(200);
 
@@ -182,6 +183,26 @@ function AdminWithdrawalsPage() {
     } catch (error: any) {
       toast.error(error.message ?? "Erro no disparo em massa");
     }
+  }
+
+  async function uploadReceipt(withdrawalId: string, file: File) {
+    if (!supabase) return;
+    const ext = file.name.split(".").pop();
+    const path = `${withdrawalId}.${ext}`;
+    const { error: uploadError } = await supabase.storage
+      .from("withdrawal-receipts")
+      .upload(path, file, { upsert: true });
+    if (uploadError) { toast.error(uploadError.message); return; }
+
+    const { data: urlData } = supabase.storage.from("withdrawal-receipts").getPublicUrl(path);
+    const { error: updateError } = await supabase
+      .from("withdrawal_requests")
+      .update({ receipt_url: urlData.publicUrl })
+      .eq("id", withdrawalId);
+    if (updateError) { toast.error(updateError.message); return; }
+
+    toast.success("Comprovante anexado com sucesso!");
+    load();
   }
 
   async function loadTwoFactor() {
@@ -299,6 +320,11 @@ function AdminWithdrawalsPage() {
                 </p>
                 <p className="text-sm text-muted-foreground break-all">Chave PIX: <span className="font-medium text-foreground">{item.destination_key}</span></p>
                 {item.destination_holder && <p className="text-sm text-muted-foreground">Titular: {item.destination_holder}</p>}
+                {item.receipt_url && (
+                  <a href={item.receipt_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary underline underline-offset-2">
+                    <Paperclip className="h-3 w-3" /> Ver comprovante
+                  </a>
+                )}
               </div>
               <div className="flex flex-wrap gap-2 lg:justify-end">
                 <Button size="sm" variant="outline" onClick={() => review(item.id, "approve")} disabled={!['solicitado','em_analise'].includes(item.status)}>
@@ -310,6 +336,14 @@ function AdminWithdrawalsPage() {
                 <Button size="sm" onClick={() => payOne(item.id)} disabled={!canProcessToday || item.status !== 'aprovado'}>
                   <Send className="mr-2 h-4 w-4" /> Pagar
                 </Button>
+                {item.status === "pago" && (
+                  <label className="cursor-pointer">
+                    <input type="file" accept="image/*,application/pdf" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadReceipt(item.id, f); e.target.value = ""; }} />
+                    <span className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs font-medium hover:bg-muted transition-colors">
+                      <Paperclip className="h-3.5 w-3.5" /> {item.receipt_url ? "Trocar comprovante" : "Anexar comprovante"}
+                    </span>
+                  </label>
+                )}
               </div>
             </CardContent>
           </Card>

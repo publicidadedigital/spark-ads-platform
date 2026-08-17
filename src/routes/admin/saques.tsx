@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { MAX_WITHDRAWAL_USD, MIN_WITHDRAWAL_USD, isWithdrawalProcessingDay } from "@/lib/business/rules";
+import { MAX_WITHDRAWAL_USD, MIN_WITHDRAWAL_USD } from "@/lib/business/rules";
 import { useAuth } from "@/lib/supabase/auth";
 import { markApprovedWithdrawalsPaidBatch, markWithdrawalPaid, reviewWithdrawal } from "@/lib/withdrawals/withdrawal.functions";
 import { createFileRoute } from "@tanstack/react-router";
@@ -67,7 +67,6 @@ function AdminWithdrawalsPage() {
   const [cancelMotivo, setCancelMotivo] = useState<Record<string, string>>({});
   const [reference, setReference] = useState("");
 
-  const canProcessToday = isWithdrawalProcessingDay();
   const STATUS_ORDER = ["solicitado", "em_analise", "aprovado", "em_processamento", "pago", "recusado", "cancelado"];
   const filtered = useMemo(() => {
     const list = items.filter((item) => status === "todos" || item.status === status);
@@ -184,16 +183,6 @@ function AdminWithdrawalsPage() {
     load();
   }
 
-  async function loadTwoFactor() {
-    try {
-      const accessToken = await getToken();
-      const result = await getTwoFactorStatus({ data: { accessToken } });
-      setTwoFactorEnabled(result.enabled);
-    } catch {
-      // ignore
-    }
-  }
-
   async function loadAdvWithdrawals() {
     if (!supabase) return;
     setAdvWdLoading(true);
@@ -304,7 +293,7 @@ function AdminWithdrawalsPage() {
                 <Button size="sm" variant="outline" onClick={() => review(item.id, "reject")} disabled={!['solicitado','em_analise'].includes(item.status)}>
                   <XCircle className="mr-2 h-4 w-4" /> Recusar
                 </Button>
-                <Button size="sm" onClick={() => payOne(item.id)} disabled={!canProcessToday || item.status !== 'aprovado'}>
+                <Button size="sm" onClick={() => payOne(item.id)} disabled={item.status !== 'aprovado'}>
                   <Send className="mr-2 h-4 w-4" /> Pagar
                 </Button>
                 {item.status === "pago" && (

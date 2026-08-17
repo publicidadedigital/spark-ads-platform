@@ -127,6 +127,16 @@ export const reviewWithdrawal = createServerFn({ method: "POST" })
     const adminUserId = await requireAdmin(data.accessToken);
     const status = data.action === "approve" ? "aprovado" : "recusado";
 
+    const { data: withdrawal, error: loadErr } = await admin
+      .from("withdrawal_requests")
+      .select("id, user_id, amount_usd, status")
+      .eq("id", data.withdrawalId)
+      .in("status", ["solicitado", "em_analise"])
+      .maybeSingle();
+
+    if (loadErr) throw new Error(loadErr.message);
+    if (!withdrawal) throw new Error("Saque não encontrado ou já processado.");
+
     const { error } = await admin
       .from("withdrawal_requests")
       .update({
@@ -135,10 +145,21 @@ export const reviewWithdrawal = createServerFn({ method: "POST" })
         reviewed_by: adminUserId,
         reviewed_at: new Date().toISOString(),
       })
-      .eq("id", data.withdrawalId)
-      .in("status", ["solicitado", "em_analise"]);
+      .eq("id", data.withdrawalId);
 
     if (error) throw new Error(error.message);
+
+    // Se recusado, estorna o bloqueio devolvendo o saldo ao usuário
+    if (status === "recusado") {
+      await admin.from("wallet_transactions").insert({
+        user_id: withdrawal.user_id,
+        withdrawal_request_id: withdrawal.id,
+        tipo: "estorno",
+        valor: Number(withdrawal.amount_usd),
+        descricao: `Estorno de saque recusado - US$ ${Number(withdrawal.amount_usd).toFixed(2)}`,
+      });
+    }
+
     return { ok: true, status };
   });
 

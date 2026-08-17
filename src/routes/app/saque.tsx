@@ -296,6 +296,8 @@ function WithdrawalRequestCard({
   const [documentCpf, setDocumentCpf] = useState(cpf ?? "");
   const [submitting, setSubmitting] = useState(false);
 
+  useEffect(() => { if (cpf) setDocumentCpf(cpf); }, [cpf]);
+
   async function submit() {
     if (!supabase) return;
     const amountUsd = Number(amount);

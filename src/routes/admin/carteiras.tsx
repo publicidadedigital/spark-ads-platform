@@ -22,6 +22,8 @@ type WalletRow = {
   users_profile: { nome: string | null; email: string | null } | null;
 };
 
+type WdTotals = { pago: number; emAberto: number };
+
 type TxRow = {
   id: string;
   tipo: string;
@@ -50,6 +52,7 @@ const TX_TIPO_LABEL: Record<string, string> = {
 function AdminCarteiras() {
   const { supabase } = useAuth();
   const [wallets, setWallets] = useState<WalletRow[]>([]);
+  const [wdMap, setWdMap] = useState<Record<string, WdTotals>>({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<WalletRow | null>(null);
@@ -61,13 +64,28 @@ function AdminCarteiras() {
   async function load() {
     if (!supabase) return;
     setLoading(true);
-    const { data, error } = await supabase
-      .from("wallet_balances")
-      .select("user_id,saldo_disponivel,saldo_a_liberar,updated_at,users_profile:user_id(nome,email)")
-      .order("saldo_disponivel", { ascending: false })
-      .limit(500);
+    const [{ data, error }, { data: wdData }] = await Promise.all([
+      supabase
+        .from("wallet_balances")
+        .select("user_id,saldo_disponivel,saldo_a_liberar,updated_at,users_profile:user_id(nome,email)")
+        .order("saldo_disponivel", { ascending: false })
+        .limit(500),
+      supabase
+        .from("withdrawal_requests")
+        .select("user_id,amount_usd,status"),
+    ]);
     if (error) toast.error(error.message);
     setWallets((data ?? []) as unknown as WalletRow[]);
+
+    // agrupa saques por user_id
+    const map: Record<string, WdTotals> = {};
+    for (const wd of wdData ?? []) {
+      if (!map[wd.user_id]) map[wd.user_id] = { pago: 0, emAberto: 0 };
+      const val = Number(wd.amount_usd ?? 0);
+      if (wd.status === "pago") map[wd.user_id].pago += val;
+      else if (["solicitado", "em_analise", "aprovado", "em_processamento"].includes(wd.status)) map[wd.user_id].emAberto += val;
+    }
+    setWdMap(map);
     setLoading(false);
   }
 
@@ -307,6 +325,8 @@ function AdminCarteiras() {
                   <th className="text-right p-3">Disponível</th>
                   <th className="text-right p-3">Aguardando</th>
                   <th className="text-right p-3">Total</th>
+                  <th className="text-right p-3">Pago</th>
+                  <th className="text-right p-3">Em aberto</th>
                   <th className="text-right p-3">Atualizado</th>
                   <th className="text-right p-3"></th>
                 </tr>
@@ -330,6 +350,16 @@ function AdminCarteiras() {
                         )}
                       </td>
                       <td className="p-3 text-right font-bold">{usd.format(total)}</td>
+                      <td className="p-3 text-right">
+                        {(wdMap[w.user_id]?.pago ?? 0) > 0 ? (
+                          <span className="font-semibold text-success">{usd.format(wdMap[w.user_id].pago)}</span>
+                        ) : <span className="text-muted-foreground">—</span>}
+                      </td>
+                      <td className="p-3 text-right">
+                        {(wdMap[w.user_id]?.emAberto ?? 0) > 0 ? (
+                          <span className="font-semibold text-amber-300">{usd.format(wdMap[w.user_id].emAberto)}</span>
+                        ) : <span className="text-muted-foreground">—</span>}
+                      </td>
                       <td className="p-3 text-right text-muted-foreground text-xs whitespace-nowrap">{fmtDate(w.updated_at)}</td>
                       <td className="p-3 text-right">
                         <Button size="sm" variant="outline" onClick={() => loadDetail(w)} className="text-xs">

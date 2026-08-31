@@ -60,6 +60,7 @@ type Bonus = {
   motivo_cancelamento?: string | null;
   comprovante_url?: string | null;
   observacao?: string | null;
+  operational_day?: string | null;
 };
 
 type NetworkBonus = Bonus & {
@@ -119,7 +120,7 @@ function ExtratoPage() {
           .limit(160),
         supabase
           .from("bonuses")
-          .select("id,tipo,valor,status,nivel,created_at,origem_id,motivo_cancelamento,comprovante_url,observacao,balance_holds(release_at)")
+          .select("id,tipo,valor,status,nivel,created_at,operational_day,origem_id,motivo_cancelamento,comprovante_url,observacao,balance_holds(release_at)")
           .eq("user_id", prof.id)
           .order("created_at", { ascending: false })
           .limit(160),
@@ -176,7 +177,7 @@ function ExtratoPage() {
       ...bonuses.map((b) => {
         const nb = networkMap.get(b.id);
         return [
-          formatDateTime(b.created_at),
+          formatDateTime(b.operational_day ? b.operational_day + "T12:00:00" : b.created_at),
           getTipoLabel(t)[b.tipo] ?? b.tipo,
           b.nivel != null ? `Nv ${b.nivel}` : "",
           nb?.indicadoNome ?? "",
@@ -578,7 +579,7 @@ function UnifiedHistory({
       const nb = networkMap.get(b.id);
       return {
         id: b.id,
-        date: b.created_at,
+        date: b.operational_day ? b.operational_day + "T12:00:00" : b.created_at,
         descricao: TIPO_LABEL[b.tipo] ?? b.tipo,
         nivel: b.nivel,
         indicado: nb?.indicadoNome ?? null,

@@ -17,7 +17,7 @@ const todayBRStr = new Date().toLocaleDateString("sv-SE", { timeZone: "America/S
 
 type Profile = { nome: string | null; email: string | null; status: string | null; packages: { nome: string; valor: number } | null };
 type Cycle = { saldo_bonificacoes: number; percentual_atual: number; status: string; started_at: string };
-type Bonus = { id: string; tipo: string; valor: string; status: string; created_at: string };
+type Bonus = { id: string; tipo: string; valor: string; status: string; created_at: string; operational_day: string | null };
 type Share = { id: string; status: string; created_at: string; approved_at: string | null; operational_day: string; shared_link: string; campaigns?: { titulo: string } | null };
 type NetMember = { id: string; nome: string | null; email: string | null; status: string | null };
 
@@ -79,7 +79,7 @@ export function AdminUserDashboard() {
           .maybeSingle(),
         supabase
           .from("bonuses")
-          .select("id,tipo,valor,status,created_at")
+          .select("id,tipo,valor,status,created_at,operational_day")
           .eq("user_id", profileId)
           .order("created_at", { ascending: false })
           .limit(100),
@@ -281,7 +281,7 @@ export function AdminUserDashboard() {
                         <span className="text-amber-300 flex items-center gap-1"><Clock className="h-3 w-3" /> {b.status}</span>
                       )}
                     </td>
-                    <td className="py-1.5 text-muted-foreground">{fmtDate(b.created_at)}</td>
+                    <td className="py-1.5 text-muted-foreground">{b.operational_day ? fmtDate(b.operational_day) : fmtDate(b.created_at)}</td>
                   </tr>
                 ))}
                 {bonuses.length === 0 && (

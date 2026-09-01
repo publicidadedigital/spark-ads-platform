@@ -21,6 +21,7 @@ import {
   CalendarDays,
   Clock,
   Crown,
+  ArrowDownCircle,
   DollarSign,
   Download,
   Filter,
@@ -60,6 +61,7 @@ type Bonus = {
   motivo_cancelamento?: string | null;
   comprovante_url?: string | null;
   observacao?: string | null;
+  operational_day?: string | null;
 };
 
 type NetworkBonus = Bonus & {
@@ -93,6 +95,7 @@ function ExtratoPage() {
   const [networkBonuses, setNetworkBonuses] = useState<NetworkBonus[]>([]);
   const [saldoDisponivel, setSaldoDisponivel] = useState(0);
   const [saldoAguardando, setSaldoAguardando] = useState(0);
+  const [totalSacado, setTotalSacado] = useState(0);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
@@ -110,7 +113,7 @@ function ExtratoPage() {
         return;
       }
 
-      const [{ data: walletRows }, { data: bonusRows }, { data: wallet }] = await Promise.all([
+      const [{ data: walletRows }, { data: bonusRows }, { data: wallet }, { data: withdrawalRows }] = await Promise.all([
         supabase
           .from("wallet_transactions")
           .select("*")
@@ -119,7 +122,7 @@ function ExtratoPage() {
           .limit(160),
         supabase
           .from("bonuses")
-          .select("id,tipo,valor,status,nivel,created_at,origem_id,motivo_cancelamento,comprovante_url,observacao,balance_holds(release_at)")
+          .select("id,tipo,valor,status,nivel,created_at,operational_day,origem_id,motivo_cancelamento,comprovante_url,observacao,balance_holds(release_at)")
           .eq("user_id", prof.id)
           .order("created_at", { ascending: false })
           .limit(160),
@@ -128,11 +131,17 @@ function ExtratoPage() {
           .select("saldo_disponivel,saldo_a_liberar")
           .eq("user_id", prof.id)
           .maybeSingle(),
+        supabase
+          .from("withdrawal_requests")
+          .select("amount_usd")
+          .eq("user_id", prof.id)
+          .eq("status", "pago"),
       ]);
 
       setTx((walletRows ?? []) as Transaction[]);
       setSaldoDisponivel(Number(wallet?.saldo_disponivel ?? 0));
       setSaldoAguardando(Number(wallet?.saldo_a_liberar ?? 0));
+      setTotalSacado((withdrawalRows ?? []).reduce((sum: number, r: any) => sum + Number(r.amount_usd ?? 0), 0));
 
       const bonusesWithRelease = (bonusRows ?? []).map((b: any) => ({
         ...b,
@@ -176,7 +185,7 @@ function ExtratoPage() {
       ...bonuses.map((b) => {
         const nb = networkMap.get(b.id);
         return [
-          formatDateTime(b.created_at),
+          formatDateTime(b.operational_day ? b.operational_day + "T12:00:00" : b.created_at),
           getTipoLabel(t)[b.tipo] ?? b.tipo,
           b.nivel != null ? `Nv ${b.nivel}` : "",
           nb?.indicadoNome ?? "",
@@ -233,6 +242,10 @@ function ExtratoPage() {
           <SummaryCard
             category={{ key: "cancelado", label: t("statement.canceled"), total: bonuses.filter((b) => b.status === "cancelado").reduce((s, b) => s + moneyValue(b.valor), 0), color: "#ff453a", icon: XCircle }}
             sub={t("statement.canceledBonuses")}
+          />
+          <SummaryCard
+            category={{ key: "sacado", label: t("statement.withdrawn"), total: totalSacado, color: "#a78bfa", icon: ArrowDownCircle }}
+            sub={t("statement.totalWithdrawn")}
           />
         </div>
       </Card>
@@ -578,7 +591,7 @@ function UnifiedHistory({
       const nb = networkMap.get(b.id);
       return {
         id: b.id,
-        date: b.created_at,
+        date: b.operational_day ? b.operational_day + "T12:00:00" : b.created_at,
         descricao: TIPO_LABEL[b.tipo] ?? b.tipo,
         nivel: b.nivel,
         indicado: nb?.indicadoNome ?? null,

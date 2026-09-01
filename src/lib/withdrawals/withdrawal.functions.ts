@@ -210,7 +210,7 @@ export const markWithdrawalPaid = createServerFn({ method: "POST" })
       withdrawal_request_id: withdrawal.id,
       tipo: "debito",
       valor: Number(withdrawal.amount_usd),
-      descricao: `Saque pago manualmente pelo admin - US$ ${Number(withdrawal.amount_usd).toFixed(2)}`,
+      descricao: `Saque pago - US$ ${Number(withdrawal.amount_usd).toFixed(2)}`,
     });
 
     return { ok: true, status: "pago" };
@@ -274,7 +274,7 @@ export const markApprovedWithdrawalsPaidBatch = createServerFn({ method: "POST" 
         withdrawal_request_id: row.id,
         tipo: "debito",
         valor: Number(row.amount_usd),
-        descricao: `Saque pago em lote manual - US$ ${Number(row.amount_usd).toFixed(2)}`,
+        descricao: `Saque pago - US$ ${Number(row.amount_usd).toFixed(2)}`,
       });
     }
 

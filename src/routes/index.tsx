@@ -102,10 +102,9 @@ function Stats() {
     { v: "200%", l: t("stats.limite") },
     { v: "5+10", l: t("stats.niveis") },
     { v: "5/dia", l: t("stats.compartilhamentos") },
-    { v: "385 dias", l: t("stats.tempo") },
   ];
   return (
-    <section className="container mx-auto px-4 py-12 grid grid-cols-2 md:grid-cols-4 gap-4">
+    <section className="container mx-auto px-4 py-12 grid grid-cols-2 md:grid-cols-3 gap-4">
       {items.map((i) => (
         <Card key={i.l} className="p-6 bg-card/50 border-border/50 text-center">
           <div className="text-3xl font-bold gold-text-gradient">{i.v}</div>

@@ -261,6 +261,7 @@ function Testimonials() {
 function Plans() {
   const { t } = useLanguage();
   const items = [
+    { n: "Beginner", v: "$ 20", diario: "$ 0.03", desc: t("plans.beginner.desc") },
     { n: "Start", v: "$ 70", diario: "$ 0.18", desc: t("plans.start.desc") },
     { n: "Plus", v: "$ 130", diario: "$ 0.34", desc: t("plans.plus.desc") },
     { n: "Pro", v: "$ 310", diario: "$ 0.81", desc: t("plans.pro.desc") },
@@ -272,9 +273,9 @@ function Plans() {
         <h2 className="text-3xl md:text-4xl font-bold mb-3">{t("plans.title")}</h2>
         <p className="text-muted-foreground">{t("plans.subtitle")}</p>
       </div>
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 max-w-7xl mx-auto">
         {items.map((p, i) => (
-          <Card key={p.n} className={`p-8 bg-card/50 border-border/50 ${i === 3 ? "border-gold/60 shadow-gold" : ""}`}>
+          <Card key={p.n} className={`p-8 bg-card/50 border-border/50 ${i === 4 ? "border-gold/60 shadow-gold" : ""}`}>
             <div className="text-sm text-muted-foreground">{t("plans.pacote")} {p.n}</div>
             <div className="text-4xl font-bold gold-text-gradient mt-2">{p.v}</div>
             <p className="text-sm text-muted-foreground mt-3">{p.desc}</p>

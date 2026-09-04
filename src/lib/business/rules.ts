@@ -18,7 +18,7 @@ export const ACCOUNT_STATUSES = {
   pointsLost: "points_lost",
 } as const;
 
-export type PackageSlug = "start" | "plus" | "pro" | "elite";
+export type PackageSlug = "beginner" | "start" | "plus" | "pro" | "elite";
 
 export type PackageDefinition = {
   slug: PackageSlug;
@@ -68,6 +68,7 @@ export type VmeGoalResult = {
 };
 
 export const PACKAGE_CATALOG: PackageDefinition[] = [
+  buildPackageDefinition("beginner", "Beginner", 10),
   buildPackageDefinition("start", "Start", 70),
   buildPackageDefinition("plus", "Plus", 130),
   buildPackageDefinition("pro", "Pro", 310),

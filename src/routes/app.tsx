@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   LayoutDashboard, Megaphone, Receipt, Users, RefreshCw,
-  LogOut, Menu, ShieldCheck, Wallet, Building2, UserCircle, Package, Lock, MessageCircle,
+  LogOut, Menu, ShieldCheck, Wallet, Building2, UserCircle, Package, Lock, MessageCircle, GraduationCap,
 } from "lucide-react";
 import {
   Sheet, SheetContent, SheetTrigger,
@@ -21,6 +21,7 @@ const nav = [
   { to: "/app", labelKey: "appNav.dashboard", icon: LayoutDashboard, exact: true },
   { to: "/app/pacotes", labelKey: "appNav.pacotes", icon: Package, free: true },
   { to: "/app/campanhas", labelKey: "appNav.campanhas", icon: Megaphone },
+  { to: "/app/curso", labelKey: "appNav.curso", icon: GraduationCap },
   { to: "/app/extrato", labelKey: "appNav.extrato", icon: Receipt },
   { to: "/app/saque", labelKey: "appNav.saque", icon: Wallet },
   { to: "/app/rede", labelKey: "appNav.rede", icon: Users },

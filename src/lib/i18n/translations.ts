@@ -80,6 +80,7 @@ export const translations: Record<Lang, Dict> = {
     "plans.bonusAte": "Bônus de até 200%",
     "plans.cursoExclusivo": "Curso exclusivo",
     "plans.afiliados": "Programa de afiliados",
+    "plans.beginner.desc": "Ideal para começar com pouco.",
     "plans.start.desc": "Comece a divulgar e ganhar.",
     "plans.plus.desc": "Mais bonificação por ciclo.",
     "plans.pro.desc": "Retorno acelerado por compartilhamento.",
@@ -114,6 +115,7 @@ export const translations: Record<Lang, Dict> = {
 
     "appNav.dashboard": "Dashboard",
     "appNav.campanhas": "Campanhas",
+    "appNav.curso": "Curso",
     "appNav.rede": "Rede",
     "appNav.extrato": "Extrato",
     "appNav.saque": "Saque",
@@ -752,6 +754,7 @@ export const translations: Record<Lang, Dict> = {
     "plans.bonusAte": "Bonus up to 200%",
     "plans.cursoExclusivo": "Exclusive course",
     "plans.afiliados": "Affiliate program",
+    "plans.beginner.desc": "Ideal to start with a small budget.",
     "plans.start.desc": "Start sharing and earning.",
     "plans.plus.desc": "More bonus per cycle.",
     "plans.pro.desc": "Faster return per share.",
@@ -786,6 +789,7 @@ export const translations: Record<Lang, Dict> = {
 
     "appNav.dashboard": "Dashboard",
     "appNav.campanhas": "Campaigns",
+    "appNav.curso": "Course",
     "appNav.rede": "Network",
     "appNav.extrato": "Statement",
     "appNav.saque": "Withdraw",
@@ -1424,6 +1428,7 @@ export const translations: Record<Lang, Dict> = {
     "plans.bonusAte": "Bono de hasta 200%",
     "plans.cursoExclusivo": "Curso exclusivo",
     "plans.afiliados": "Programa de afiliados",
+    "plans.beginner.desc": "Ideal para empezar con poco.",
     "plans.start.desc": "Empieza a difundir y ganar.",
     "plans.plus.desc": "Más bonificación por ciclo.",
     "plans.pro.desc": "Retorno acelerado por compartido.",
@@ -1458,6 +1463,7 @@ export const translations: Record<Lang, Dict> = {
 
     "appNav.dashboard": "Panel",
     "appNav.campanhas": "Campañas",
+    "appNav.curso": "Curso",
     "appNav.rede": "Red",
     "appNav.extrato": "Extracto",
     "appNav.saque": "Retiro",

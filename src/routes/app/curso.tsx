@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   BookOpen, ChevronDown, ChevronRight, CheckCircle2, GraduationCap,
   Instagram, TrendingUp, Rocket, Users, Star, Lightbulb, Target,
-  Share2, DollarSign, ShieldCheck, Clock, Megaphone,
+  Share2, DollarSign, ShieldCheck, Clock, Megaphone, Zap, MessageCircle, MousePointerClick,
 } from "lucide-react";
 
 export const Route = createFileRoute("/app/curso")({ component: CursoPage });
@@ -242,8 +242,226 @@ const MODULES: Module[] = [
     ],
   },
   {
+    id: "copywriting",
+    title: "Módulo 5 — Copywriting e Comunicação Persuasiva",
+    description: "Aprenda a escrever legendas que vendem, mensagens que convertem e histórias que atraem indicados.",
+    icon: Zap,
+    color: "#f59e0b",
+    lessons: [
+      {
+        title: "O que é copywriting e por que ele muda tudo",
+        icon: Star,
+        content: [
+          "Copywriting é a arte de escrever textos que persuadem e levam o leitor a tomar uma ação — curtir, comentar, clicar, comprar ou se cadastrar.",
+          "Não é sobre enganar ninguém. É sobre comunicar o valor certo, para a pessoa certa, no momento certo.",
+          "Bons copies (textos persuasivos) aumentam o alcance dos seus posts, melhoram o engajamento e atraem mais indicados naturalmente.",
+          "Qualquer pessoa pode aprender copywriting. É uma habilidade treinável, não um dom.",
+          "Quem aprende a escrever bem nas redes sociais tem uma vantagem enorme sobre a concorrência.",
+        ],
+        tips: [
+          "Leia os posts dos perfis que você mais admira e tente identificar o que torna o texto deles tão atraente.",
+          "Escreva todos os dias, mesmo que seja pouco. A habilidade vem com a prática.",
+        ],
+      },
+      {
+        title: "Como escrever legendas que geram engajamento",
+        icon: MessageCircle,
+        content: [
+          "A primeira linha da legenda é a mais importante — ela aparece antes do 'ver mais' e decide se a pessoa vai continuar lendo.",
+          "Comece com uma pergunta, uma afirmação ousada ou um número: 'Você sabia que 90% das pessoas...', 'O erro que quase me fez desistir...'",
+          "Use a estrutura AIDA: Atenção → Interesse → Desejo → Ação.",
+          "Conte uma mini-história: todo post com narrativa pessoal gera mais conexão do que posts genéricos.",
+          "Termine sempre com uma chamada para ação (CTA): 'Comenta aqui', 'Salva esse post', 'Me manda mensagem'.",
+          "Use espaços e emojis estratégicos para tornar o texto mais fácil de ler no celular.",
+        ],
+        tips: [
+          "Evite legendas genéricas como 'Confira nosso produto'. Seja específico e humano.",
+          "Salve as legendas que performaram bem para reutilizar como modelo.",
+        ],
+      },
+      {
+        title: "Storytelling — contar histórias que vendem",
+        icon: BookOpen,
+        content: [
+          "Storytelling é a técnica de usar histórias para conectar emocionalmente com o público e comunicar uma mensagem.",
+          "Histórias ativam o cérebro de forma diferente de dados e fatos — elas criam empatia e memória.",
+          "Estrutura básica de uma boa história: Situação → Conflito → Virada → Resultado.",
+          "Exemplo: 'Antes de entrar na Spark Ads eu estava [situação difícil]. Então descobri a plataforma e [o que mudou]. Hoje [resultado positivo].'",
+          "Não precisa inventar — sua própria jornada é a melhor história que você pode contar.",
+          "Use detalhes reais e específicos: eles tornam a história mais crível e envolvente.",
+        ],
+        tips: [
+          "Escreva sua história de transformação com a Spark Ads e use em posts, stories e abordagens.",
+          "Quanto mais vulnerável e honesta a história, mais as pessoas se identificam.",
+        ],
+      },
+      {
+        title: "Palavras e gatilhos que aumentam a conversão",
+        icon: Target,
+        content: [
+          "Gatilhos mentais são atalhos que o cérebro usa para tomar decisões. Usá-los eticamente acelera resultados.",
+          "Gatilho da Escassez: 'Últimas vagas', 'Só até hoje'. Cria urgência real.",
+          "Gatilho da Prova Social: 'Mais de 500 pessoas já entraram', 'Veja o que fulano conquistou'. Reduz o medo de errar.",
+          "Gatilho da Autoridade: Mostre resultados reais, extratos, prints. Quem prova tem credibilidade.",
+          "Gatilho da Reciprocidade: Entregue valor antes de pedir. Quem recebe algo sente vontade de retribuir.",
+          "Gatilho da Curiosidade: 'O segredo que poucos sabem', 'O erro que eu cometi no começo'. Estimula o clique.",
+          "Palavras que convertem: grátis, exclusivo, agora, comprovado, simples, você, resultado, rápido.",
+        ],
+        tips: [
+          "Nunca use gatilhos de forma desonesta — isso destrói a confiança e a sua reputação.",
+          "Teste diferentes abordagens e veja qual gera mais engajamento no seu perfil.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "trafego-pago",
+    title: "Módulo 6 — Tráfego Pago para Iniciantes",
+    description: "Aprenda a criar anúncios no Instagram e Facebook para crescer sua rede mais rápido.",
+    icon: MousePointerClick,
+    color: "#0ea5e9",
+    lessons: [
+      {
+        title: "O que é tráfego pago e como funciona",
+        icon: TrendingUp,
+        content: [
+          "Tráfego pago é quando você investe dinheiro para exibir seus posts/anúncios para um público específico.",
+          "Diferente do tráfego orgânico (que depende do algoritmo), o tráfego pago entrega seus conteúdos para quem você escolhe — por idade, cidade, interesse, comportamento.",
+          "As principais plataformas são: Meta Ads (Instagram + Facebook), TikTok Ads e Google Ads.",
+          "Para divulgar seu link de indicação da Spark Ads, o Meta Ads é o mais indicado por ter o perfil certo de público.",
+          "Você não precisa de muito dinheiro para começar — R$10 a R$20 por dia já traz resultados visíveis.",
+        ],
+        tips: [
+          "Antes de investir em tráfego, tenha um perfil profissional e uma boa oferta preparada.",
+          "Comece pequeno, teste, aprenda e depois escale o que funciona.",
+        ],
+      },
+      {
+        title: "Criando sua primeira campanha no Meta Ads",
+        icon: Megaphone,
+        content: [
+          "Acesse o Gerenciador de Anúncios em business.facebook.com e crie uma conta de anúncios.",
+          "Escolha o objetivo da campanha: para indicações, use 'Tráfego' (direciona para seu link) ou 'Geração de Cadastros'.",
+          "Defina seu público: comece com pessoas de 25 a 45 anos, interessadas em 'renda extra', 'empreendedorismo', 'marketing digital'.",
+          "Selecione os posicionamentos: Instagram Feed e Stories são os mais eficazes para esse público.",
+          "Defina o orçamento diário (R$10 a R$30 para começar) e o período da campanha.",
+          "Crie o criativo: use uma imagem ou vídeo curto com um texto direto sobre a oportunidade.",
+        ],
+        tips: [
+          "Nunca anuncie sem ter uma landing page ou perfil otimizado para receber o público.",
+          "Deixe o anúncio rodar pelo menos 3 dias antes de julgar os resultados — o algoritmo precisa de tempo para aprender.",
+        ],
+      },
+      {
+        title: "Criando anúncios que convertem",
+        icon: Zap,
+        content: [
+          "Um bom anúncio tem 3 elementos: imagem/vídeo que para o scroll, texto que desperta interesse e CTA claro.",
+          "Use vídeos curtos (15 a 30 segundos) mostrando seu resultado real — extratos, depoimentos, rotina.",
+          "O texto do anúncio deve começar com a dor ou desejo do público: 'Procurando uma renda extra sem sair de casa?'",
+          "Use prova social no texto: 'Mais de 500 pessoas já estão ganhando com isso'.",
+          "O botão de ação (CTA) deve ser direto: 'Saiba mais', 'Cadastre-se', 'Fale comigo'.",
+          "Teste pelo menos 2 variações de criativo para ver qual performa melhor (teste A/B).",
+        ],
+        tips: [
+          "Imagens com pessoas reais convertem mais do que artes genéricas.",
+          "Evite textos longos no criativo — menos é mais no anúncio.",
+        ],
+      },
+      {
+        title: "Analisando resultados e otimizando",
+        icon: Target,
+        content: [
+          "As métricas mais importantes para indicações são: CPC (custo por clique), CTR (taxa de clique) e CPL (custo por lead).",
+          "CTR acima de 1% é bom. Se estiver abaixo, melhore o criativo.",
+          "Se o CPC estiver alto, tente segmentações mais específicas ou mude o criativo.",
+          "Desligue anúncios que não performam após 3-5 dias. Escale os que funcionam aumentando o orçamento gradualmente.",
+          "Analise os resultados pelo menos 3 vezes por semana e faça ajustes baseados nos dados.",
+          "Não mude tudo de uma vez — altere um elemento por vez para saber o que gerou a melhora.",
+        ],
+        tips: [
+          "Instale o Pixel do Facebook no seu site ou landing page para rastrear conversões com precisão.",
+          "Com o tempo, o algoritmo aprende quem converte e entrega seus anúncios para pessoas mais qualificadas.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "vendas-whatsapp",
+    title: "Módulo 7 — Vendas pelo WhatsApp",
+    description: "Scripts prontos, como abordar leads, superar objeções e fechar indicações pelo WhatsApp.",
+    icon: MessageCircle,
+    color: "#22c55e",
+    lessons: [
+      {
+        title: "Por que o WhatsApp é a melhor ferramenta de vendas",
+        icon: Star,
+        content: [
+          "O WhatsApp tem mais de 2 bilhões de usuários e é o app mais usado no Brasil. Ignorá-lo é deixar dinheiro na mesa.",
+          "A taxa de abertura de mensagens no WhatsApp é de 98% — muito acima do e-mail ou de qualquer outra rede social.",
+          "É uma ferramenta pessoal: a conversa é um a um, o que cria confiança e facilita a decisão de compra.",
+          "Com o WhatsApp Business, você profissionaliza a comunicação com catálogo, respostas automáticas e etiquetas.",
+          "Grupos e listas de transmissão permitem escalar a comunicação sem perder o toque pessoal.",
+        ],
+        tips: [
+          "Use o WhatsApp Business separado do seu pessoal — isso mantém o profissionalismo.",
+          "Configure uma mensagem de saudação automática para não deixar ninguém sem resposta.",
+        ],
+      },
+      {
+        title: "Como abordar um lead pelo WhatsApp",
+        icon: MessageCircle,
+        content: [
+          "A abordagem é o momento mais crítico. Uma mensagem errada fecha a porta antes mesmo de abrir.",
+          "Nunca comece com o produto. Comece gerando curiosidade ou com uma pergunta sobre a situação da pessoa.",
+          "Script de abordagem fria: 'Oi [nome], tudo bem? Vi seu perfil e acredito que tenho algo que pode te interessar. Posso compartilhar?'",
+          "Script para leads quentes (que viram seu post): 'Oi [nome], obrigado pelo interesse! Você viu meu post sobre renda extra, certo? Me conta um pouco sobre sua situação.'",
+          "Sempre peça permissão antes de enviar informações — isso evita bloqueios e aumenta a receptividade.",
+          "Personalize a mensagem com o nome da pessoa e uma referência a algo que ela postou ou comentou.",
+        ],
+        tips: [
+          "Nunca copie e cole a mesma mensagem para todo mundo — as pessoas percebem e ignoram.",
+          "Se não responder em 24h, mande um follow-up gentil: 'Oi [nome], só passando para ver se recebeu minha mensagem!'",
+        ],
+      },
+      {
+        title: "Scripts prontos para apresentar a oportunidade",
+        icon: Share2,
+        content: [
+          "Após a permissão, apresente a oportunidade de forma clara, simples e sem exageros.",
+          "Script básico: 'A Spark Ads é uma plataforma onde você compartilha publicidades de marcas no seu Instagram e recebe bônus diários por isso. O investimento inicial é de $20 (plano Beginner) e você pode sacar a partir de $50.'",
+          "Envie prints ou prints de saque logo após a apresentação — prova social é o melhor argumento.",
+          "Não envie um áudio longo no primeiro contato. Use texto curto e direto, depois ofereça um áudio para quem quiser mais detalhes.",
+          "Após apresentar, faça uma pergunta: 'Faz sentido pra você? Quer saber mais sobre como funciona o dia a dia?'",
+          "Script com storytelling: 'Antes de entrar, eu também tinha dúvidas. Mas após [X dias], já recebi meu primeiro bônus de [valor]. Me surpreendeu muito.'",
+        ],
+        tips: [
+          "Tenha um mini-vídeo seu (30-60s) explicando a plataforma para enviar aos interessados.",
+          "Crie um catálogo no WhatsApp Business com os planos e valores para facilitar a visualização.",
+        ],
+      },
+      {
+        title: "Como superar objeções e fechar a indicação",
+        icon: Target,
+        content: [
+          "Objeção não é recusa — é pedido de mais informação. Quem objeta ainda está considerando.",
+          "'Parece golpe / pirâmide': 'Entendo sua preocupação. A diferença é que aqui você recebe por um trabalho real: divulgar publicidades. Sem exageros, sem promessas falsas.'",
+          "'Não tenho dinheiro agora': 'O plano Beginner é de $20. Se isso ainda for difícil, posso te explicar como começar a se preparar para entrar em breve.'",
+          "'Não tenho seguidores': 'Você não precisa de muitos seguidores, só precisa de um perfil público e real. Eu mesmo comecei com poucos.'",
+          "'Não tenho tempo': 'São apenas 5 publicações por dia, em qualquer horário. Muita gente faz em menos de 20 minutos.'",
+          "Após responder uma objeção, sempre faça uma pergunta de avanço: 'Isso faz sentido pra você? Tem mais alguma dúvida?'",
+          "Fechamento: 'Você está pronto pra começar? Posso te passar o link agora e você já consegue ativar hoje mesmo.'",
+        ],
+        tips: [
+          "Nunca pressione. Se a pessoa não quiser agora, respeite e mantenha o relacionamento.",
+          "Quem disse não hoje pode dizer sim daqui a 30 dias. Mantenha contato com conteúdo de valor.",
+        ],
+      },
+    ],
+  },
+  {
     id: "vendas-afiliados",
-    title: "Módulo 4 — Vendas e Programa de Afiliados",
+    title: "Módulo 8 — Vendas e Programa de Afiliados",
     description: "Aprenda a indicar pessoas, construir sua rede e multiplicar seus ganhos.",
     icon: Users,
     color: "#059669",

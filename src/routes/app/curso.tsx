@@ -30,16 +30,16 @@ type Module = {
 const MODULES: Module[] = [
   {
     id: "plataforma",
-    title: "Módulo 1 — Como usar a plataforma Spark Ads",
+    title: "Módulo 1 — Como usar a plataforma Viral Hub",
     description: "Aprenda a navegar, compartilhar campanhas e receber seus bônus diários.",
     icon: Rocket,
     color: "#2563eb",
     lessons: [
       {
-        title: "O que é a Spark Ads e como funciona",
+        title: "O que é a Viral Hub e como funciona",
         icon: Star,
         content: [
-          "A Spark Ads é uma plataforma de marketing colaborativo onde você divulga campanhas de marcas parceiras no Instagram e recebe bônus diários por isso.",
+          "A Viral Hub é uma plataforma de marketing colaborativo onde você divulga campanhas de marcas parceiras no Instagram e recebe bônus diários por isso.",
           "O modelo é simples: você adquire um pacote, compartilha publicações no Instagram todos os dias e ganha bônus enquanto mantém o pacote ativo.",
           "Cada pacote tem um bônus diário diferente. Quanto maior o pacote, maior o bônus que você recebe por dia.",
           "Além do bônus diário, você também ganha bônus de adesão ao indicar pessoas para a plataforma.",
@@ -110,7 +110,7 @@ const MODULES: Module[] = [
         content: [
           "Um perfil profissional atrai mais seguidores e transmite credibilidade. Use uma foto clara e um nome fácil de encontrar.",
           "Escreva uma bio objetiva que explique quem você é e o que você compartilha. Use palavras-chave do seu nicho.",
-          "Adicione um link na bio — pode ser o link da campanha atual ou seu link de indicação da Spark Ads.",
+          "Adicione um link na bio — pode ser o link da campanha atual ou seu link de indicação da Viral Hub.",
           "Mantenha o perfil público para que as publicações possam ser verificadas pela plataforma.",
           "Use destaques no Stories para organizar conteúdos importantes e facilitar a navegação dos seus seguidores.",
         ],
@@ -197,7 +197,7 @@ const MODULES: Module[] = [
         icon: DollarSign,
         content: [
           "Depender de uma única fonte de renda é arriscado. O empreendedor digital diversifica seus ganhos.",
-          "Com a Spark Ads, você tem 3 fontes: bônus diário de campanhas, bônus de indicação direta e bônus residual de rede.",
+          "Com a Viral Hub, você tem 3 fontes: bônus diário de campanhas, bônus de indicação direta e bônus residual de rede.",
           "Fora da plataforma, você pode explorar: venda de infoprodutos, dropshipping, prestação de serviços online, cursos.",
           "O bônus de indicação é uma fonte poderosa — cada pessoa que você indicar e ativar gera bônus para você.",
           "Reinvista parte dos seus ganhos para crescer: upgrade de pacote, cursos, ferramentas.",
@@ -286,12 +286,12 @@ const MODULES: Module[] = [
           "Storytelling é a técnica de usar histórias para conectar emocionalmente com o público e comunicar uma mensagem.",
           "Histórias ativam o cérebro de forma diferente de dados e fatos — elas criam empatia e memória.",
           "Estrutura básica de uma boa história: Situação → Conflito → Virada → Resultado.",
-          "Exemplo: 'Antes de entrar na Spark Ads eu estava [situação difícil]. Então descobri a plataforma e [o que mudou]. Hoje [resultado positivo].'",
+          "Exemplo: 'Antes de entrar na Viral Hub eu estava [situação difícil]. Então descobri a plataforma e [o que mudou]. Hoje [resultado positivo].'",
           "Não precisa inventar — sua própria jornada é a melhor história que você pode contar.",
           "Use detalhes reais e específicos: eles tornam a história mais crível e envolvente.",
         ],
         tips: [
-          "Escreva sua história de transformação com a Spark Ads e use em posts, stories e abordagens.",
+          "Escreva sua história de transformação com a Viral Hub e use em posts, stories e abordagens.",
           "Quanto mais vulnerável e honesta a história, mais as pessoas se identificam.",
         ],
       },
@@ -328,7 +328,7 @@ const MODULES: Module[] = [
           "Tráfego pago é quando você investe dinheiro para exibir seus posts/anúncios para um público específico.",
           "Diferente do tráfego orgânico (que depende do algoritmo), o tráfego pago entrega seus conteúdos para quem você escolhe — por idade, cidade, interesse, comportamento.",
           "As principais plataformas são: Meta Ads (Instagram + Facebook), TikTok Ads e Google Ads.",
-          "Para divulgar seu link de indicação da Spark Ads, o Meta Ads é o mais indicado por ter o perfil certo de público.",
+          "Para divulgar seu link de indicação da Viral Hub, o Meta Ads é o mais indicado por ter o perfil certo de público.",
           "Você não precisa de muito dinheiro para começar — R$10 a R$20 por dia já traz resultados visíveis.",
         ],
         tips: [
@@ -429,7 +429,7 @@ const MODULES: Module[] = [
         icon: Share2,
         content: [
           "Após a permissão, apresente a oportunidade de forma clara, simples e sem exageros.",
-          "Script básico: 'A Spark Ads é uma plataforma onde você compartilha publicidades de marcas no seu Instagram e recebe bônus diários por isso. O investimento inicial é de $20 (plano Beginner) e você pode sacar a partir de $50.'",
+          "Script básico: 'A Viral Hub é uma plataforma onde você compartilha publicidades de marcas no seu Instagram e recebe bônus diários por isso. O investimento inicial é de $20 (plano Beginner) e você pode sacar a partir de $50.'",
           "Envie prints ou prints de saque logo após a apresentação — prova social é o melhor argumento.",
           "Não envie um áudio longo no primeiro contato. Use texto curto e direto, depois ofereça um áudio para quem quiser mais detalhes.",
           "Após apresentar, faça uma pergunta: 'Faz sentido pra você? Quer saber mais sobre como funciona o dia a dia?'",
@@ -467,10 +467,10 @@ const MODULES: Module[] = [
     color: "#059669",
     lessons: [
       {
-        title: "Entendendo o programa de afiliados da Spark Ads",
+        title: "Entendendo o programa de afiliados da Viral Hub",
         icon: Share2,
         content: [
-          "O programa de afiliados da Spark Ads permite que você ganhe bônus ao indicar novas pessoas para a plataforma.",
+          "O programa de afiliados da Viral Hub permite que você ganhe bônus ao indicar novas pessoas para a plataforma.",
           "Quando um indicado seu ativa um pacote, você recebe um bônus de adesão imediato.",
           "Além disso, você recebe bônus residuais pelos ganhos dos seus indicados diretos e indiretos (até 3 níveis).",
           "Nível 1 (indicados diretos): maior percentual de bônus.",

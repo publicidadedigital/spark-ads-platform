@@ -470,6 +470,22 @@ function CampaignCard({ campaign, index, alreadyShared, profileId, cycleId, regi
           <h3 className="line-clamp-2 min-h-10 text-sm font-semibold">{campaign.titulo}</h3>
           <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{campaign.texto_sugerido}</p>
         </div>
+        {campaign.link_campanha && (
+          <div className="rounded-lg border border-primary/25 bg-primary/5 px-3 py-2 text-left">
+            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Link para compartilhar</p>
+            <div className="flex items-center gap-2">
+              <span className="min-w-0 flex-1 truncate text-xs text-primary">{campaign.link_campanha}</span>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-6 shrink-0 px-2 text-[10px] text-muted-foreground hover:text-foreground"
+                onClick={() => { navigator.clipboard.writeText(campaign.link_campanha); toast.success("Link copiado!"); }}
+              >
+                <Link2 className="h-3 w-3 mr-1" /> Copiar
+              </Button>
+            </div>
+          </div>
+        )}
         <Button
           size="sm"
           variant="ghost"
@@ -837,6 +853,23 @@ function ShareDialog({ campaign, profileId, cycleId, registeredInstagram, approv
               </ToggleGroupItem>
             </ToggleGroup>
           </div>
+          {campaign.link_campanha && (
+            <div className="rounded-lg border border-primary/25 bg-primary/5 px-3 py-2">
+              <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Link que deve aparecer na publicação</p>
+              <div className="flex items-center gap-2">
+                <span className="min-w-0 flex-1 truncate text-xs text-primary">{campaign.link_campanha}</span>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 shrink-0 px-2 text-[10px] text-muted-foreground hover:text-foreground"
+                  onClick={() => { navigator.clipboard.writeText(campaign.link_campanha); toast.success("Link copiado!"); }}
+                >
+                  <Link2 className="h-3 w-3 mr-1" /> Copiar
+                </Button>
+              </div>
+            </div>
+          )}
           <div>
             <Label>{t("campaigns.linkLabel")}</Label>
             <Input value={link} onChange={(e) => setLink(e.target.value)} placeholder={t("campaigns.linkPlaceholder")} />

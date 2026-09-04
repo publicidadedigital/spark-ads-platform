@@ -115,6 +115,7 @@ export const translations: Record<Lang, Dict> = {
 
     "appNav.dashboard": "Dashboard",
     "appNav.campanhas": "Campanhas",
+    "appNav.curso": "Curso",
     "appNav.rede": "Rede",
     "appNav.extrato": "Extrato",
     "appNav.saque": "Saque",
@@ -788,6 +789,7 @@ export const translations: Record<Lang, Dict> = {
 
     "appNav.dashboard": "Dashboard",
     "appNav.campanhas": "Campaigns",
+    "appNav.curso": "Course",
     "appNav.rede": "Network",
     "appNav.extrato": "Statement",
     "appNav.saque": "Withdraw",
@@ -1461,6 +1463,7 @@ export const translations: Record<Lang, Dict> = {
 
     "appNav.dashboard": "Panel",
     "appNav.campanhas": "Campañas",
+    "appNav.curso": "Curso",
     "appNav.rede": "Red",
     "appNav.extrato": "Extracto",
     "appNav.saque": "Retiro",

@@ -549,7 +549,7 @@ function CursoPage() {
           <GraduationCap className="h-7 w-7 text-primary" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold">Curso Spark Ads</h1>
+          <h1 className="text-2xl font-bold">Curso Viral Hub</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {MODULES.length} módulos · {totalLessons} aulas · Texto + dicas práticas
           </p>

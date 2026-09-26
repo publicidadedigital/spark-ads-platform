@@ -374,6 +374,8 @@ function CampanhasPage() {
                     ? bonusInfo.observacao
                     : bonusStatus === "cancelado"
                     ? "Mínimo de 5 aprovações não atingido"
+                    : s.status === "aprovada" && !isToday && bonusStatus !== "pendente"
+                    ? "Mínimo de 5 aprovações não atingido"
                     : null;
 
                   const motivoColor = s.motivo_rejeicao

@@ -55,6 +55,8 @@ type Share = {
   campaigns?: { titulo: string } | null;
 };
 
+type MissedDay = { day: string; approved: number };
+
 type Stats = {
   nome: string;
   saldo: number;
@@ -70,6 +72,7 @@ type Stats = {
   points: number;
   recentShares: Share[];
   bonuses: Bonus[];
+  missedBonusDays: MissedDay[];
 };
 
 const DAILY_GOAL = 5;
@@ -119,7 +122,10 @@ function Dashboard() {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      const [{ data: cycle }, { count: sharesHoje }, { data: bonuses }, { data: recentShares }, { data: pointEvents }] = await Promise.all([
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const [{ data: cycle }, { count: sharesHoje }, { data: bonuses }, { data: recentShares }, { data: pointEvents }, { data: recentAllShares }] = await Promise.all([
         supabase
           .from("user_cycles")
           .select("percentual_atual, saldo_bonificacoes, status, renewal_grace_until")
@@ -148,7 +154,33 @@ function Dashboard() {
           .select("points")
           .eq("user_id", profileId)
           .eq("status", "valid"),
+        supabase
+          .from("campaign_shares")
+          .select("status,operational_day,created_at")
+          .eq("user_id", profileId)
+          .eq("status", "aprovada")
+          .gte("created_at", thirtyDaysAgo.toISOString()),
       ]);
+
+      // Group approved shares by day (use operational_day if set, else created_at date in BR timezone)
+      const sharesByDay: Record<string, number> = {};
+      for (const share of recentAllShares ?? []) {
+        const day = share.operational_day
+          ? share.operational_day
+          : new Date(share.created_at).toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
+        sharesByDay[day] = (sharesByDay[day] ?? 0) + 1;
+      }
+      const bonusDaysSet = new Set(
+        (bonuses ?? [])
+          .filter((b: Bonus) => b.tipo === "diario" && b.status !== "cancelado")
+          .map((b: Bonus) => b.created_at.slice(0, 10))
+      );
+      const todayStr = new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
+      const missedBonusDays: MissedDay[] = Object.entries(sharesByDay)
+        .filter(([day, count]) => count > 0 && count < 5 && !bonusDaysSet.has(day) && day !== todayStr)
+        .map(([day, approved]) => ({ day, approved }))
+        .sort((a, b) => b.day.localeCompare(a.day))
+        .slice(0, 10);
 
       const releasedBonuses = (bonuses ?? []).filter((bonus: Bonus) => bonus.status === "liberado");
       const sumBy = (type: string) => releasedBonuses
@@ -172,6 +204,7 @@ function Dashboard() {
         points: Math.round((pointEvents ?? []).reduce((total, row) => total + moneyValue(row.points), 0)),
         recentShares: (recentShares ?? []) as unknown as Share[],
         bonuses: releasedBonuses as Bonus[],
+        missedBonusDays,
       });
       setLoading(false);
     })();
@@ -220,6 +253,7 @@ function Dashboard() {
     <div className="dashboard-page space-y-4">
       {!twoFactorEnabled && <TwoFactorReminderBanner to="/app/seguranca" />}
       <CycleWarningBanner cycle={s.cycle} />
+      {s.missedBonusDays.length > 0 && <MissedBonusAlert days={s.missedBonusDays} />}
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_290px]">
         <div className="space-y-4">
           <Card className="overflow-hidden border-primary/15 bg-card/50 p-4 md:p-5">
@@ -672,6 +706,50 @@ function formatShortDate(value: string) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function MissedBonusAlert({ days }: { days: MissedDay[] }) {
+  const [open, setOpen] = useState(false);
+  const fmtDay = (d: string) =>
+    new Date(d + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+
+  return (
+    <div className="rounded-lg border border-amber-400/30 bg-amber-500/10 p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+          <div>
+            <p className="text-sm font-medium text-amber-200">
+              {days.length === 1
+                ? `1 dia sem bônus diário nos últimos 30 dias`
+                : `${days.length} dias sem bônus diário nos últimos 30 dias`}
+            </p>
+            <p className="text-xs text-amber-300/70 mt-0.5">
+              Nesses dias você tinha compartilhamentos aprovados, mas não chegou a 5 para receber o bônus.
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => setOpen((v) => !v)}
+          className="shrink-0 text-xs text-amber-300 hover:text-amber-200 underline"
+        >
+          {open ? "Ocultar" : "Ver dias"}
+        </button>
+      </div>
+      {open && (
+        <div className="mt-3 space-y-1.5 border-t border-amber-400/20 pt-3">
+          {days.map((d) => (
+            <div key={d.day} className="flex items-center justify-between text-xs">
+              <span className="text-amber-200">{fmtDay(d.day)}</span>
+              <span className="text-amber-300/80">
+                {d.approved} de 5 compartilhamentos — faltou {5 - d.approved}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function CycleWarningBanner({ cycle }: { cycle: Stats["cycle"] }) {

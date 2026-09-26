@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, CheckCircle, Clock, Pencil, TrendingUp, Users, Wallet, XCircle } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CheckCircle, Clock, Pencil, TrendingUp, Users, Wallet, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/usuario/$profileId")({ component: AdminUserDashboard });
@@ -139,6 +139,23 @@ export function AdminUserDashboard() {
   const totalBonus = releasedBonuses.reduce((s, b) => s + Number(b.valor), 0);
   const sharesToday = shares.filter((s) => s.operational_day === todayBRStr);
   const approvedToday = sharesToday.filter((s) => s.status === "aprovada").length;
+
+  // Compute missed bonus days from loaded shares
+  const sharesByDay: Record<string, number> = {};
+  for (const s of shares) {
+    if (s.status !== "aprovada") continue;
+    const day = s.operational_day || new Date(s.created_at).toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
+    sharesByDay[day] = (sharesByDay[day] ?? 0) + 1;
+  }
+  const bonusDaySet = new Set(
+    bonuses
+      .filter((b) => b.tipo === "diario" && b.status !== "cancelado")
+      .map((b) => (b.operational_day ? b.operational_day : b.created_at.slice(0, 10)))
+  );
+  const missedDays = Object.entries(sharesByDay)
+    .filter(([day, count]) => count > 0 && count < 5 && !bonusDaySet.has(day) && day !== todayBRStr)
+    .map(([day, approved]) => ({ day, approved }))
+    .sort((a, b) => b.day.localeCompare(a.day));
 
   const STATUS_BADGE: Record<string, JSX.Element> = {
     aprovada: <Badge className="border-success/30 bg-success/10 text-success text-[10px]">Aprovada</Badge>,
@@ -326,6 +343,48 @@ export function AdminUserDashboard() {
           </div>
         </Card>
       </div>
+
+      {/* Dias com bônus perdido */}
+      {missedDays.length > 0 && (
+        <Card className="border-amber-400/30 bg-amber-500/10 p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertTriangle className="h-4 w-4 text-amber-400" />
+            <h2 className="font-semibold text-amber-200">
+              Dias sem bônus diário ({missedDays.length})
+            </h2>
+            <span className="text-xs text-amber-300/70 ml-1">— aprovações insuficientes para gerar bônus</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead className="border-b border-amber-400/20 text-amber-300/70">
+                <tr>
+                  <th className="text-left py-1.5 pr-3">Data</th>
+                  <th className="text-left py-1.5 pr-3">Aprovadas</th>
+                  <th className="text-left py-1.5">Faltaram</th>
+                </tr>
+              </thead>
+              <tbody>
+                {missedDays.map(({ day, approved }) => (
+                  <tr key={day} className="border-b border-amber-400/10">
+                    <td className="py-1.5 pr-3 text-amber-200">
+                      {new Date(day + "T12:00:00").toLocaleDateString("pt-BR")}
+                    </td>
+                    <td className="py-1.5 pr-3">
+                      <span className="font-semibold text-amber-300">{approved}</span>
+                      <span className="text-amber-300/60"> de 5</span>
+                    </td>
+                    <td className="py-1.5">
+                      <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 bg-amber-500/20 text-amber-300 font-medium">
+                        {5 - approved} compartilhamento{5 - approved !== 1 ? "s" : ""}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
 
       {/* Rede indicada */}
       {network.length > 0 && (

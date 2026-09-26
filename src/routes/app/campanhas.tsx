@@ -357,74 +357,75 @@ function CampanhasPage() {
           {historyShares.length > 0 && (
             <Card className="border-primary/15 bg-card/50 p-5">
               <h2 className="font-semibold mb-3">{t("campaigns.historyTitle")}</h2>
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[700px] text-sm">
-                  <thead className="text-xs text-muted-foreground">
-                    <tr className="border-b border-border/50">
-                      <th className="px-3 py-2 text-left font-medium">{t("campaigns.colAd")}</th>
-                      <th className="px-3 py-2 text-left font-medium">{t("campaigns.colLinkSent")}</th>
-                      <th className="px-3 py-2 text-left font-medium">{t("campaigns.colStatus")}</th>
-                      <th className="px-3 py-2 text-left font-medium">{t("campaigns.colSentAt")}</th>
-                      <th className="px-3 py-2 text-left font-medium">Aprovado em</th>
-                      <th className="px-3 py-2 text-left font-medium">Bônus</th>
-                      <th className="px-3 py-2 text-left font-medium">Motivo</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {historyShares.map((s) => {
-                      const camp = (s as any).campaigns;
-                      const day = s.created_at ? new Date(s.created_at).toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" }) : undefined;
-                      const todayStr = new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
-                      const isToday = day === todayStr;
-                      const bonusInfo = day ? dailyBonusByDay[day] : undefined;
-                      const bonusStatus = bonusInfo?.status;
-                      return (
-                        <tr key={s.id} className="border-b border-border/30 last:border-0 align-top">
-                          <td className="px-3 py-2">
-                            <div className="flex items-center gap-2">
-                              {camp?.media_url && <img src={camp.media_url} alt="" className="h-8 w-8 rounded object-cover" />}
-                              <span className="max-w-[180px] truncate font-medium">{camp?.titulo ?? "—"}</span>
-                            </div>
-                          </td>
-                          <td className="px-3 py-2">
-                            <a href={s.shared_link} target="_blank" rel="noreferrer" className="flex items-center gap-1 max-w-[200px] truncate text-muted-foreground hover:text-primary">
-                              {s.shared_link} <ExternalLink className="h-3 w-3 shrink-0" />
-                            </a>
-                          </td>
-                          <td className="px-3 py-2">
-                            <StatusBadge status={s.status} />
-                          </td>
-                          <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">{formatTime(s.created_at)}</td>
-                          <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">
-                            {s.approved_at ? formatTime(s.approved_at) : <span className="text-muted-foreground/40">—</span>}
-                          </td>
-                          <td className="px-3 py-2">
-                            {bonusStatus === "liberado" ? (
-                              <span className="text-xs font-medium text-success">Liberado</span>
-                            ) : s.status === "pendente" || bonusStatus === "pendente" || isToday ? (
-                              <span className="text-xs font-medium text-amber-300">Pendente</span>
-                            ) : (
-                              <span className="text-xs font-medium text-destructive">Rejeitado</span>
-                            )}
-                          </td>
-                          <td className="px-3 py-2 text-xs text-muted-foreground max-w-[200px]">
-                            {s.motivo_rejeicao ? (
-                              <span className="text-destructive">{s.motivo_rejeicao}</span>
-                            ) : bonusStatus === "liberado" ? (
-                              <span className="text-success">5 publicações aprovadas</span>
-                            ) : bonusInfo?.observacao ? (
-                              <span>{bonusInfo.observacao}</span>
-                            ) : bonusStatus === "cancelado" ? (
-                              <span>Mínimo de 5 aprovações não atingido</span>
-                            ) : (
-                              <span>—</span>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+              <div className="space-y-2">
+                {historyShares.map((s) => {
+                  const camp = (s as any).campaigns;
+                  const day = s.created_at ? new Date(s.created_at).toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" }) : undefined;
+                  const todayStr = new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
+                  const isToday = day === todayStr;
+                  const bonusInfo = day ? dailyBonusByDay[day] : undefined;
+                  const bonusStatus = bonusInfo?.status;
+
+                  const motivoText = s.motivo_rejeicao
+                    ? s.motivo_rejeicao
+                    : bonusStatus === "liberado"
+                    ? "5 publicações aprovadas"
+                    : bonusInfo?.observacao
+                    ? bonusInfo.observacao
+                    : bonusStatus === "cancelado"
+                    ? "Mínimo de 5 aprovações não atingido"
+                    : null;
+
+                  const motivoColor = s.motivo_rejeicao
+                    ? "text-destructive"
+                    : bonusStatus === "liberado"
+                    ? "text-success"
+                    : "text-muted-foreground";
+
+                  const bonusLabel = bonusStatus === "liberado"
+                    ? <span className="text-xs font-medium text-success">Liberado</span>
+                    : s.status === "pendente" || bonusStatus === "pendente" || isToday
+                    ? <span className="text-xs font-medium text-amber-300">Pendente</span>
+                    : <span className="text-xs font-medium text-destructive">Rejeitado</span>;
+
+                  return (
+                    <div key={s.id} className="rounded-lg border border-border/30 bg-background/30 p-3 space-y-2">
+                      {/* Row 1: thumbnail + title + status badge */}
+                      <div className="flex items-center gap-3">
+                        {camp?.media_url && (
+                          <img src={camp.media_url} alt="" className="h-9 w-9 shrink-0 rounded object-cover" />
+                        )}
+                        <span className="flex-1 min-w-0 text-sm font-medium truncate">{camp?.titulo ?? "—"}</span>
+                        <StatusBadge status={s.status} />
+                      </div>
+
+                      {/* Row 2: link */}
+                      <a
+                        href={s.shared_link}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary truncate"
+                      >
+                        <ExternalLink className="h-3 w-3 shrink-0" />
+                        <span className="truncate">{s.shared_link}</span>
+                      </a>
+
+                      {/* Row 3: dates + bonus */}
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                        <span><span className="text-muted-foreground/60">Enviado: </span>{formatTime(s.created_at)}</span>
+                        <span><span className="text-muted-foreground/60">Aprovado: </span>{s.approved_at ? formatTime(s.approved_at) : "—"}</span>
+                        <span><span className="text-muted-foreground/60">Bônus: </span>{bonusLabel}</span>
+                      </div>
+
+                      {/* Row 4: motivo — always visible, only when there's something to say */}
+                      {motivoText && (
+                        <p className={`text-xs ${motivoColor}`}>
+                          {motivoText}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </Card>
           )}
